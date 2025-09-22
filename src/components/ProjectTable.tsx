@@ -1,8 +1,8 @@
-import type { Project } from "@/types/project";
+import type { ProjectResponse } from "@/types/projectResponse.ts";
 import {Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 
 type ProjectTableProps = {
-  projects: Project[];
+  projects: ProjectResponse[];
 };
 
 export function ProjectTable({ projects }: ProjectTableProps) {

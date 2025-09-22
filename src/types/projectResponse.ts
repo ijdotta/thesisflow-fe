@@ -22,7 +22,7 @@ interface Participant {
   role: string,
 }
 
-export interface Project {
+export interface ProjectResponse {
   id: string,
   title: string,
   type: string,
