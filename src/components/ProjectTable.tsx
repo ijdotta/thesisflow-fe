@@ -1,4 +1,4 @@
-import type { ProjectResponse } from "@/types/projectResponse.ts";
+import type { ProjectResponse } from "@/types/ProjectResponse.ts";
 import {Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 
 type ProjectTableProps = {

@@ -1,5 +1,5 @@
 import { api } from '@/api/axios'
-import type {ProjectResponse} from "@/types/projectResponse.ts";
+import type {ProjectResponse} from "@/types/ProjectResponse.ts";
 
 export async function getProjects(): Promise<ProjectResponse[]> {
   const { data } = await api.get('/projects')

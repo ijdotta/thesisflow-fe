@@ -1,22 +1,22 @@
-interface ApplicationDomain {
+export interface ApplicationDomain {
   id: string,
   name: string,
   description: string,
 }
 
-interface Tag {
+export interface Tag {
   id: string,
   name: string,
   description: string,
 }
 
-interface Person {
+export interface Person {
   id: string,
   name: string,
   lastname: string,
 }
 
-interface Participant {
+export interface Participant {
   id: string,
   person: Person,
   role: string,
