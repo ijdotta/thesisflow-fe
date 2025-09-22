@@ -1,8 +1,8 @@
-import axios from 'axios'
+import axios, {type InternalAxiosRequestConfig} from 'axios'
 
 export const api = axios.create({ baseURL: import.meta.env.VITE_API_BASE_URL })
 
-api.interceptors.request.use((config: { headers: { Authorization: string } }) => {
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem('accessToken')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
