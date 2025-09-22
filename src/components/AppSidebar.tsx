@@ -1,5 +1,3 @@
-import {SIDEBAR_ITEMS as items} from "@/constants/sidebar.ts";
-
 import {
   Sidebar,
   SidebarContent,
@@ -11,7 +9,11 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-export function AdminSidebar() {
+import type {SidebarItem} from "@/constants/sidebar.ts";
+
+type AppSidebarProps = { items: SidebarItem[] }
+export function AppSidebar({ items = [] }: AppSidebarProps) {
+  console.log("AppSidebar items:", items)
   return (
     <Sidebar>
       <SidebarContent>
@@ -19,7 +21,7 @@ export function AdminSidebar() {
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {Array.isArray(items) && items.map((item) => (
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton asChild>
                     <a href={item.href}>
