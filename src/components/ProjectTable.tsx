@@ -3,6 +3,7 @@ import type {Person} from "@/types/Person.ts";
 import type {Project} from "@/types/Project.ts";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {Button} from "@/components/ui/button.tsx";
+import { Edit, Trash, LucideFilePen } from "lucide-react";
 
 type ProjectTableProps = {
   projects: Project[];
@@ -23,7 +24,7 @@ export function ProjectTable({projects}: ProjectTableProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Trabajos finales</CardTitle>
-            <Button size="sm">Cargar trabajo</Button>
+            <Button size="sm"><LucideFilePen /> Cargar trabajo</Button>
           </CardHeader>
           <CardContent>
             <Table>
@@ -53,14 +54,8 @@ export function ProjectTable({projects}: ProjectTableProps) {
                     <TableCell>{mapParticipantsToCellString(project.students)}</TableCell>
                     <TableCell>{project.completion ? "Finalizado" : "En curso"}</TableCell>
                     <TableCell>
-                      <a
-                        href={`https://repositorio.utn.edu.ar/handle/123456789/${project.publicId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        Ver en Repositorio
-                      </a>
+                      <Button variant="secondary">< Edit /></Button>
+                      <Button variant="destructive">< Trash /></Button>
                     </TableCell>
                   </TableRow>
                 ))}
