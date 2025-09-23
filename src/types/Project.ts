@@ -2,7 +2,7 @@ import type {ApplicationDomain, Tag} from "@/types/ProjectResponse.ts";
 import type {Person} from "@/types/Person.ts";
 
 export interface Project {
-  id: string,
+  publicId: string,
   title: string,
   type: string,
   subtypes: string[],

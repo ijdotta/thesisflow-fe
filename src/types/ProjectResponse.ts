@@ -1,29 +1,30 @@
 export interface ApplicationDomain {
-  id: string,
+  publicId: string,
   name: string,
   description: string,
 }
 
 export interface Tag {
-  id: string,
+  publicId: string,
   name: string,
   description: string,
 }
 
 export interface Person {
   id: string,
+  publicId: string,
   name: string,
   lastname: string,
 }
 
 export interface Participant {
-  id: string,
-  person: Person,
+  // publicId: string,
+  personDTO: Person,
   role: string,
 }
 
 export interface ProjectResponse {
-  id: string,
+  publicId: string,
   title: string,
   type: string,
   subtypes: string[],

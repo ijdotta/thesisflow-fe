@@ -4,10 +4,39 @@ import type {Person} from "@/types/Person.ts";
 
 const mapParticipantToPerson = (participant: Participant): Person => {
   return {
-    id: participant.person.id,
-    name: participant.person.name,
-    lastname: participant.person.lastname,
+    id: participant.personDTO.publicId,
+    name: participant.personDTO.name,
+    lastname: participant.personDTO.lastname,
   }
+}
+
+const mapTypeToString = (type: string): string => {
+  switch (type) {
+    case "FINAL_PROJECT":
+      return "Proyecto Final"
+    case "THESIS":
+      return "Tesis"
+    default:
+      return "Desconocido"
+  }
+}
+
+const mapSubTypeToString = (subtype: string): string => {
+  switch (subtype) {
+    case "VINCULACION":
+      return "Vinculación"
+    case "INVESTIGACION":
+      return "Investigación"
+    case "EXTENSION":
+      return "Extensión"
+    default:
+      return ""
+  }
+}
+
+const mapSubtypes = (subtypes: string[]): string[] => {
+  const filtered = subtypes.map(mapSubTypeToString).filter(s => s !== "")
+  return filtered.length > 0 ? filtered : ["Ninguno"]
 }
 
 const mapProjectResponseToProject = (projectResponse: ProjectResponse): Project => {
@@ -25,7 +54,7 @@ const mapProjectResponseToProject = (projectResponse: ProjectResponse): Project 
      case "DIRECTOR":
         directors.push(person)
         break
-     case "CODIRECTOR":
+     case "CO_DIRECTOR":
         codirectors.push(person)
         break
      case "COLLABORATOR":
@@ -38,10 +67,10 @@ const mapProjectResponseToProject = (projectResponse: ProjectResponse): Project 
  })
 
   return {
-    id: projectResponse.id,
+    publicId: projectResponse.publicId,
     title: projectResponse.title,
-    type: projectResponse.type,
-    subtypes: projectResponse.subtypes,
+    type: mapTypeToString(projectResponse.type ?? ""),
+    subtypes: mapSubtypes(projectResponse.subtypes ?? []),
     initialSubmission: projectResponse.initialSubmission,
     completion: projectResponse.completion,
     applicationDomain: projectResponse.applicationDomain,

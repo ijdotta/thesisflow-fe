@@ -43,11 +43,10 @@ export function ProjectTable({projects}: ProjectTableProps) {
               </TableHeader>
               <TableBody>
                 {(projects ?? []).map((project) => (
-                  <TableRow key={project.id}>
+                  <TableRow key={project.publicId}>
                     <TableCell>{project.title}</TableCell>
                     <TableCell>{project.type}</TableCell>
                     <TableCell>{project.subtypes?.join(", ")}</TableCell>
-                    <TableCell></TableCell>
                     <TableCell>{mapParticipantsToCellString(project.directors)}</TableCell>
                     <TableCell>{mapParticipantsToCellString(project.codirectors)}</TableCell>
                     <TableCell>{mapParticipantsToCellString(project.collaborators)}</TableCell>
@@ -55,7 +54,7 @@ export function ProjectTable({projects}: ProjectTableProps) {
                     <TableCell>{project.completion ? "Finalizado" : "En curso"}</TableCell>
                     <TableCell>
                       <a
-                        href={`https://repositorio.utn.edu.ar/handle/123456789/${project.id}`}
+                        href={`https://repositorio.utn.edu.ar/handle/123456789/${project.publicId}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:underline"

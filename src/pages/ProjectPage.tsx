@@ -16,7 +16,7 @@ export function ProjectsPage() {
 
       {isLoading && <p>Loading…</p>}
       {isError && <p className="text-red-600">Error: {(error as Error)?.message}</p>}
-      {!isLoading && !isError && <ProjectTable projects={[]} />}
+      {!isLoading && !isError && <ProjectTable projects={data ?? []} />}
     </AdminLayout>
   );
 }
