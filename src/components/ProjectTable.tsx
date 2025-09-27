@@ -1,69 +1,67 @@
-import {Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import type {Person} from "@/types/Person.ts";
+import {DataTable, type Column} from "@/components/DataTable.tsx";
+import {createRestFetcher} from "@/components/restFetcher.ts";
 import type {Project} from "@/types/Project.ts";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import { Edit, Trash, LucideFilePen } from "lucide-react";
+import {Edit, Trash, EyeIcon} from "lucide-react";
 
-type ProjectTableProps = {
-  projects: Project[];
-};
-
-const mapPersonToString = (person: Person): string => {
-  return `${person.lastname}, ${person.name}`;
-}
-
-const mapParticipantsToCellString = (participants: Person[]): string => {
-  return participants.map(mapPersonToString).join("; ");
-}
-
-export function ProjectTable({projects}: ProjectTableProps) {
-  return (
-    <div className="flex justify-center p-8">
-      <div className="w-full max-w-7xl">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Trabajos finales</CardTitle>
-            <Button size="sm"><LucideFilePen /> Cargar trabajo</Button>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableCaption>Trabajos finales</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Título</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Subtipos</TableHead>
-                  <TableHead>Directores</TableHead>
-                  <TableHead>Co-directores</TableHead>
-                  <TableHead>Colaboradores</TableHead>
-                  <TableHead>Alumnos</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(projects ?? []).map((project) => (
-                  <TableRow key={project.publicId}>
-                    <TableCell>{project.title}</TableCell>
-                    <TableCell>{project.type}</TableCell>
-                    <TableCell>{project.subtypes?.join(", ")}</TableCell>
-                    <TableCell>{mapParticipantsToCellString(project.directors)}</TableCell>
-                    <TableCell>{mapParticipantsToCellString(project.codirectors)}</TableCell>
-                    <TableCell>{mapParticipantsToCellString(project.collaborators)}</TableCell>
-                    <TableCell>{mapParticipantsToCellString(project.students)}</TableCell>
-                    <TableCell>{project.completion ? "Finalizado" : "En curso"}</TableCell>
-                    <TableCell>
-                      <Button variant="secondary">< Edit /></Button>
-                      <Button variant="destructive">< Trash /></Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+const columns: Column<Project>[] = [
+  {
+    id: "title",
+    header: "Título",
+    accessor: (row) => row.title,
+    sortField: "title",
+  },
+  {
+    id: "type",
+    header: "Tipo",
+    accessor: (row) => row.type,
+    sortField: "type",
+  },
+  {
+    id: "subtypes",
+    header: "Subtipos",
+    accessor: (row) => row.subtypes?.join(", "),
+  },
+  {
+    id: "directors",
+    header: "Directores",
+    accessor: (row) => row.directors.map(s => `${s.lastname}, ${s.name}`).sort().join("\n"),
+    sortField: "directors",
+  },
+  {
+    id: "students",
+    header: "Alumnos",
+    accessor: (row) => row.students.map(s => `${s.lastname}, ${s.name}`).sort().join("\n"),
+    sortField: "students",
+  },
+  {
+    id: "status",
+    header: "Estado",
+    accessor: (row) => row.completion ? "Finalizado" : "En curso",
+  },
+  {
+    id: "actions",
+    header: "Acciones",
+    accessor: (row) => (
+      <div>
+        <Button variant="default">
+          <a href={`/projects/${row.publicId}`}>< EyeIcon /></a>
+        </Button>
+        <Button variant="secondary">
+          <a href={`/projects/${row.publicId}`}>< Edit /></a>
+        </Button>
       </div>
-    </div>
+    )
+  }
+]
+
+const fetchProjects = createRestFetcher<Project>("http://localhost:8080")
+
+export default function ProjectTable() {
+  return (
+    <DataTable<Project>
+      columns={columns}
+      fetcher={fetchProjects}
+    />
   );
 }

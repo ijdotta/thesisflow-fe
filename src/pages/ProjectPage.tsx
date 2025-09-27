@@ -1,5 +1,5 @@
 import { useProjects } from "@/hooks/useProjects";
-import { ProjectTable } from "@/components/ProjectTable";
+import ProjectTable from "@/components/ProjectTable";
 import AdminLayout from "@/layouts/AdminLayout.tsx";
 
 export function ProjectsPage() {
@@ -9,7 +9,7 @@ export function ProjectsPage() {
     <AdminLayout>
       {isLoading && <p>Loading…</p>}
       {isError && <p className="text-red-600">Error: {(error as Error)?.message}</p>}
-      {!isLoading && !isError && <ProjectTable projects={data ?? []} />}
+      {!isLoading && !isError && <ProjectTable />}
     </AdminLayout>
   );
 }
