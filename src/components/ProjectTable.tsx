@@ -1,8 +1,9 @@
-import {DataTable, type Column} from "@/components/DataTable.tsx";
-import {createRestFetcher} from "@/components/restFetcher.ts";
+import {type Column, DataTable, type Sort} from "@/components/DataTable.tsx";
 import type {Project} from "@/types/Project.ts";
 import {Button} from "@/components/ui/button.tsx";
-import {Edit, Trash, EyeIcon} from "lucide-react";
+import {Edit, EyeIcon} from "lucide-react";
+import {useProjects} from "@/hooks/useProjects.ts";
+import * as React from "react";
 
 const columns: Column<Project>[] = [
   {
@@ -44,24 +45,40 @@ const columns: Column<Project>[] = [
     header: "Acciones",
     accessor: (row) => (
       <div>
-        <Button variant="default">
-          <a href={`/projects/${row.publicId}`}>< EyeIcon /></a>
-        </Button>
-        <Button variant="secondary">
-          <a href={`/projects/${row.publicId}`}>< Edit /></a>
-        </Button>
+        <a href={`/projects/${row.publicId}`}>
+          <Button variant="default">< EyeIcon /></Button>
+        </a>
+        <a href={`/projects/${row.publicId}`}>
+          <Button variant="secondary">< Edit /></Button>
+        </a>
       </div>
     )
   }
 ]
 
-const fetchProjects = createRestFetcher<Project>("http://localhost:8080")
+export default function ProjectsTable() {
+  const [page, setPage] = React.useState(0);
+  const [size, setSize] = React.useState(25);
+  const [sort, setSort] = React.useState<Sort>({ field: "createdAt", dir: "desc" as const });
 
-export default function ProjectTable() {
+  // const { data: rows = [], total = 0, isLoading, error } =
+  const { data: rows = [], isLoading, error } =
+    useProjects({ page, size, sort, /* filters: { ...optional } */ });
+  const total = rows.length; // Temporary until API provides total
+
   return (
     <DataTable<Project>
       columns={columns}
-      fetcher={fetchProjects}
+      rows={rows}
+      total={total}
+      loading={isLoading}
+      error={error ? String(error) : null}
+      page={page}
+      size={size}
+      sort={sort}
+      onPageChange={setPage}
+      onSizeChange={setSize}
+      onSortChange={setSort}
     />
   );
 }

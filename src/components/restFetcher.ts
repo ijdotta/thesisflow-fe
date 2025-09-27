@@ -14,6 +14,8 @@ export function createRestFetcher<T>(url: string) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     // normalize to { items, total }
-    return { items: data.items as T[], total: Number(data.total ?? 0) };
+    console.log("fetcher data:", data);
+    // return { items: data.items as T[], total: Number(data.total ?? 0) };
+    return { items: data as T[], total: Number(data.total ?? 0) };
   };
 }
