@@ -1,13 +1,9 @@
 import { api } from '@/api/axios'
+import type { ApiApplicationDomain } from '@/types/ApiEntities'
 
-export interface ApplicationDomainDTO {
-  publicId: string;
-  name: string;
-  description?: string;
-}
-
-export async function searchApplicationDomains(query: string): Promise<ApplicationDomainDTO[]> {
+export async function searchApplicationDomains(query: string): Promise<ApiApplicationDomain[]> {
   const { data } = await api.get('/application-domains', { params: { q: query } });
-  return data?.content || data || [];
+  if (Array.isArray(data)) return data as ApiApplicationDomain[];
+  if (data?.content) return data.content as ApiApplicationDomain[];
+  return [];
 }
-

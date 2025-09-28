@@ -1,15 +1,9 @@
 import { api } from '@/api/axios'
+import type { ApiStudent } from '@/types/ApiEntities'
 
-export interface SimpleStudent {
-  id?: string;
-  name: string;
-  lastname: string;
-  studentId?: string;
-  career?: string;
-}
-
-export async function searchStudents(query: string): Promise<SimpleStudent[]> {
+export async function searchStudents(query: string): Promise<ApiStudent[]> {
   const { data } = await api.get('/students', { params: { q: query } });
-  return data?.content || data || [];
+  if (Array.isArray(data)) return data as ApiStudent[];
+  if (data?.content) return data.content as ApiStudent[];
+  return [];
 }
-
