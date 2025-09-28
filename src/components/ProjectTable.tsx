@@ -1,69 +1,113 @@
-import {Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import type {Person} from "@/types/Person.ts";
+import {type Column, DataTable, type Sort} from "@/components/DataTable.tsx";
 import type {Project} from "@/types/Project.ts";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import { Edit, Trash, LucideFilePen } from "lucide-react";
+import {Edit, EyeIcon} from "lucide-react";
+import {useProjects} from "@/hooks/useProjects.ts";
+import * as React from "react";
+import CreateProjectWizard from "@/components/CreateProjectWizard.tsx";
+import { useQueryClient } from '@tanstack/react-query';
 
-type ProjectTableProps = {
-  projects: Project[];
-};
+const columns: Column<Project>[] = [
+	{
+		id: "title",
+		header: "Título",
+		accessor: (row) => row.title,
+		sortField: "title",
+		filter: { type: 'text', placeholder: 'Buscar título' }
+	},
+	{
+		id: "type",
+		header: "Tipo",
+		accessor: (row) => row.type,
+		sortField: "type",
+		filter: { type: 'select', placeholder: 'Todos', options: [
+			{ value: 'THESIS', label: 'Tesis' },
+			{ value: 'PROJECT', label: 'Proyecto' },
+			{ value: 'OTHER', label: 'Otro' },
+		] }
+	},
+	{
+		id: "subtypes",
+		header: "Subtipos",
+		accessor: (row) => row.subtypes?.join(", "),
+	},
+	{
+		id: "directors",
+		header: "Directores",
+		accessor: (row) => row.directors.map(s => `${s.lastname}, ${s.name}`).sort().join("\n"),
+		sortField: "directors",
+		filter: { type: 'text', placeholder: 'Filtrar director' }
+	},
+	{
+		id: "students",
+		header: "Alumnos",
+		accessor: (row) => row.students.map(s => `${s.lastname}, ${s.name}`).sort().join("\n"),
+		sortField: "students",
+		filter: { type: 'text', placeholder: 'Filtrar alumno' }
+	},
+	{
+		id: "status",
+		header: "Estado",
+		accessor: (row) => row.completion ? "Finalizado" : "En curso",
+		sortField: "completion", // enable filter
+		filter: { type: 'select', placeholder: 'Todos', options: [
+			{ value: 'true', label: 'Finalizado' },
+			{ value: 'false', label: 'En curso' },
+		] }
+	},
+	{
+		id: "actions",
+		header: "Acciones",
+		accessor: (row) => (
+			<div className="flex gap-2">
+				<a href={`/projects/${row.publicId}`}>
+					<Button variant="default">< EyeIcon /></Button>
+				</a>
+				<a href={`/projects/${row.publicId}`}>
+					<Button variant="secondary">< Edit /></Button>
+				</a>
+			</div>
+		)
+	}
+]
 
-const mapPersonToString = (person: Person): string => {
-  return `${person.lastname}, ${person.name}`;
-}
+export default function ProjectsTable() {
+	const [page, setPage] = React.useState(0);
+	const [size, setSize] = React.useState(25);
+	const [sort, setSort] = React.useState<Sort>({ field: "createdAt", dir: "desc" });
+	const [filters, setFilters] = React.useState<Record<string, string>>({});
+	const queryClient = useQueryClient();
 
-const mapParticipantsToCellString = (participants: Person[]): string => {
-  return participants.map(mapPersonToString).join("; ");
-}
+	const { data, isLoading, error } = useProjects({ page, size, sort, filters });
+	const { projects = [], totalElements = 0 } = data ?? {};
 
-export function ProjectTable({projects}: ProjectTableProps) {
-  return (
-    <div className="flex justify-center p-8">
-      <div className="w-full max-w-7xl">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Trabajos finales</CardTitle>
-            <Button size="sm"><LucideFilePen /> Cargar trabajo</Button>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableCaption>Trabajos finales</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Título</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Subtipos</TableHead>
-                  <TableHead>Directores</TableHead>
-                  <TableHead>Co-directores</TableHead>
-                  <TableHead>Colaboradores</TableHead>
-                  <TableHead>Alumnos</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(projects ?? []).map((project) => (
-                  <TableRow key={project.publicId}>
-                    <TableCell>{project.title}</TableCell>
-                    <TableCell>{project.type}</TableCell>
-                    <TableCell>{project.subtypes?.join(", ")}</TableCell>
-                    <TableCell>{mapParticipantsToCellString(project.directors)}</TableCell>
-                    <TableCell>{mapParticipantsToCellString(project.codirectors)}</TableCell>
-                    <TableCell>{mapParticipantsToCellString(project.collaborators)}</TableCell>
-                    <TableCell>{mapParticipantsToCellString(project.students)}</TableCell>
-                    <TableCell>{project.completion ? "Finalizado" : "En curso"}</TableCell>
-                    <TableCell>
-                      <Button variant="secondary">< Edit /></Button>
-                      <Button variant="destructive">< Trash /></Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+	function handleCreated() {
+		// invalidate all project queries
+		queryClient.invalidateQueries({ queryKey: ['projects'] });
+	}
+
+	return (
+		<div className="space-y-4">
+			<div className="flex flex-wrap items-center justify-between gap-2">
+				<h2 className="text-lg font-semibold">Proyectos</h2>
+				<CreateProjectWizard onCreated={handleCreated} />
+			</div>
+			<DataTable<Project>
+				columns={columns}
+				rows={projects}
+				total={totalElements}
+				loading={isLoading}
+				error={error ? String(error) : null}
+				page={page}
+				size={size}
+				sort={sort}
+				filters={filters}
+				onPageChange={setPage}
+				onSizeChange={setSize}
+				onSortChange={setSort}
+				onFiltersChange={setFilters}
+				filterDebounceMs={500}
+			/>
+		</div>
+	);
 }
