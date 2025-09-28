@@ -36,3 +36,12 @@ export function mapApiApplicationDomainToFriendly(d: ApiApplicationDomain): Frie
     display: d.name
   }
 }
+
+export function mapApiCareerToFriendly(c: { id?: string; name: string; description?: string }): import('@/types/FriendlyEntities').FriendlyCareer {
+  return {
+    id: c.id,
+    name: c.name,
+    description: c.description,
+    display: c.name
+  }
+}

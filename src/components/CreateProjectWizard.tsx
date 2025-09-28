@@ -93,13 +93,18 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
   const dStudent = useDebounce(studentQuery, 300);
   const dDomain = useDebounce(domainQuery, 300);
 
-  const { data: dirResults = [] } = useSearchProfessors(dDir);
-  const { data: coDirResults = [] } = useSearchProfessors(dCoDir);
-  const { data: collabResults = [] } = useSearchPeople(dCollab);
-  const { data: studentResults = [] } = useSearchStudents(dStudent);
-  const { data: domainResults = [] } = useSearchApplicationDomains(dDomain);
-  const { data: careerData = [], isLoading: careersLoading } = useCareers();
-  const careerList = careerData;
+  const { data: dirResults } = useSearchProfessors(dDir);
+  const { data: coDirResults } = useSearchProfessors(dCoDir);
+  const { data: collabResults } = useSearchPeople(dCollab);
+  const { data: studentResults } = useSearchStudents(dStudent);
+  const { data: domainResults } = useSearchApplicationDomains(dDomain);
+  const { data: careerData, isLoading: careersLoading } = useCareers();
+  const dirItems = dirResults?.items ?? [];
+  const coDirItems = coDirResults?.items ?? [];
+  const collabItems = collabResults?.items ?? [];
+  const studentItems = studentResults?.items ?? [];
+  const domainItems = domainResults?.items ?? [];
+  const careerList = careerData?.items?.map(c => c.name) ?? [];
 
   function updateDraft<K extends keyof ProjectDraft>(key: K, value: ProjectDraft[K]) {
     setDraft(d => ({...d, [key]: value}));
@@ -233,11 +238,11 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
             <div className="space-y-1">
               <label className="text-sm font-medium">Dominio de aplicación</label>
               <Input value={domainQuery} onChange={e => setDomainQuery(e.target.value)} placeholder="Buscar dominio"/>
-              {!!domainResults.length && (
+              {!!domainItems.length && (
                 <div className="max-h-40 overflow-auto border rounded-md divide-y text-sm bg-background">
-                  {domainResults.map(d => (
-                    <button key={d.publicId} type="button" onClick={()=>{ updateDraft('applicationDomain', d); setDomainQuery(''); /* results auto-refresh via query hook */ }} className="w-full text-left px-2 py-1 hover:bg-accent">
-                      {d.name}
+                  {domainItems.map(d => (
+                    <button key={d.publicId} type="button" onClick={()=>{ updateDraft('applicationDomain', { publicId: d.publicId, name: d.name }); setDomainQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">
+                      {d.display}
                     </button>
                   ))}
                 </div>
@@ -267,9 +272,9 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                   setDirQuery('');
                 }}>Añadir manual</Button>
               </div>
-              {!!dirResults.length && <div className="border rounded-md max-h-36 overflow-auto divide-y text-sm mb-2">
-                {dirResults.map(p => (
-                  <button key={p.id || p.name + p.lastname} onClick={()=>{ addTo('directors', p); setDirQuery(''); /* dir results clear by query */ }} className="w-full text-left px-2 py-1 hover:bg-accent">{[p.lastname, p.name].filter(Boolean).join(', ')}</button>
+              {!!dirItems.length && <div className="border rounded-md max-h-36 overflow-auto divide-y text-sm mb-2">
+                {dirItems.map(p => (
+                  <button key={p.id} onClick={()=>{ addTo('directors', { id: p.id, name: p.name, lastname: p.lastname, email: p.email }); setDirQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
                 ))}
               </div>}
               <PersonPills list={draft.directors} onRemove={(i) => removeFrom('directors', i)}/>
@@ -285,9 +290,9 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                   setCoDirQuery('');
                 }}>Añadir manual</Button>
               </div>
-              {!!coDirResults.length && <div className="border rounded-md max-h-36 overflow-auto divide-y text-sm mb-2">
-                {coDirResults.map(p => (
-                  <button key={p.id || p.name + p.lastname} onClick={()=>{ addTo('codirectors', p); setCoDirQuery(''); /* coDir results handled by hook */ }} className="w-full text-left px-2 py-1 hover:bg-accent">{[p.lastname, p.name].filter(Boolean).join(', ')}</button>
+              {!!coDirItems.length && <div className="border rounded-md max-h-36 overflow-auto divide-y text-sm mb-2">
+                {coDirItems.map(p => (
+                  <button key={p.id} onClick={()=>{ addTo('codirectors', { id: p.id, name: p.name, lastname: p.lastname, email: p.email }); setCoDirQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
                 ))}
               </div>}
               <PersonPills list={draft.codirectors} onRemove={(i) => removeFrom('codirectors', i)}/>
@@ -303,10 +308,10 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                   setCollabQuery('');
                 }}>Añadir manual</Button>
               </div>
-              {!!collabResults.length &&
+              {!!collabItems.length &&
                   <div className="border rounded-md max-h-36 overflow-auto divide-y text-sm mb-2">
-                    {collabResults.map(p => (
-                      <button key={p.id || p.name + p.lastname} onClick={()=>{ addTo('collaborators', p); setCollabQuery(''); /* collab results handled by hook */ }} className="w-full text-left px-2 py-1 hover:bg-accent">{[p.lastname, p.name].filter(Boolean).join(', ')}</button>
+                    {collabItems.map(p => (
+                      <button key={p.id} onClick={()=>{ addTo('collaborators', { id: p.id, name: p.name, lastname: p.lastname, email: p.email }); setCollabQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
                     ))}
                   </div>}
               <PersonPills list={draft.collaborators} onRemove={(i) => removeFrom('collaborators', i)}/>
@@ -326,9 +331,9 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                 setStudentQuery('');
               }}>Añadir manual</Button>
             </div>
-            {!!studentResults.length && <div className="border rounded-md max-h-40 overflow-auto divide-y text-sm mb-3">
-              {studentResults.map(s => (
-                <button key={s.id || s.name + s.lastname} onClick={()=>{ addTo('students', s); setStudentQuery(''); /* student results handled by hook */ }} className="w-full text-left px-2 py-1 hover:bg-accent">{[s.lastname, s.name].filter(Boolean).join(', ')}</button>
+            {!!studentItems.length && <div className="border rounded-md max-h-40 overflow-auto divide-y text-sm mb-3">
+              {studentItems.map(s => (
+                <button key={s.id} onClick={()=>{ addTo('students', { id: s.id, name: s.name, lastname: s.lastname, studentId: s.studentId, career: s.career }); setStudentQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{s.display}</button>
               ))}
             </div>}
             <div className="space-y-3">

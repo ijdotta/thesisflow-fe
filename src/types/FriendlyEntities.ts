@@ -19,3 +19,9 @@ export interface FriendlyApplicationDomain {
   display: string; // name (or enriched)
 }
 
+export interface FriendlyCareer {
+  id?: string;
+  name: string;
+  description?: string;
+  display: string;
+}

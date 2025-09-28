@@ -21,6 +21,12 @@ export interface ApiApplicationDomain {
   description?: string;
 }
 
+export interface ApiCareer {
+  id?: string;
+  name: string;
+  description?: string;
+}
+
 export interface Page<T> {
   content: T[];
   totalElements: number;
@@ -28,4 +34,3 @@ export interface Page<T> {
   size: number;
   number: number;
 }
-
