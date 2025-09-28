@@ -2,7 +2,9 @@ import * as React from "react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; // added
-import { ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight, X } from "lucide-react"; // ...existing code...
+import { ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 
 export type SortDir = "asc" | "desc";
 export type Sort = { field: string; dir: SortDir };
@@ -138,6 +140,8 @@ export function DataTable<T>({
   // Active filter chips (use applied filters, not pending input)
   const activeFilterEntries = Object.entries(filters);
 
+  const CLEAR_SELECT_VALUE = '__ALL__'; // sentinel for unselected/clear state
+
   return (
     <div className="w-full space-y-3">
       {hasFilters && showFilterChips && (
@@ -145,16 +149,17 @@ export function DataTable<T>({
           <span className="text-sm font-medium">Filtros</span>
           {activeFilterEntries.length === 0 && <span className="text-muted-foreground">(ninguno)</span>}
           {activeFilterEntries.map(([field, value]) => (
-            <button
-              key={field}
-              onClick={() => updateSelectFilter(field, '')}
-              className="flex items-center gap-1 rounded-md border bg-muted px-2 py-1 hover:bg-muted/70 transition-colors"
-              title="Quitar filtro"
-            >
+            <Badge key={field} variant="outline" className="pl-2 pr-1 py-1 flex items-center gap-1">
               <span className="font-medium">{columnHeaderByField[field] || field}:</span>
               <span className="truncate max-w-[140px]">{value}</span>
-              <X className="h-3 w-3" />
-            </button>
+              <button
+                onClick={() => updateSelectFilter(field, '')}
+                className="inline-flex items-center justify-center rounded hover:bg-muted/70 transition-colors p-0.5"
+                aria-label="Quitar filtro"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
           ))}
           {activeFilterEntries.length > 0 && (
             <Button variant="outline" size="sm" onClick={clearFilters} className="h-7 px-2 gap-1">
@@ -207,17 +212,31 @@ export function DataTable<T>({
                   if (!col.sortField) return <TableHead key={col.id} style={col.width ? { width: col.width } : undefined} />;
                   const conf = col.filter || {};
                   const type = conf.type || 'text';
+                  const appliedVal = filters[col.sortField];
+                  const selectValue = appliedVal ?? CLEAR_SELECT_VALUE;
                   return (
                     <TableHead key={col.id} style={col.width ? { width: col.width } : undefined}>
                       {type === 'select' && conf.options ? (
-                        <select
-                          className="h-7 text-xs w-full border rounded-md px-1 pr-5"
-                          value={filters[col.sortField] ?? ''}
-                          onChange={(e) => updateSelectFilter(col.sortField!, e.target.value)}
+                        <Select
+                          value={selectValue}
+                          onValueChange={(val) => {
+                            if (val === CLEAR_SELECT_VALUE) {
+                              updateSelectFilter(col.sortField!, '');
+                            } else {
+                              updateSelectFilter(col.sortField!, val);
+                            }
+                          }}
                         >
-                          <option value="">{conf.placeholder || 'Todos'}</option>
-                          {conf.options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                        </select>
+                          <SelectTrigger size="sm" className="pr-6">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={CLEAR_SELECT_VALUE} size="sm">{conf.placeholder || 'Todos'}</SelectItem>
+                            {conf.options.map(opt => (
+                              <SelectItem key={opt.value} value={opt.value} size="sm">{opt.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       ) : (
                         <div className="relative">
                           <Input
@@ -279,13 +298,16 @@ export function DataTable<T>({
 
         <div className="flex items-center gap-2">
           <label className="text-sm">Rows:</label>
-          <select
-            value={size}
-            onChange={(e) => { onSizeChange(Number(e.target.value)); onPageChange(0); }}
-            className="border rounded-md px-2 py-1 text-sm"
-          >
-            {[10, 25, 50, 100].map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
+          <Select value={String(size)} onValueChange={(val) => { onSizeChange(Number(val)); onPageChange(0); }}>
+            <SelectTrigger size="sm" className="w-[90px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {['10','25','50','100'].map(n => (
+                <SelectItem key={n} value={n} size="sm">{n}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <div className="flex items-center gap-1">
             <Button variant="outline" size="sm" onClick={() => onPageChange(0)} disabled={page === 0} className="h-8" title="First">
