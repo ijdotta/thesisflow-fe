@@ -2,7 +2,7 @@ import * as React from "react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; // added
-import { ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight, X } from "lucide-react"; // added X for clear
+import { ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight, X } from "lucide-react"; // ...existing code...
 
 export type SortDir = "asc" | "desc";
 export type Sort = { field: string; dir: SortDir };
@@ -14,6 +14,11 @@ export type Column<T> = {
   sortField?: string;         // enables clickable header & filtering
   className?: string;
   width?: string;
+  filter?: {                  // NEW: filter configuration (requires sortField)
+    type?: 'text' | 'select'; // default 'text'
+    options?: { value: string; label: string }[]; // for select
+    placeholder?: string;
+  }
 };
 
 type Props<T> = {
@@ -28,22 +33,25 @@ type Props<T> = {
   size: number;
   sort: Sort;
   filters?: Record<string, string>; // key = sortField / backend field
-
   // handlers
   onPageChange: (page: number) => void;
   onSizeChange: (size: number) => void;
   onSortChange: (sort: Sort) => void;
   onFiltersChange?: (filters: Record<string, string>) => void;
+  filterDebounceMs?: number; // NEW: debounce for text filters
+  showFilterChips?: boolean; // NEW: show chips summarizing active filters
 
   empty?: React.ReactNode;
 };
 
 export function DataTable<T>({
-                                         columns, rows, total, loading, error,
-                                         page, size, sort, filters = {},
-                                         onPageChange, onSizeChange, onSortChange, onFiltersChange,
-                                         empty = <div className="text-sm text-muted-foreground p-4">No data</div>,
-                                       }: Props<T>) {
+  columns, rows, total, loading, error,
+  page, size, sort, filters = {},
+  onPageChange, onSizeChange, onSortChange, onFiltersChange,
+  filterDebounceMs = 400,
+  showFilterChips = true,
+  empty = <div className="text-sm text-muted-foreground p-4">No data</div>,
+}: Props<T>) {
   const totalPages = Math.max(1, Math.ceil((total ?? 0) / (size || 1)));
 
   function toggleSort(nextField: string) {
@@ -55,37 +63,119 @@ export function DataTable<T>({
     onPageChange(0);
   }
 
-  function updateFilter(field: string, value: string) {
+  const [inputFilters, setInputFilters] = React.useState<Record<string, string>>(filters);
+  // Refs to inputs for keyboard focusing
+  const textFilterRefs = React.useRef<HTMLInputElement[]>([]);
+  textFilterRefs.current = [];
+  const assignTextRef = (el: HTMLInputElement | null) => { if (el) textFilterRefs.current.push(el); };
+
+  React.useEffect(() => { setInputFilters(filters); }, [filters]);
+
+  function updateSelectFilter(field: string, value: string) {
     if (!onFiltersChange) return;
-    const next = { ...filters };
-    if (value.trim() === "") delete next[field]; else next[field] = value;
+    const next = { ...(filters || {}) };
+    if (!value) delete next[field]; else next[field] = value;
     onFiltersChange(next);
     onPageChange(0);
   }
 
+  function normalize(obj: Record<string,string>): Record<string,string> {
+    const out: Record<string,string> = {};
+    Object.entries(obj).forEach(([k,v]) => { const val = v.trim(); if (val) out[k]=val; });
+    return out;
+  }
+
+  React.useEffect(() => {
+    if (!onFiltersChange) return;
+    const handler = setTimeout(() => {
+      const normInput = normalize(inputFilters);
+      const normExternal = normalize(filters);
+      const same = JSON.stringify(normInput) === JSON.stringify(normExternal);
+      if (same) return;
+      onFiltersChange(normInput);
+      onPageChange(0);
+    }, filterDebounceMs);
+    return () => clearTimeout(handler);
+  }, [inputFilters, filterDebounceMs]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const debouncing = React.useMemo(() => {
+    const normInput = normalize(inputFilters);
+    const normExternal = normalize(filters);
+    return JSON.stringify(normInput) !== JSON.stringify(normExternal);
+  }, [inputFilters, filters]);
+
+  // Keyboard shortcut '/' -> focus first text filter
+  React.useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        const active = document.activeElement as HTMLElement | null;
+        if (active && (active.tagName === 'INPUT' || active.tagName === 'SELECT' || active.isContentEditable)) return;
+        if (textFilterRefs.current[0]) {
+          e.preventDefault();
+          textFilterRefs.current[0].focus();
+        }
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   function clearFilters() {
     if (!onFiltersChange) return;
+    setInputFilters({});
     onFiltersChange({});
     onPageChange(0);
   }
 
   const hasFilters = !!onFiltersChange && columns.some(c => c.sortField);
 
+  const columnHeaderByField = React.useMemo(() => {
+    const map: Record<string,string> = {};
+    columns.forEach(c => { if (c.sortField) map[c.sortField] = typeof c.header === 'string' ? c.header : c.id; });
+    return map;
+  }, [columns]);
+
+  // Active filter chips (use applied filters, not pending input)
+  const activeFilterEntries = Object.entries(filters);
+
   return (
     <div className="w-full space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-sm font-medium">{hasFilters ? "Filters" : null}</div>
-        {hasFilters && Object.keys(filters).length > 0 && (
-          <Button variant="outline" size="sm" onClick={clearFilters} className="h-8 px-2 gap-1">
-            <X className="h-4 w-4" /> Clear
-          </Button>
-        )}
-      </div>
+      {hasFilters && showFilterChips && (
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-sm font-medium">Filtros</span>
+          {activeFilterEntries.length === 0 && <span className="text-muted-foreground">(ninguno)</span>}
+          {activeFilterEntries.map(([field, value]) => (
+            <button
+              key={field}
+              onClick={() => updateSelectFilter(field, '')}
+              className="flex items-center gap-1 rounded-md border bg-muted px-2 py-1 hover:bg-muted/70 transition-colors"
+              title="Quitar filtro"
+            >
+              <span className="font-medium">{columnHeaderByField[field] || field}:</span>
+              <span className="truncate max-w-[140px]">{value}</span>
+              <X className="h-3 w-3" />
+            </button>
+          ))}
+          {activeFilterEntries.length > 0 && (
+            <Button variant="outline" size="sm" onClick={clearFilters} className="h-7 px-2 gap-1">
+              <X className="h-3 w-3" /> Limpiar todo
+            </Button>
+          )}
+          {debouncing && (
+            <span className="flex items-center gap-1 text-muted-foreground animate-pulse">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-current" />
+              aplicando…
+            </span>
+          )}
+        </div>
+      )}
+      {/* Table shell */}
       <div className="overflow-x-auto rounded-2xl border">
         <Table>
           <TableHeader>
             <TableRow>
               {columns.map(col => {
+                // ...existing code for sort header...
                 const sortable = !!col.sortField;
                 const active = sortable && sort.field === col.sortField;
                 return (
@@ -113,18 +203,45 @@ export function DataTable<T>({
             </TableRow>
             {hasFilters && (
               <TableRow>
-                {columns.map(col => (
-                  <TableHead key={col.id} style={col.width ? { width: col.width } : undefined}>
-                    {col.sortField ? (
-                      <Input
-                        value={filters[col.sortField] ?? ""}
-                        onChange={(e) => updateFilter(col.sortField!, e.target.value)}
-                        placeholder="Filtrar…"
-                        className="h-7 text-xs"
-                      />
-                    ) : null}
-                  </TableHead>
-                ))}
+                {columns.map(col => {
+                  if (!col.sortField) return <TableHead key={col.id} style={col.width ? { width: col.width } : undefined} />;
+                  const conf = col.filter || {};
+                  const type = conf.type || 'text';
+                  return (
+                    <TableHead key={col.id} style={col.width ? { width: col.width } : undefined}>
+                      {type === 'select' && conf.options ? (
+                        <select
+                          className="h-7 text-xs w-full border rounded-md px-1 pr-5"
+                          value={filters[col.sortField] ?? ''}
+                          onChange={(e) => updateSelectFilter(col.sortField!, e.target.value)}
+                        >
+                          <option value="">{conf.placeholder || 'Todos'}</option>
+                          {conf.options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                        </select>
+                      ) : (
+                        <div className="relative">
+                          <Input
+                            ref={assignTextRef}
+                            value={inputFilters[col.sortField] ?? ''}
+                            onChange={(e) => setInputFilters(prev => ({ ...prev, [col.sortField!]: e.target.value }))}
+                            placeholder={conf.placeholder || 'Filtrar…'}
+                            className="h-7 text-xs pr-6"
+                          />
+                          {inputFilters[col.sortField] && (
+                            <button
+                              type="button"
+                              onClick={() => setInputFilters(prev => { const n={...prev}; delete n[col.sortField!]; return n; })}
+                              className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-muted"
+                              aria-label="Clear"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
             )}
           </TableHeader>

@@ -11,12 +11,18 @@ const columns: Column<Project>[] = [
 		header: "Título",
 		accessor: (row) => row.title,
 		sortField: "title",
+		filter: { type: 'text', placeholder: 'Buscar título' }
 	},
 	{
 		id: "type",
 		header: "Tipo",
 		accessor: (row) => row.type,
 		sortField: "type",
+		filter: { type: 'select', placeholder: 'Todos', options: [
+			{ value: 'THESIS', label: 'Tesis' },
+			{ value: 'PROJECT', label: 'Proyecto' },
+			{ value: 'OTHER', label: 'Otro' },
+		] }
 	},
 	{
 		id: "subtypes",
@@ -28,18 +34,24 @@ const columns: Column<Project>[] = [
 		header: "Directores",
 		accessor: (row) => row.directors.map(s => `${s.lastname}, ${s.name}`).sort().join("\n"),
 		sortField: "directors",
+		filter: { type: 'text', placeholder: 'Filtrar director' }
 	},
 	{
 		id: "students",
 		header: "Alumnos",
 		accessor: (row) => row.students.map(s => `${s.lastname}, ${s.name}`).sort().join("\n"),
 		sortField: "students",
+		filter: { type: 'text', placeholder: 'Filtrar alumno' }
 	},
 	{
 		id: "status",
 		header: "Estado",
 		accessor: (row) => row.completion ? "Finalizado" : "En curso",
 		sortField: "completion", // enable filter
+		filter: { type: 'select', placeholder: 'Todos', options: [
+			{ value: 'true', label: 'Finalizado' },
+			{ value: 'false', label: 'En curso' },
+		] }
 	},
 	{
 		id: "actions",
@@ -81,6 +93,7 @@ export default function ProjectsTable() {
 			onSizeChange={setSize}
 			onSortChange={setSort}
 			onFiltersChange={setFilters}
+			filterDebounceMs={500}
 		/>
 	);
 }
