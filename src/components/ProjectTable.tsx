@@ -4,6 +4,8 @@ import {Button} from "@/components/ui/button.tsx";
 import {Edit, EyeIcon} from "lucide-react";
 import {useProjects} from "@/hooks/useProjects.ts";
 import * as React from "react";
+import CreateProjectWizard from "@/components/CreateProjectWizard.tsx";
+import { useQueryClient } from '@tanstack/react-query';
 
 const columns: Column<Project>[] = [
 	{
@@ -74,26 +76,38 @@ export default function ProjectsTable() {
 	const [size, setSize] = React.useState(25);
 	const [sort, setSort] = React.useState<Sort>({ field: "createdAt", dir: "desc" });
 	const [filters, setFilters] = React.useState<Record<string, string>>({});
+	const queryClient = useQueryClient();
 
 	const { data, isLoading, error } = useProjects({ page, size, sort, filters });
 	const { projects = [], totalElements = 0 } = data ?? {};
 
+	function handleCreated() {
+		// invalidate all project queries
+		queryClient.invalidateQueries({ queryKey: ['projects'] });
+	}
+
 	return (
-		<DataTable<Project>
-			columns={columns}
-			rows={projects}
-			total={totalElements}
-			loading={isLoading}
-			error={error ? String(error) : null}
-			page={page}
-			size={size}
-			sort={sort}
-			filters={filters}
-			onPageChange={setPage}
-			onSizeChange={setSize}
-			onSortChange={setSort}
-			onFiltersChange={setFilters}
-			filterDebounceMs={500}
-		/>
+		<div className="space-y-4">
+			<div className="flex flex-wrap items-center justify-between gap-2">
+				<h2 className="text-lg font-semibold">Proyectos</h2>
+				<CreateProjectWizard onCreated={handleCreated} />
+			</div>
+			<DataTable<Project>
+				columns={columns}
+				rows={projects}
+				total={totalElements}
+				loading={isLoading}
+				error={error ? String(error) : null}
+				page={page}
+				size={size}
+				sort={sort}
+				filters={filters}
+				onPageChange={setPage}
+				onSizeChange={setSize}
+				onSortChange={setSort}
+				onFiltersChange={setFilters}
+				filterDebounceMs={500}
+			/>
+		</div>
 	);
 }
