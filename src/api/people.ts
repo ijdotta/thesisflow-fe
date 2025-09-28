@@ -8,3 +8,8 @@ export async function searchPeople(query: string): Promise<GetPeopleResponse> {
   if (Array.isArray(data)) return { content: data as ApiPerson[], totalElements: data.length, totalPages: 1, size: data.length, number: 0 } as Page<ApiPerson>;
   return { content: [], totalElements: 0, totalPages: 0, size: 0, number: 0 } as Page<ApiPerson>;
 }
+
+export async function createPerson(body: { name: string; lastname: string }): Promise<ApiPerson> {
+  const { data } = await api.post('/people', body);
+  return data;
+}

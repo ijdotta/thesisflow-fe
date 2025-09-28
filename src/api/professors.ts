@@ -12,3 +12,8 @@ export async function searchProfessors(query: string): Promise<GetProfessorsResp
   }
   return { content: [], totalElements: 0, totalPages: 0, size: 0, number: 0 } as Page<ApiPerson>;
 }
+
+export async function createProfessor(body: { personPublicId: string; email?: string }): Promise<ApiPerson> {
+  const { data } = await api.post('/professors', body);
+  return data;
+}

@@ -13,3 +13,24 @@ export async function getProjects(props: FetchProps): Promise<GetProjectsRespons
   const { data } = await api.get('/projects', { params });
   return data
 }
+
+export interface CreateProjectBody {
+  title: string;
+  type: string;
+  subtypes: string[];
+  initialSubmission?: string;
+}
+
+export async function createProject(body: CreateProjectBody): Promise<{ publicId: string }> {
+  const { data } = await api.post('/projects', body);
+  return data;
+}
+
+export async function setProjectApplicationDomain(projectPublicId: string, applicationDomainPublicId: string): Promise<void> {
+  await api.put(`/projects/${projectPublicId}/application-domain`, { applicationDomainPublicId });
+}
+
+export async function setProjectParticipants(projectPublicId: string, participants: { personPublicId: string; role: 'STUDENT' | 'DIRECTOR' | 'CO_DIRECTOR' | 'COLLABORATOR'}[]): Promise<void> {
+  if (!participants.length) return;
+  await api.put(`/projects/${projectPublicId}/participants`, { participants });
+}

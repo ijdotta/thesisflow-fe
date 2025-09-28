@@ -12,6 +12,10 @@ import { useSearchStudents } from '@/hooks/useSearchStudents';
 import { useSearchApplicationDomains } from '@/hooks/useSearchApplicationDomains';
 import { useCareers } from '@/hooks/useCareers';
 import { useDebounce } from '@/hooks/useDebounce';
+import { createPerson } from '@/api/people';
+import { createProfessor } from '@/api/professors';
+import { createStudent, setStudentCareers } from '@/api/students';
+import { createProject, setProjectApplicationDomain, setProjectParticipants } from '@/api/projects';
 
 // --- Draft Types ---
 interface PersonBase {
@@ -23,7 +27,7 @@ interface PersonBase {
 
 interface StudentDraft extends PersonBase {
   studentId?: string;
-  careers: string[]; // multi-career support
+  careers: string[]; // store career publicIds
 }
 
 interface Domain {
@@ -104,7 +108,59 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
   const collabItems = collabResults?.items ?? [];
   const studentItems = studentResults?.items ?? [];
   const domainItems = domainResults?.items ?? [];
-  const careerList = careerData?.items?.map(c => c.name) ?? [];
+  const careerItems = careerData?.items ?? [];
+  const careerList = careerItems.map(c => c.name);
+
+  // Creation form state
+  const [showNewDirector, setShowNewDirector] = React.useState(false);
+  const [showNewCoDirector, setShowNewCoDirector] = React.useState(false);
+  const [showNewCollaborator, setShowNewCollaborator] = React.useState(false);
+  const [showNewStudent, setShowNewStudent] = React.useState(false);
+
+  const [newDirector, setNewDirector] = React.useState({ name: '', lastname: '', email: '' });
+  const [newCoDirector, setNewCoDirector] = React.useState({ name: '', lastname: '', email: '' });
+  const [newCollaborator, setNewCollaborator] = React.useState({ name: '', lastname: '', email: '' });
+  const [newStudent, setNewStudent] = React.useState({ name: '', lastname: '', studentId: '', email: '' });
+  const [newStudentCareers, setNewStudentCareers] = React.useState<string[]>([]); // stores career publicIds now
+
+  const [creating, setCreating] = React.useState<string | null>(null);
+  const [createError, setCreateError] = React.useState<string | null>(null);
+
+  function isTemp(publicId?: string){ return !publicId || publicId.startsWith('manual-'); }
+
+  async function handleCreatePerson(target: 'directors' | 'codirectors' | 'collaborators') {
+    try {
+      setCreateError(null); setCreating(target);
+      const data = target === 'directors' ? newDirector : target === 'codirectors' ? newCoDirector : newCollaborator;
+      if (!data.name || !data.lastname) { setCreateError('Nombre y apellido requeridos'); return; }
+      const person = await createPerson({ name: data.name, lastname: data.lastname });
+      if ((target === 'directors' || target === 'codirectors') && data.email) {
+        try { await createProfessor({ personPublicId: person.publicId, email: data.email }); } catch {/* ignore upgrade error */}
+      }
+      addTo(target, { publicId: person.publicId, name: person.name, lastname: person.lastname, email: data.email });
+      if (target === 'directors') { setNewDirector({ name:'', lastname:'', email:'' }); setShowNewDirector(false);}
+      if (target === 'codirectors') { setNewCoDirector({ name:'', lastname:'', email:'' }); setShowNewCoDirector(false);}
+      if (target === 'collaborators') { setNewCollaborator({ name:'', lastname:'', email:'' }); setShowNewCollaborator(false);}
+    } catch (e:any) {
+      setCreateError(e?.message || 'Error creando persona');
+    } finally { setCreating(null); }
+  }
+
+  async function handleCreateStudent() {
+    try {
+      setCreateError(null); setCreating('student');
+      if (!newStudent.name || !newStudent.lastname) { setCreateError('Nombre y apellido requeridos'); return; }
+      const person = await createPerson({ name: newStudent.name, lastname: newStudent.lastname });
+      const student = await createStudent({ personPublicId: person.publicId, studentId: newStudent.studentId || undefined, email: newStudent.email || undefined });
+      if (newStudentCareers.length) {
+        await setStudentCareers(student.publicId || person.publicId, newStudentCareers);
+      }
+      addTo('students', { publicId: student.publicId || person.publicId, name: person.name, lastname: person.lastname, studentId: newStudent.studentId, careers: newStudentCareers });
+      setNewStudent({ name:'', lastname:'', studentId:'', email:'' }); setNewStudentCareers([]); setShowNewStudent(false);
+    } catch (e:any) {
+      setCreateError(e?.message || 'Error creando alumno');
+    } finally { setCreating(null); }
+  }
 
   function updateDraft<K extends keyof ProjectDraft>(key: K, value: ProjectDraft[K]) {
     setDraft(d => ({...d, [key]: value}));
@@ -112,7 +168,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
 
   function addTo(key: 'directors' | 'codirectors' | 'collaborators' | 'students', item: any) {
     if (key === 'students') {
-      const normalized = { publicId: item.publicId || `manual-${Date.now()}-${Math.random().toString(36).slice(2)}`, careers: [], ...item };
+      const normalized = { publicId: item.publicId || `manual-${Date.now()}-${Math.random().toString(36).slice(2)}`, careers: item.careers || [], ...item };
       setDraft(d => ({...d, students: [...d.students, normalized]}));
     } else {
       const normalized = { publicId: item.publicId || `manual-${Date.now()}-${Math.random().toString(36).slice(2)}`, ...item };
@@ -134,34 +190,84 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
     setError(null);
   }
 
+  // find career name helper
+  function careerNameById(id: string){ return careerItems.find(c => c.publicId === id)?.name || id; }
+
+  async function persistDirector(d: PersonBase): Promise<PersonBase> {
+    if (!isTemp(d.publicId)) return d; // already persisted
+    const person = await createPerson({ name: d.name, lastname: d.lastname });
+    // upgrade to professor if email provided
+    try { if (d.email) await createProfessor({ personPublicId: person.publicId, email: d.email }); } catch {/* ignore */}
+    return { ...d, publicId: person.publicId };
+  }
+  async function persistCollaborator(c: PersonBase): Promise<PersonBase> {
+    if (!isTemp(c.publicId)) return c;
+    const person = await createPerson({ name: c.name, lastname: c.lastname });
+    return { ...c, publicId: person.publicId };
+  }
+  async function persistStudent(s: StudentDraft): Promise<StudentDraft> {
+    if (!isTemp(s.publicId)) return s;
+    const person = await createPerson({ name: s.name, lastname: s.lastname });
+    const student = await createStudent({ personPublicId: person.publicId, studentId: s.studentId, email: s.email });
+    if (s.careers?.length) {
+      // careers store publicIds already
+      await setStudentCareers(student.publicId || person.publicId, s.careers);
+    }
+    return { ...s, publicId: student.publicId || person.publicId };
+  }
+
+  async function persistAllManualEntities() {
+    // Persist students first (they may need careers association early but independent)
+    const newStudents = await Promise.all(draft.students.map(persistStudent));
+    const newDirectors = await Promise.all(draft.directors.map(persistDirector));
+    const newCoDirectors = await Promise.all(draft.codirectors.map(persistDirector));
+    const newCollaborators = await Promise.all(draft.collaborators.map(persistCollaborator));
+    setDraft(d => ({ ...d, students: newStudents, directors: newDirectors, codirectors: newCoDirectors, collaborators: newCollaborators }));
+    return { newStudents, newDirectors, newCoDirectors, newCollaborators };
+  }
+
   async function submit() {
     setSaving(true);
     setError(null);
     try {
-      // Build payload (adjust according to backend expectation)
-      const payload = {
+      // 1. Persist any manual entities so we have real publicIds
+      const { newStudents, newDirectors, newCoDirectors, newCollaborators } = await persistAllManualEntities();
+
+      // 2. Create base project (without participants / domain)
+      const project = await createProject({
         title: draft.title,
         type: draft.type,
         subtypes: draft.subtypes,
-        applicationDomainId: draft.applicationDomain?.publicId,
-        initialSubmission: draft.initialSubmission,
-        directors: draft.directors.map(p => p.publicId),
-        codirectors: draft.codirectors.map(p => p.publicId),
-        collaborators: draft.collaborators.map(p => p.publicId),
-        students: draft.students.map(s => ({
-          publicId: s.publicId,
-          name: s.name,
-          lastname: s.lastname,
-          studentId: s.studentId,
-          careers: s.careers
-        }))
-      };
-      await api.post('/projects', payload);
+        initialSubmission: draft.initialSubmission || undefined,
+      });
+
+      // 3. Set application domain if chosen
+      if (draft.applicationDomain?.publicId) {
+        await setProjectApplicationDomain(project.publicId, draft.applicationDomain.publicId);
+      }
+
+      // 4. Build participants list (unique by publicId + role)
+      const participantsMap = new Map<string, { personPublicId: string; role: 'STUDENT' | 'DIRECTOR' | 'CO_DIRECTOR' | 'COLLABORATOR' }>();
+      function addParticipant(personPublicId?: string, role?: 'STUDENT' | 'DIRECTOR' | 'CO_DIRECTOR' | 'COLLABORATOR') {
+        if (!personPublicId || !role) return;
+        const key = personPublicId + role;
+        if (!participantsMap.has(key)) participantsMap.set(key, { personPublicId, role });
+      }
+      newDirectors.forEach(d => addParticipant(d.publicId, 'DIRECTOR'));
+      newCoDirectors.forEach(d => addParticipant(d.publicId, 'CO_DIRECTOR'));
+      newCollaborators.forEach(c => addParticipant(c.publicId, 'COLLABORATOR'));
+      newStudents.forEach(s => addParticipant(s.publicId, 'STUDENT'));
+
+      const participants = Array.from(participantsMap.values());
+      if (participants.length) {
+        await setProjectParticipants(project.publicId, participants);
+      }
+
       onCreated?.();
       setOpen(false);
       reset();
-    } catch (e: any) {
-      setError(e?.message || 'Error al crear el proyecto');
+    } catch (e:any) {
+      setError(e?.message || 'Error creando proyecto');
     } finally {
       setSaving(false);
     }
@@ -284,6 +390,20 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                 ))}
               </div>}
               <PersonPills list={draft.directors} onRemove={(i) => removeFrom('directors', i)}/>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button type="button" variant="ghost" size="sm" onClick={()=>setShowNewDirector(s=>!s)}>{showNewDirector? 'Cancelar' : 'Nuevo Director'}</Button>
+              </div>
+              {showNewDirector && (
+                <div className="border rounded-md p-3 space-y-2 bg-muted/30">
+                  <div className="flex gap-2">
+                    <Input placeholder="Nombre" value={newDirector.name} onChange={e=>setNewDirector(d=>({...d,name:e.target.value}))} className="h-8" />
+                    <Input placeholder="Apellido" value={newDirector.lastname} onChange={e=>setNewDirector(d=>({...d,lastname:e.target.value}))} className="h-8" />
+                    <Input placeholder="Email (opcional)" value={newDirector.email} onChange={e=>setNewDirector(d=>({...d,email:e.target.value}))} className="h-8" />
+                    <Button disabled={creating==='directors'} onClick={()=>handleCreatePerson('directors')} className="h-8">{creating==='directors'? 'Creando...' : 'Guardar'}</Button>
+                  </div>
+                  {createError && creating==='directors' && <div className="text-xs text-red-600">{createError}</div>}
+                </div>
+              )}
             </div>
             {/* Co-directors */}
             <div className="space-y-2">
@@ -302,6 +422,20 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                 ))}
               </div>}
               <PersonPills list={draft.codirectors} onRemove={(i) => removeFrom('codirectors', i)}/>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button type="button" variant="ghost" size="sm" onClick={()=>setShowNewCoDirector(s=>!s)}>{showNewCoDirector? 'Cancelar':'Nuevo Co-director'}</Button>
+              </div>
+              {showNewCoDirector && (
+                <div className="border rounded-md p-3 space-y-2 bg-muted/30">
+                  <div className="flex gap-2">
+                    <Input placeholder="Nombre" value={newCoDirector.name} onChange={e=>setNewCoDirector(d=>({...d,name:e.target.value}))} className="h-8" />
+                    <Input placeholder="Apellido" value={newCoDirector.lastname} onChange={e=>setNewCoDirector(d=>({...d,lastname:e.target.value}))} className="h-8" />
+                    <Input placeholder="Email (opcional)" value={newCoDirector.email} onChange={e=>setNewCoDirector(d=>({...d,email:e.target.value}))} className="h-8" />
+                    <Button disabled={creating==='codirectors'} onClick={()=>handleCreatePerson('codirectors')} className="h-8">{creating==='codirectors'? 'Creando...' : 'Guardar'}</Button>
+                  </div>
+                  {createError && creating==='codirectors' && <div className="text-xs text-red-600">{createError}</div>}
+                </div>
+              )}
             </div>
             {/* Collaborators */}
             <div className="space-y-2">
@@ -321,6 +455,20 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                     ))}
                   </div>}
               <PersonPills list={draft.collaborators} onRemove={(i) => removeFrom('collaborators', i)}/>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button type="button" variant="ghost" size="sm" onClick={()=>setShowNewCollaborator(s=>!s)}>{showNewCollaborator? 'Cancelar':'Nuevo Colaborador'}</Button>
+              </div>
+              {showNewCollaborator && (
+                <div className="border rounded-md p-3 space-y-2 bg-muted/30">
+                  <div className="flex gap-2">
+                    <Input placeholder="Nombre" value={newCollaborator.name} onChange={e=>setNewCollaborator(d=>({...d,name:e.target.value}))} className="h-8" />
+                    <Input placeholder="Apellido" value={newCollaborator.lastname} onChange={e=>setNewCollaborator(d=>({...d,lastname:e.target.value}))} className="h-8" />
+                    <Input placeholder="Email (opcional)" value={newCollaborator.email} onChange={e=>setNewCollaborator(d=>({...d,email:e.target.value}))} className="h-8" />
+                    <Button disabled={creating==='collaborators'} onClick={()=>handleCreatePerson('collaborators')} className="h-8">{creating==='collaborators'? 'Creando...' : 'Guardar'}</Button>
+                  </div>
+                  {createError && creating==='collaborators' && <div className="text-xs text-red-600">{createError}</div>}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -376,7 +524,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                       <div className="border rounded-md p-2 flex flex-wrap gap-1 min-h-8 bg-muted/30">
                         {s.careers?.length ? s.careers.map(c => (
                           <span key={c} className="text-xs px-2 py-0.5 rounded-md bg-primary/10 border border-primary/40 flex items-center gap-1">
-                            {c}
+                            {careerNameById(c)}
                             <button type="button" className="hover:text-destructive" onClick={()=>{
                               setDraft(d=>{ const arr=[...d.students]; arr[i]={...arr[i], careers: arr[i].careers.filter(x=>x!==c)}; return {...d, students:arr}; });
                             }}>
@@ -391,7 +539,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                       }} value="">
                         <SelectTrigger className="h-8"><SelectValue placeholder="Agregar carrera" /></SelectTrigger>
                         <SelectContent>
-                          {careerList.filter(c => !s.careers.includes(c)).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                          {careerItems.filter(ci => !s.careers.includes(ci.publicId)).map(ci => <SelectItem key={ci.publicId} value={ci.publicId}>{ci.name}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
@@ -402,6 +550,35 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
             {!careerList.length && !careersLoading && (
               <div className="text-xs text-yellow-600 bg-yellow-100/40 p-2 rounded-md border border-yellow-200">
                 No hay carreras disponibles. Cree una carrera y vuelva para asignarla si es necesario.
+              </div>
+            )}
+            <div className="flex items-center gap-2 mb-2">
+              <Button type="button" variant="ghost" size="sm" onClick={()=>setShowNewStudent(s=>!s)}>{showNewStudent? 'Cancelar':'Nuevo Alumno'}</Button>
+            </div>
+            {showNewStudent && (
+              <div className="border rounded-md p-3 space-y-2 bg-muted/30 mb-4">
+                <div className="flex flex-wrap gap-2">
+                  <Input placeholder="Nombre" value={newStudent.name} onChange={e=>setNewStudent(d=>({...d,name:e.target.value}))} className="h-8 w-40" />
+                  <Input placeholder="Apellido" value={newStudent.lastname} onChange={e=>setNewStudent(d=>({...d,lastname:e.target.value}))} className="h-8 w-40" />
+                  <Input placeholder="Legajo" value={newStudent.studentId} onChange={e=>setNewStudent(d=>({...d,studentId:e.target.value}))} className="h-8 w-32" />
+                  <Input placeholder="Email (opcional)" value={newStudent.email} onChange={e=>setNewStudent(d=>({...d,email:e.target.value}))} className="h-8 w-52" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Carreras</label>
+                  <div className="flex flex-wrap gap-2">
+                    {careerItems.map(c => {
+                      const active = newStudentCareers.includes(c.publicId);
+                      return (
+                        <button key={c.publicId} type="button" onClick={()=>setNewStudentCareers(list=> active? list.filter(id=>id!==c.publicId) : [...list,c.publicId])} className={`px-2 py-1 rounded-md border text-xs ${active? 'bg-primary text-primary-foreground border-primary':'bg-muted hover:bg-muted/70'}`}>{c.name}</button>
+                      )
+                    })}
+                    {!careerItems.length && <span className="text-xs text-muted-foreground">No hay carreras</span>}
+                  </div>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <Button disabled={creating==='student'} onClick={handleCreateStudent} className="h-8">{creating==='student'? 'Creando...' : 'Guardar Alumno'}</Button>
+                  {createError && creating==='student' && <span className="text-xs text-red-600">{createError}</span>}
+                </div>
               </div>
             )}
           </div>
@@ -429,63 +606,35 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
               <div className="flex justify-between gap-4"><span className="font-medium">Colaboradores</span><span
                 className="text-right max-w-[60%] break-words">{draft.collaborators.map(p => [p.lastname, p.name].filter(Boolean).join(', ')).join(' • ') || '—'}</span>
               </div>
-              <div className="flex justify-between gap-4"><span className="font-medium">Alumnos</span><span
-                className="text-right max-w-[60%] break-words">{draft.students.map(s => [s.lastname, s.name].filter(Boolean).join(', ')).join(' • ') || '—'}</span>
-              </div>
+              <div className="flex justify-between gap-4"><span className="font-medium">Alumnos</span><span className="text-right max-w-[60%] break-words">{draft.students.map(s => [s.lastname, s.name].filter(Boolean).join(', ')).join(' • ') || '—'}</span></div>
             </div>
-            {error && <div className="text-sm text-red-600">{error}</div>}
           </div>
         );
-      default:
-        return null;
     }
   }
 
-  const steps = ['Datos', 'Equipo', 'Alumnos', 'Resumen'];
-
   return (
-    <Sheet open={open} onOpenChange={(o) => {
-      setOpen(o);
-      if (!o) reset();
-    }}>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="default">Crear Proyecto</Button>
+        <Button variant="outline">Nuevo Proyecto</Button>
       </SheetTrigger>
-      <SheetContent side="right" className="sm:max-w-xl">
+      <SheetContent className="sm:max-w-[600px]">
         <SheetHeader>
-          <SheetTitle>Nuevo Proyecto ({steps[step]})</SheetTitle>
-          <div className="flex gap-2 text-xs text-muted-foreground flex-wrap">
-            {steps.map((s, i) => (
-              <div key={s}
-                   className={`px-2 py-1 rounded-md border ${i === step ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted'}`}>{i + 1}. {s}</div>
-            ))}
-          </div>
+          <SheetTitle>Crear nuevo proyecto</SheetTitle>
         </SheetHeader>
-        <div className="flex-1 overflow-auto">
+        {error && <div className="text-sm text-red-600 px-4 py-2 rounded-md bg-red-100 border">{error}</div>}
+        <div className="space-y-4">
           {renderStep()}
         </div>
         <SheetFooter>
-          <div className="flex justify-between gap-2 w-full">
-            <div className="flex gap-2">
-              {step > 0 && <Button type="button" variant="outline" onClick={() => setStep(s => s - 1)}>Atrás</Button>}
-              <Button type="button" variant="ghost" disabled={saving} onClick={() => {
-                reset();
-                setOpen(false);
-              }}>Cancelar</Button>
-            </div>
-            <div className="flex gap-2">
-              {step < steps.length - 1 && (
-                <Button type="button" disabled={!canNext()} onClick={() => setStep(s => s + 1)}>Siguiente</Button>
-              )}
-              {step === steps.length - 1 && (
-                <Button type="button" onClick={submit} disabled={saving || !canNext()}>
-                  {saving ? 'Guardando…' : 'Crear'}
-                </Button>
-              )}
-            </div>
+          <div className="flex justify-end gap-2">
+            {step > 0 && <Button variant="outline" onClick={() => setStep(s => s - 1)}>Anterior</Button>}
+            {step < 3 && <Button disabled={!canNext()} onClick={() => setStep(s => s + 1)}>Siguiente</Button>}
+            {step === 3 && <Button onClick={submit} isLoading={saving} loadingText="Creando...">Crear proyecto</Button>}
           </div>
         </SheetFooter>
       </SheetContent>
     </Sheet>
   );
 }
+
