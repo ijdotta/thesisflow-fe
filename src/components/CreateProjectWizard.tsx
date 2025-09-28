@@ -5,7 +5,6 @@ import {Input} from '@/components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Badge} from '@/components/ui/badge';
 import {X} from 'lucide-react';
-import {api} from '@/api/axios';
 import { useSearchProfessors } from '@/hooks/useSearchProfessors';
 import { useSearchPeople } from '@/hooks/useSearchPeople';
 import { useSearchStudents } from '@/hooks/useSearchStudents';
@@ -109,6 +108,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
   const studentItems = studentResults?.items ?? [];
   const domainItems = domainResults?.items ?? [];
   const careerItems = careerData?.items ?? [];
+  const careerItemsSorted = React.useMemo(()=>[...careerItems].sort((a,b)=>a.name.localeCompare(b.name,'es',{sensitivity:'base'})),[careerItems]);
   const careerList = careerItems.map(c => c.name);
 
   // Creation form state
@@ -127,6 +127,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
   const [createError, setCreateError] = React.useState<string | null>(null);
 
   function isTemp(publicId?: string){ return !publicId || publicId.startsWith('manual-'); }
+  function requirePublicId(obj: { publicId?: string; id?: string }): string { const pid = obj.publicId || obj.id; if(!pid) throw new Error('Missing publicId'); return pid; }
 
   async function handleCreatePerson(target: 'directors' | 'codirectors' | 'collaborators') {
     try {
@@ -134,10 +135,11 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
       const data = target === 'directors' ? newDirector : target === 'codirectors' ? newCoDirector : newCollaborator;
       if (!data.name || !data.lastname) { setCreateError('Nombre y apellido requeridos'); return; }
       const person = await createPerson({ name: data.name, lastname: data.lastname });
+      const personId = requirePublicId(person);
       if ((target === 'directors' || target === 'codirectors') && data.email) {
-        try { await createProfessor({ personPublicId: person.publicId, email: data.email }); } catch {/* ignore upgrade error */}
+        try { await createProfessor({ personPublicId: personId, email: data.email }); } catch {/* ignore upgrade error */}
       }
-      addTo(target, { publicId: person.publicId, name: person.name, lastname: person.lastname, email: data.email });
+      addTo(target, { publicId: personId, name: person.name, lastname: person.lastname, email: data.email });
       if (target === 'directors') { setNewDirector({ name:'', lastname:'', email:'' }); setShowNewDirector(false);}
       if (target === 'codirectors') { setNewCoDirector({ name:'', lastname:'', email:'' }); setShowNewCoDirector(false);}
       if (target === 'collaborators') { setNewCollaborator({ name:'', lastname:'', email:'' }); setShowNewCollaborator(false);}
@@ -151,11 +153,13 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
       setCreateError(null); setCreating('student');
       if (!newStudent.name || !newStudent.lastname) { setCreateError('Nombre y apellido requeridos'); return; }
       const person = await createPerson({ name: newStudent.name, lastname: newStudent.lastname });
-      const student = await createStudent({ personPublicId: person.publicId, studentId: newStudent.studentId || undefined, email: newStudent.email || undefined });
+      const personId = requirePublicId(person);
+      const student = await createStudent({ personPublicId: personId, studentId: newStudent.studentId || undefined, email: newStudent.email || undefined });
+      const studentId = requirePublicId(student);
       if (newStudentCareers.length) {
-        await setStudentCareers(student.publicId || person.publicId, newStudentCareers);
+        await setStudentCareers(studentId, newStudentCareers);
       }
-      addTo('students', { publicId: student.publicId || person.publicId, name: person.name, lastname: person.lastname, studentId: newStudent.studentId, careers: newStudentCareers });
+      addTo('students', { publicId: studentId, name: person.name, lastname: person.lastname, studentId: newStudent.studentId, careers: newStudentCareers });
       setNewStudent({ name:'', lastname:'', studentId:'', email:'' }); setNewStudentCareers([]); setShowNewStudent(false);
     } catch (e:any) {
       setCreateError(e?.message || 'Error creando alumno');
@@ -190,30 +194,29 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
     setError(null);
   }
 
-  // find career name helper
-  function careerNameById(id: string){ return careerItems.find(c => c.publicId === id)?.name || id; }
-
   async function persistDirector(d: PersonBase): Promise<PersonBase> {
     if (!isTemp(d.publicId)) return d; // already persisted
     const person = await createPerson({ name: d.name, lastname: d.lastname });
-    // upgrade to professor if email provided
-    try { if (d.email) await createProfessor({ personPublicId: person.publicId, email: d.email }); } catch {/* ignore */}
-    return { ...d, publicId: person.publicId };
+    const personId = requirePublicId(person);
+    try { if (d.email) await createProfessor({ personPublicId: personId, email: d.email }); } catch {/* ignore */}
+    return { ...d, publicId: personId };
   }
   async function persistCollaborator(c: PersonBase): Promise<PersonBase> {
     if (!isTemp(c.publicId)) return c;
     const person = await createPerson({ name: c.name, lastname: c.lastname });
-    return { ...c, publicId: person.publicId };
+    const personId = requirePublicId(person);
+    return { ...c, publicId: personId };
   }
   async function persistStudent(s: StudentDraft): Promise<StudentDraft> {
     if (!isTemp(s.publicId)) return s;
     const person = await createPerson({ name: s.name, lastname: s.lastname });
-    const student = await createStudent({ personPublicId: person.publicId, studentId: s.studentId, email: s.email });
+    const personId = requirePublicId(person);
+    const student = await createStudent({ personPublicId: personId, studentId: s.studentId, email: s.email });
+    const studentId = requirePublicId(student);
     if (s.careers?.length) {
-      // careers store publicIds already
-      await setStudentCareers(student.publicId || person.publicId, s.careers);
+      await setStudentCareers(studentId, s.careers);
     }
-    return { ...s, publicId: student.publicId || person.publicId };
+    return { ...s, publicId: studentId };
   }
 
   async function persistAllManualEntities() {
@@ -493,8 +496,9 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
             <div className="space-y-3">
               {draft.students.map((s, i) => (
                 <div key={i} className="border rounded-md p-3 space-y-3">
+                  {/* Inputs Row */}
                   <div className="flex gap-2 flex-wrap">
-                    <Input className="h-8 flex-1 min-w-[120px]" placeholder="Nombre" value={s.name} onChange={e => {
+                    <Input className="h-8 flex-1 min-w-[140px]" placeholder="Nombre" value={s.name} onChange={e => {
                       const v = e.target.value;
                       setDraft(d => {
                         const arr = [...d.students];
@@ -502,7 +506,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                         return {...d, students: arr};
                       });
                     }}/>
-                    <Input className="h-8 flex-1 min-w-[120px]" placeholder="Apellido" value={s.lastname}
+                    <Input className="h-8 flex-1 min-w-[140px]" placeholder="Apellido" value={s.lastname}
                            onChange={e => {
                              const v = e.target.value;
                              setDraft(d => {
@@ -519,30 +523,39 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                         return {...d, students: arr};
                       });
                     }}/>
-                    <div className="flex flex-col gap-1 w-48">
-                      <label className="text-xs font-medium">Carreras</label>
-                      <div className="border rounded-md p-2 flex flex-wrap gap-1 min-h-8 bg-muted/30">
-                        {s.careers?.length ? s.careers.map(c => (
-                          <span key={c} className="text-xs px-2 py-0.5 rounded-md bg-primary/10 border border-primary/40 flex items-center gap-1">
-                            {careerNameById(c)}
-                            <button type="button" className="hover:text-destructive" onClick={()=>{
-                              setDraft(d=>{ const arr=[...d.students]; arr[i]={...arr[i], careers: arr[i].careers.filter(x=>x!==c)}; return {...d, students:arr}; });
-                            }}>
-                              ×
-                            </button>
-                          </span>
-                        )) : <span className="text-xs text-muted-foreground">Ninguna</span>}
-                      </div>
-                      <Select onValueChange={(val)=>{
-                        if (!val) return;
-                        setDraft(d=>{ const arr=[...d.students]; if(!arr[i].careers.includes(val)) arr[i]={...arr[i], careers:[...arr[i].careers, val]}; return {...d, students:arr}; });
-                      }} value="">
-                        <SelectTrigger className="h-8"><SelectValue placeholder="Agregar carrera" /></SelectTrigger>
-                        <SelectContent>
-                          {careerItems.filter(ci => !s.careers.includes(ci.publicId)).map(ci => <SelectItem key={ci.publicId} value={ci.publicId}>{ci.name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                  </div>
+                  {/* Careers Multi-select (chip toggles) */}
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Carreras</label>
+                    <div className="flex flex-wrap gap-2">
+                      {careerItemsSorted.map(c => {
+                        const active = s.careers.includes(c.publicId);
+                        return (
+                          <button
+                            key={c.publicId}
+                            type="button"
+                            onClick={() => {
+                              setDraft(d => {
+                                const arr = [...d.students];
+                                const current = arr[i];
+                                arr[i] = {
+                                  ...current,
+                                  careers: active ? current.careers.filter(id => id !== c.publicId) : [...current.careers, c.publicId]
+                                };
+                                return { ...d, students: arr };
+                              });
+                            }}
+                            className={`px-2 py-1 rounded-md border text-xs transition-colors ${active ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted hover:bg-muted/70'}`}
+                          >
+                            {c.name}
+                          </button>
+                        );
+                      })}
+                      {!careerItems.length && <span className="text-xs text-muted-foreground">No hay carreras</span>}
                     </div>
+                    {!s.careers.length && careerItems.length > 0 && (
+                      <div className="text-[11px] text-muted-foreground">(Ninguna seleccionada)</div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -566,7 +579,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                 <div className="space-y-1">
                   <label className="text-xs font-medium">Carreras</label>
                   <div className="flex flex-wrap gap-2">
-                    {careerItems.map(c => {
+                    {careerItemsSorted.map(c => {
                       const active = newStudentCareers.includes(c.publicId);
                       return (
                         <button key={c.publicId} type="button" onClick={()=>setNewStudentCareers(list=> active? list.filter(id=>id!==c.publicId) : [...list,c.publicId])} className={`px-2 py-1 rounded-md border text-xs ${active? 'bg-primary text-primary-foreground border-primary':'bg-muted hover:bg-muted/70'}`}>{c.name}</button>
@@ -630,11 +643,10 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
           <div className="flex justify-end gap-2">
             {step > 0 && <Button variant="outline" onClick={() => setStep(s => s - 1)}>Anterior</Button>}
             {step < 3 && <Button disabled={!canNext()} onClick={() => setStep(s => s + 1)}>Siguiente</Button>}
-            {step === 3 && <Button onClick={submit} isLoading={saving} loadingText="Creando...">Crear proyecto</Button>}
+            {step === 3 && <Button onClick={submit} disabled={saving}>{saving ? 'Creando...' : 'Crear proyecto'}</Button>}
           </div>
         </SheetFooter>
       </SheetContent>
     </Sheet>
   );
 }
-
