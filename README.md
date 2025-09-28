@@ -1,69 +1,88 @@
-# React + TypeScript + Vite
+# ThesisFlow FE
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Enhanced React + TypeScript + Vite project.
 
-Currently, two official plugins are available:
+## Features
+- React 19 + TypeScript + Vite
+- React Router for clean navigation (projects, professors, students, people)
+- Global state & caching with TanStack Query
+- Reusable generic `DataTable` component with:
+  - Sorting / filtering (text + select)
+  - Debounced filter inputs
+  - Active filter chips & clear-all
+  - Pagination & page size control
+  - Loading skeleton rows + incremental update status
+  - Keyboard shortcut `/` to focus first filter
+- Modular Project Creation Wizard (steps: Basic Info, People, Students, Summary)
+- Inline creation & manual entry parsing for people/students
+- Toast notifications (success / error) on project creation
+- Reusable table state hook: `useTableState` (alias `usePaginatedTableState`)
+- Alias path imports via `@`
+- Unit tests (Vitest + Testing Library) for critical pure logic utilities
+  - `parsePersonInput`
+  - `buildParticipants`
+- Strict TypeScript config & ESLint rules
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Scripts
+```bash
+npm run dev       # start dev server
+npm run build     # type-check + production build
+npm run preview   # preview production build
+npm run lint      # lint sources
+npm run test      # run unit tests (vitest)
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Project Structure (Relevant)
 ```
+src/
+  api/                  # API layer
+  components/
+    projectWizard/      # Wizard steps, types, actions
+    ui/                 # UI primitives (button, card, toast, skeleton, etc.)
+    DataTable.tsx       # Generic data table
+  hooks/
+    useTableState.ts    # Table pagination/sort/filter state
+    usePaginatedTableState.ts # semantic alias
+  pages/                # Routed pages
+  router.tsx            # React Router definitions
+  test/                 # Vitest unit tests
+```
+
+## Adding New Entity Tables
+1. Define API list function with pagination/sort.
+2. Create hook using `useQuery`.
+3. Define `Column<T>[]` for the entity.
+4. Use `useTableState` for local control state.
+5. Render `<DataTable />` with proper handlers.
+
+## Toast Usage
+```tsx
+import { useToast } from '@/components/ui/toast';
+const { push } = useToast();
+push({ variant: 'success', title: 'Saved', message: 'Item stored.' });
+```
+
+## Testing
+Vitest configured with jsdom + Testing Library.
+```bash
+npm run test
+```
+Coverage reports (lcov + text) are generated.
+
+## Creating Projects
+Use the "Nuevo Proyecto" button on the Projects page. Steps enforce minimal validation:
+- Step 1: Title & Type required
+- Step 2: At least one Director
+- Step 3: At least one Student
+
+## Keyboard Shortcuts
+- `/` focuses first filter input when a table is visible.
+
+## Future Improvements (Suggested)
+- Add edit flows for entities
+- Server-side error mapping to user-friendly messages
+- Accessibility audits (ARIA roles on table controls)
+- More granular unit tests for wizard actions/persistence
+
+---
+Original Vite README content removed in favor of project-specific documentation.
