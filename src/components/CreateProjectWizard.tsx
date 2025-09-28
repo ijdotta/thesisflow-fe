@@ -6,6 +6,12 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/c
 import {Badge} from '@/components/ui/badge';
 import {X} from 'lucide-react';
 import {api} from '@/api/axios';
+import { useSearchProfessors } from '@/hooks/useSearchProfessors';
+import { useSearchPeople } from '@/hooks/useSearchPeople';
+import { useSearchStudents } from '@/hooks/useSearchStudents';
+import { useSearchApplicationDomains } from '@/hooks/useSearchApplicationDomains';
+import { useCareers } from '@/hooks/useCareers';
+import { useDebounce } from '@/hooks/useDebounce';
 
 // --- Draft Types ---
 interface PersonBase {
@@ -76,122 +82,24 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
 
   // Async search state (simplified)
   const [dirQuery, setDirQuery] = React.useState('');
-  const [dirResults, setDirResults] = React.useState<PersonBase[]>([]);
   const [coDirQuery, setCoDirQuery] = React.useState('');
-  const [coDirResults, setCoDirResults] = React.useState<PersonBase[]>([]);
   const [collabQuery, setCollabQuery] = React.useState('');
-  const [collabResults, setCollabResults] = React.useState<PersonBase[]>([]);
-  // students
   const [studentQuery, setStudentQuery] = React.useState('');
-  const [studentResults, setStudentResults] = React.useState<StudentDraft[]>([]);
-  // domains/careers
   const [domainQuery, setDomainQuery] = React.useState('');
-  const [domainResults, setDomainResults] = React.useState<Domain[]>([]);
-  const [careerList, setCareerList] = React.useState<string[]>([]);
 
-  // Debounces
-  function useDebounce(value: string, delay = 300) {
-    const [v, setV] = React.useState(value);
-    React.useEffect(() => {
-      const t = setTimeout(() => setV(value), delay);
-      return () => clearTimeout(t);
-    }, [value, delay]);
-    return v;
-  }
+  const dDir = useDebounce(dirQuery, 300);
+  const dCoDir = useDebounce(coDirQuery, 300);
+  const dCollab = useDebounce(collabQuery, 300);
+  const dStudent = useDebounce(studentQuery, 300);
+  const dDomain = useDebounce(domainQuery, 300);
 
-  const dDir = useDebounce(dirQuery);
-  const dCoDir = useDebounce(coDirQuery);
-  const dCollab = useDebounce(collabQuery);
-  const dStudent = useDebounce(studentQuery);
-  const dDomain = useDebounce(domainQuery);
-
-  // --- Effects (replace old ones) ---
-  React.useEffect(() => {
-    async function run() {
-      if (!dDir) {
-        setDirResults([]);
-        return;
-      }
-      try {
-        const {data} = await api.get('/professors', {params: {q: dDir}});
-        setDirResults(data?.content || data || []);
-      } catch {
-      }
-    }
-
-    run();
-  }, [dDir]);
-  React.useEffect(() => {
-    async function run() {
-      if (!dCoDir) {
-        setCoDirResults([]);
-        return;
-      }
-      try {
-        const {data} = await api.get('/professors', {params: {q: dCoDir}});
-        setCoDirResults(data?.content || data || []);
-      } catch {
-      }
-    }
-
-    run();
-  }, [dCoDir]);
-  React.useEffect(() => {
-    async function run() {
-      if (!dCollab) {
-        setCollabResults([]);
-        return;
-      }
-      try {
-        const {data} = await api.get('/people', {params: {q: dCollab}});
-        setCollabResults(data?.content || data || []);
-      } catch {
-      }
-    }
-
-    run();
-  }, [dCollab]);
-  React.useEffect(() => {
-    async function run() {
-      if (!dStudent) {
-        setStudentResults([]);
-        return;
-      }
-      try {
-        const {data} = await api.get('/students', {params: {q: dStudent}});
-        setStudentResults(data?.content || data || []);
-      } catch {
-      }
-    }
-
-    run();
-  }, [dStudent]);
-  React.useEffect(() => {
-    async function run() {
-      if (!dDomain) {
-        setDomainResults([]);
-        return;
-      }
-      try {
-        const {data} = await api.get('/application-domains', {params: {q: dDomain}});
-        setDomainResults(data?.content || data || []);
-      } catch {
-      }
-    }
-
-    run();
-  }, [dDomain]);
-  React.useEffect(() => {
-    async function run() {
-      try {
-        const {data} = await api.get('/careers');
-        setCareerList(data?.content?.map((c: any) => c.name) || data || []);
-      } catch {
-      }
-    }
-
-    run();
-  }, []);
+  const { data: dirResults = [] } = useSearchProfessors(dDir);
+  const { data: coDirResults = [] } = useSearchProfessors(dCoDir);
+  const { data: collabResults = [] } = useSearchPeople(dCollab);
+  const { data: studentResults = [] } = useSearchStudents(dStudent);
+  const { data: domainResults = [] } = useSearchApplicationDomains(dDomain);
+  const { data: careerData = [], isLoading: careersLoading } = useCareers();
+  const careerList = careerData;
 
   function updateDraft<K extends keyof ProjectDraft>(key: K, value: ProjectDraft[K]) {
     setDraft(d => ({...d, [key]: value}));
@@ -328,11 +236,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
               {!!domainResults.length && (
                 <div className="max-h-40 overflow-auto border rounded-md divide-y text-sm bg-background">
                   {domainResults.map(d => (
-                    <button key={d.publicId} type="button" onClick={() => {
-                      updateDraft('applicationDomain', d);
-                      setDomainQuery('');
-                      setDomainResults([]);
-                    }} className="w-full text-left px-2 py-1 hover:bg-accent">
+                    <button key={d.publicId} type="button" onClick={()=>{ updateDraft('applicationDomain', d); setDomainQuery(''); /* results auto-refresh via query hook */ }} className="w-full text-left px-2 py-1 hover:bg-accent">
                       {d.name}
                     </button>
                   ))}
@@ -365,12 +269,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
               </div>
               {!!dirResults.length && <div className="border rounded-md max-h-36 overflow-auto divide-y text-sm mb-2">
                 {dirResults.map(p => (
-                  <button key={p.id || p.name + p.lastname} onClick={() => {
-                    addTo('directors', p);
-                    setDirQuery('');
-                    setDirResults([]);
-                  }}
-                          className="w-full text-left px-2 py-1 hover:bg-accent">{[p.lastname, p.name].filter(Boolean).join(', ')}</button>
+                  <button key={p.id || p.name + p.lastname} onClick={()=>{ addTo('directors', p); setDirQuery(''); /* dir results clear by query */ }} className="w-full text-left px-2 py-1 hover:bg-accent">{[p.lastname, p.name].filter(Boolean).join(', ')}</button>
                 ))}
               </div>}
               <PersonPills list={draft.directors} onRemove={(i) => removeFrom('directors', i)}/>
@@ -388,12 +287,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
               </div>
               {!!coDirResults.length && <div className="border rounded-md max-h-36 overflow-auto divide-y text-sm mb-2">
                 {coDirResults.map(p => (
-                  <button key={p.id || p.name + p.lastname} onClick={() => {
-                    addTo('codirectors', p);
-                    setCoDirQuery('');
-                    setCoDirResults([]);
-                  }}
-                          className="w-full text-left px-2 py-1 hover:bg-accent">{[p.lastname, p.name].filter(Boolean).join(', ')}</button>
+                  <button key={p.id || p.name + p.lastname} onClick={()=>{ addTo('codirectors', p); setCoDirQuery(''); /* coDir results handled by hook */ }} className="w-full text-left px-2 py-1 hover:bg-accent">{[p.lastname, p.name].filter(Boolean).join(', ')}</button>
                 ))}
               </div>}
               <PersonPills list={draft.codirectors} onRemove={(i) => removeFrom('codirectors', i)}/>
@@ -412,12 +306,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
               {!!collabResults.length &&
                   <div className="border rounded-md max-h-36 overflow-auto divide-y text-sm mb-2">
                     {collabResults.map(p => (
-                      <button key={p.id || p.name + p.lastname} onClick={() => {
-                        addTo('collaborators', p);
-                        setCollabQuery('');
-                        setCollabResults([]);
-                      }}
-                              className="w-full text-left px-2 py-1 hover:bg-accent">{[p.lastname, p.name].filter(Boolean).join(', ')}</button>
+                      <button key={p.id || p.name + p.lastname} onClick={()=>{ addTo('collaborators', p); setCollabQuery(''); /* collab results handled by hook */ }} className="w-full text-left px-2 py-1 hover:bg-accent">{[p.lastname, p.name].filter(Boolean).join(', ')}</button>
                     ))}
                   </div>}
               <PersonPills list={draft.collaborators} onRemove={(i) => removeFrom('collaborators', i)}/>
@@ -439,12 +328,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
             </div>
             {!!studentResults.length && <div className="border rounded-md max-h-40 overflow-auto divide-y text-sm mb-3">
               {studentResults.map(s => (
-                <button key={s.id || s.name + s.lastname} onClick={() => {
-                  addTo('students', s);
-                  setStudentQuery('');
-                  setStudentResults([]);
-                }}
-                        className="w-full text-left px-2 py-1 hover:bg-accent">{[s.lastname, s.name].filter(Boolean).join(', ')}</button>
+                <button key={s.id || s.name + s.lastname} onClick={()=>{ addTo('students', s); setStudentQuery(''); /* student results handled by hook */ }} className="w-full text-left px-2 py-1 hover:bg-accent">{[s.lastname, s.name].filter(Boolean).join(', ')}</button>
               ))}
             </div>}
             <div className="space-y-3">
@@ -494,7 +378,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                 </div>
               ))}
             </div>
-            {!careerList.length && (
+            {!careerList.length && !careersLoading && (
               <div className="text-xs text-yellow-600 bg-yellow-100/40 p-2 rounded-md border border-yellow-200">
                 No hay carreras disponibles. Cree una carrera y vuelva para asignarla si es necesario.
               </div>
