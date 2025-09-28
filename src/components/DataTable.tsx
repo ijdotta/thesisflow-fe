@@ -1,7 +1,8 @@
 import * as React from "react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Input } from "@/components/ui/input"; // added
+import { ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight, X } from "lucide-react"; // added X for clear
 
 export type SortDir = "asc" | "desc";
 export type Sort = { field: string; dir: SortDir };
@@ -10,7 +11,7 @@ export type Column<T> = {
   id: string;
   header: React.ReactNode;
   accessor: (row: T) => React.ReactNode;
-  sortField?: string;         // enables clickable header
+  sortField?: string;         // enables clickable header & filtering
   className?: string;
   width?: string;
 };
@@ -26,19 +27,21 @@ type Props<T> = {
   page: number;
   size: number;
   sort: Sort;
+  filters?: Record<string, string>; // key = sortField / backend field
 
   // handlers
   onPageChange: (page: number) => void;
   onSizeChange: (size: number) => void;
   onSortChange: (sort: Sort) => void;
+  onFiltersChange?: (filters: Record<string, string>) => void;
 
   empty?: React.ReactNode;
 };
 
 export function DataTable<T>({
                                          columns, rows, total, loading, error,
-                                         page, size, sort,
-                                         onPageChange, onSizeChange, onSortChange,
+                                         page, size, sort, filters = {},
+                                         onPageChange, onSizeChange, onSortChange, onFiltersChange,
                                          empty = <div className="text-sm text-muted-foreground p-4">No data</div>,
                                        }: Props<T>) {
   const totalPages = Math.max(1, Math.ceil((total ?? 0) / (size || 1)));
@@ -52,8 +55,32 @@ export function DataTable<T>({
     onPageChange(0);
   }
 
+  function updateFilter(field: string, value: string) {
+    if (!onFiltersChange) return;
+    const next = { ...filters };
+    if (value.trim() === "") delete next[field]; else next[field] = value;
+    onFiltersChange(next);
+    onPageChange(0);
+  }
+
+  function clearFilters() {
+    if (!onFiltersChange) return;
+    onFiltersChange({});
+    onPageChange(0);
+  }
+
+  const hasFilters = !!onFiltersChange && columns.some(c => c.sortField);
+
   return (
     <div className="w-full space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-sm font-medium">{hasFilters ? "Filters" : null}</div>
+        {hasFilters && Object.keys(filters).length > 0 && (
+          <Button variant="outline" size="sm" onClick={clearFilters} className="h-8 px-2 gap-1">
+            <X className="h-4 w-4" /> Clear
+          </Button>
+        )}
+      </div>
       <div className="overflow-x-auto rounded-2xl border">
         <Table>
           <TableHeader>
@@ -84,6 +111,22 @@ export function DataTable<T>({
                 );
               })}
             </TableRow>
+            {hasFilters && (
+              <TableRow>
+                {columns.map(col => (
+                  <TableHead key={col.id} style={col.width ? { width: col.width } : undefined}>
+                    {col.sortField ? (
+                      <Input
+                        value={filters[col.sortField] ?? ""}
+                        onChange={(e) => updateFilter(col.sortField!, e.target.value)}
+                        placeholder="Filtrar…"
+                        className="h-7 text-xs"
+                      />
+                    ) : null}
+                  </TableHead>
+                ))}
+              </TableRow>
+            )}
           </TableHeader>
 
           <TableBody>

@@ -10,6 +10,7 @@ export type FetchProps = {
   page: number;
   size: number;
   sort: Sort;
+  filters?: Record<string, string>; // optional filters keyed by backend field
 };
 
 export type TransformedProjectsResponse = {
@@ -30,10 +31,10 @@ function transform(response: GetProjectsResponse): TransformedProjectsResponse {
   }
 }
 
-export function useProjects({page, size, sort,}: FetchProps) {
+export function useProjects({page, size, sort, filters = {}}: FetchProps) {
   return useQuery({
-    queryKey: ["projects", page, size, sort], // 👈 unique per combo
-    queryFn: () => getProjects({page, size, sort}), // update your API fn
+    queryKey: ["projects", { page, size, sort, filters }], // include filters for cache key
+    queryFn: () => getProjects({page, size, sort, filters}),
     staleTime: 60_000,
     select: (response) => transform(response),
   });

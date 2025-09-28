@@ -3,16 +3,13 @@ import type {GetProjectsResponse} from "@/types/ProjectResponse.ts";
 import type {FetchProps} from "@/hooks/useProjects.ts";
 
 export async function getProjects(props: FetchProps): Promise<GetProjectsResponse> {
-  const { page, size, sort } = props;
-  const params: Record<string, string | number | undefined > = {
-    page,
-    size,
-    sort: sort ? `${sort.field},${sort.dir}` : undefined,
-    // ...(filters || {})
+  const { page, size, sort, filters = {} } = props;
+  const params: Record<string, string | number > = {
+    page: String(page),
+    size: String(size),
+    ...(sort ? { sort: `${sort.field},${sort.dir}` } : {}),
+    ...filters, // spread filters directly (ensure backend expects these names)
   };
-  // Remove undefined params
-  Object.keys(params).forEach(key => params[key] === undefined && delete params[key]);
   const { data } = await api.get('/projects', { params });
-  console.log("fetched:" + data)
   return data
 }
