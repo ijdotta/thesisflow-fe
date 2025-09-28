@@ -1,4 +1,4 @@
-import type { ApiPerson, ApiStudent, ApiApplicationDomain } from '@/types/ApiEntities'
+import type {ApiPerson, ApiStudent, ApiApplicationDomain, ApiCareer} from '@/types/ApiEntities'
 import type { FriendlyPerson, FriendlyStudent, FriendlyApplicationDomain } from '@/types/FriendlyEntities'
 
 function buildDisplay(name?: string, lastname?: string) {
@@ -8,22 +8,21 @@ function buildDisplay(name?: string, lastname?: string) {
 
 export function mapApiPersonToFriendly(p: ApiPerson): FriendlyPerson {
   return {
-    id: p.id,
+    id: p.publicId,
     name: p.name,
     lastname: p.lastname,
-    email: (p as any).email,
     display: buildDisplay(p.name, p.lastname)
   }
 }
 
 export function mapApiStudentToFriendly(s: ApiStudent): FriendlyStudent {
   return {
-    id: s.id,
+    id: s.publicId,
     name: s.name,
     lastname: s.lastname,
-    email: (s as any).email,
+    email: s.email,
     studentId: s.studentId,
-    career: s.career,
+    career: s.careers,
     display: buildDisplay(s.name, s.lastname)
   }
 }
@@ -37,9 +36,9 @@ export function mapApiApplicationDomainToFriendly(d: ApiApplicationDomain): Frie
   }
 }
 
-export function mapApiCareerToFriendly(c: { id?: string; name: string; description?: string }): import('@/types/FriendlyEntities').FriendlyCareer {
+export function mapApiCareerToFriendly(c: ApiCareer): import('@/types/FriendlyEntities').FriendlyCareer {
   return {
-    id: c.id,
+    id: c.publicId,
     name: c.name,
     description: c.description,
     display: c.name
