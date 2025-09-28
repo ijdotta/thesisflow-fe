@@ -1,7 +1,7 @@
-import type { ApiPerson, ApiStudent, ApiApplicationDomain, ApiCareer } from '@/types/ApiEntities'
+import type {ApiPerson, ApiStudent, ApiApplicationDomain, ApiCareer, ApiProfessor} from '@/types/ApiEntities'
 import type { Page } from '@/types/ApiEntities'
 
-export type GetProfessorsResponse = Page<ApiPerson>
+export type GetProfessorsResponse = Page<ApiProfessor>
 export type GetPeopleResponse = Page<ApiPerson>
 export type GetStudentsResponse = Page<ApiStudent>
 export type GetApplicationDomainsResponse = Page<ApiApplicationDomain>

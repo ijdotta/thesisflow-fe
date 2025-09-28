@@ -1,28 +1,30 @@
 // Central API entity type definitions (raw shapes returned by backend)
-export interface ApiPerson {
-  id: string;
+export interface ApiResource {
+  publicId: string;
+}
+
+export interface ApiPerson extends ApiResource {
   name: string;
   lastname: string;
-  email?: string;
 }
 
 export interface ApiProfessor extends ApiPerson {
+  person: ApiPerson;
   email: string;
 }
 
 export interface ApiStudent extends ApiPerson {
-  studentId?: string;
-  career?: string;
+  email: string;
+  studentId: string;
+  careers: ApiCareer[];
 }
 
-export interface ApiApplicationDomain {
-  publicId: string;
+export interface ApiApplicationDomain extends ApiResource {
   name: string;
   description?: string;
 }
 
-export interface ApiCareer {
-  id?: string;
+export interface ApiCareer extends  ApiResource {
   name: string;
   description?: string;
 }
