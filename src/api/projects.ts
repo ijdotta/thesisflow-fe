@@ -1,8 +1,8 @@
 import { api } from '@/api/axios'
-import type {ProjectResponse} from "@/types/ProjectResponse.ts";
+import type {GetProjectsResponse} from "@/types/ProjectResponse.ts";
 import type {FetchProps} from "@/hooks/useProjects.ts";
 
-export async function getProjects(props: FetchProps): Promise<ProjectResponse[]> {
+export async function getProjects(props: FetchProps): Promise<GetProjectsResponse> {
   const { page, size, sort } = props;
   const params: Record<string, string | number | undefined > = {
     page,

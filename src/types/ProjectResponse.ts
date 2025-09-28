@@ -34,3 +34,11 @@ export interface ProjectResponse {
   tags: Tag[],
   participants: Participant[],
 }
+
+export interface GetProjectsResponse {
+  content: ProjectResponse[],
+  totalElements: number,
+  totalPages: number,
+  size: number,
+  number: number,
+}

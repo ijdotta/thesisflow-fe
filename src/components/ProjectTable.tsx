@@ -62,15 +62,14 @@ export default function ProjectsTable() {
   const [sort, setSort] = React.useState<Sort>({ field: "createdAt", dir: "desc" as const });
 
   // const { data: rows = [], total = 0, isLoading, error } =
-  const { data: rows = [], isLoading, error } =
-    useProjects({ page, size, sort, /* filters: { ...optional } */ });
-  const total = rows.length; // Temporary until API provides total
+  const { data, isLoading, error } = useProjects({ page, size, sort, /* filters: { ...optional } */ });
+  const { projects = [], totalElements = 0 } = data ?? {};
 
   return (
     <DataTable<Project>
       columns={columns}
-      rows={rows}
-      total={total}
+      rows={projects}
+      total={totalElements}
       loading={isLoading}
       error={error ? String(error) : null}
       page={page}
