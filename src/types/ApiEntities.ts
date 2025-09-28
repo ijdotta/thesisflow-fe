@@ -3,20 +3,22 @@ export interface ApiResource {
   publicId: string;
 }
 
-export interface ApiPerson extends ApiResource {
+export interface ApiPerson {
+  id?: string; // some endpoints
+  publicId?: string; // some endpoints return publicId instead of id
   name: string;
   lastname: string;
+  email?: string;
 }
 
 export interface ApiProfessor extends ApiPerson {
-  person: ApiPerson;
-  email: string;
+  email?: string;
 }
 
 export interface ApiStudent extends ApiPerson {
-  email: string;
-  studentId: string;
-  careers: ApiCareer[];
+  studentId?: string;
+  career?: string; // legacy
+  careers?: string[]; // new multi-career
 }
 
 export interface ApiApplicationDomain extends ApiResource {
@@ -27,6 +29,7 @@ export interface ApiApplicationDomain extends ApiResource {
 export interface ApiCareer extends  ApiResource {
   name: string;
   description?: string;
+  id?: string; // fallback local id if needed
 }
 
 export interface Page<T> {

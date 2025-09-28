@@ -1,6 +1,6 @@
 // Friendly (UI-facing) entity shapes used across the app / wizard
 export interface FriendlyPerson {
-  id: string;
+  publicId: string;
   name: string;
   lastname: string;
   email?: string;
@@ -9,7 +9,7 @@ export interface FriendlyPerson {
 
 export interface FriendlyStudent extends FriendlyPerson {
   studentId?: string;
-  career?: string;
+  careers?: string[]; // multi-career list
 }
 
 export interface FriendlyApplicationDomain {
@@ -20,7 +20,7 @@ export interface FriendlyApplicationDomain {
 }
 
 export interface FriendlyCareer {
-  id?: string;
+  publicId: string;
   name: string;
   description?: string;
   display: string;

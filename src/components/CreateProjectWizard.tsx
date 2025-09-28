@@ -15,7 +15,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 
 // --- Draft Types ---
 interface PersonBase {
-  id?: string;
+  publicId?: string; // local temp for manual entities
   name: string;
   lastname: string;
   email?: string;
@@ -23,7 +23,7 @@ interface PersonBase {
 
 interface StudentDraft extends PersonBase {
   studentId?: string;
-  career?: string;
+  careers: string[]; // multi-career support
 }
 
 interface Domain {
@@ -111,7 +111,13 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
   }
 
   function addTo(key: 'directors' | 'codirectors' | 'collaborators' | 'students', item: any) {
-    setDraft(d => ({...d, [key]: [...(d as any)[key], item]}));
+    if (key === 'students') {
+      const normalized = { publicId: item.publicId || `manual-${Date.now()}-${Math.random().toString(36).slice(2)}`, careers: [], ...item };
+      setDraft(d => ({...d, students: [...d.students, normalized]}));
+    } else {
+      const normalized = { publicId: item.publicId || `manual-${Date.now()}-${Math.random().toString(36).slice(2)}`, ...item };
+      setDraft(d => ({...d, [key]: [...(d as any)[key], normalized]}));
+    }
   }
 
   function removeFrom(key: 'directors' | 'codirectors' | 'collaborators' | 'students', index: number) {
@@ -139,15 +145,15 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
         subtypes: draft.subtypes,
         applicationDomainId: draft.applicationDomain?.publicId,
         initialSubmission: draft.initialSubmission,
-        directors: draft.directors.map(p => p.id || p),
-        codirectors: draft.codirectors.map(p => p.id || p),
-        collaborators: draft.collaborators.map(p => p.id || p),
+        directors: draft.directors.map(p => p.publicId),
+        codirectors: draft.codirectors.map(p => p.publicId),
+        collaborators: draft.collaborators.map(p => p.publicId),
         students: draft.students.map(s => ({
-          id: s.id,
+          publicId: s.publicId,
           name: s.name,
           lastname: s.lastname,
           studentId: s.studentId,
-          career: s.career
+          careers: s.careers
         }))
       };
       await api.post('/projects', payload);
@@ -274,7 +280,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
               </div>
               {!!dirItems.length && <div className="border rounded-md max-h-36 overflow-auto divide-y text-sm mb-2">
                 {dirItems.map(p => (
-                  <button key={p.id} onClick={()=>{ addTo('directors', { id: p.id, name: p.name, lastname: p.lastname, email: p.email }); setDirQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
+                  <button key={p.publicId} onClick={()=>{ addTo('directors', { publicId: p.publicId, name: p.name, lastname: p.lastname, email: p.email }); setDirQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
                 ))}
               </div>}
               <PersonPills list={draft.directors} onRemove={(i) => removeFrom('directors', i)}/>
@@ -292,7 +298,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
               </div>
               {!!coDirItems.length && <div className="border rounded-md max-h-36 overflow-auto divide-y text-sm mb-2">
                 {coDirItems.map(p => (
-                  <button key={p.id} onClick={()=>{ addTo('codirectors', { id: p.id, name: p.name, lastname: p.lastname, email: p.email }); setCoDirQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
+                  <button key={p.publicId} onClick={()=>{ addTo('codirectors', { publicId: p.publicId, name: p.name, lastname: p.lastname, email: p.email }); setCoDirQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
                 ))}
               </div>}
               <PersonPills list={draft.codirectors} onRemove={(i) => removeFrom('codirectors', i)}/>
@@ -311,7 +317,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
               {!!collabItems.length &&
                   <div className="border rounded-md max-h-36 overflow-auto divide-y text-sm mb-2">
                     {collabItems.map(p => (
-                      <button key={p.id} onClick={()=>{ addTo('collaborators', { id: p.id, name: p.name, lastname: p.lastname, email: p.email }); setCollabQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
+                      <button key={p.publicId} onClick={()=>{ addTo('collaborators', { publicId: p.publicId, name: p.name, lastname: p.lastname, email: p.email }); setCollabQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
                     ))}
                   </div>}
               <PersonPills list={draft.collaborators} onRemove={(i) => removeFrom('collaborators', i)}/>
@@ -333,7 +339,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
             </div>
             {!!studentItems.length && <div className="border rounded-md max-h-40 overflow-auto divide-y text-sm mb-3">
               {studentItems.map(s => (
-                <button key={s.id} onClick={()=>{ addTo('students', { id: s.id, name: s.name, lastname: s.lastname, studentId: s.studentId, career: s.career }); setStudentQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{s.display}</button>
+                <button key={s.publicId} onClick={()=>{ addTo('students', { publicId: s.publicId, name: s.name, lastname: s.lastname, studentId: s.studentId, careers: s.careers ?? [] }); setStudentQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{s.display}</button>
               ))}
             </div>}
             <div className="space-y-3">
@@ -365,20 +371,30 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                         return {...d, students: arr};
                       });
                     }}/>
-                    <Select value={s.career || ''} onValueChange={(val) => {
-                      setDraft(d => {
-                        const arr = [...d.students];
-                        arr[i] = {...arr[i], career: val};
-                        return {...d, students: arr};
-                      });
-                    }}>
-                      <SelectTrigger className="h-8 w-48"><SelectValue placeholder="Carrera"/></SelectTrigger>
-                      <SelectContent>
-                        {careerList.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <Button type="button" variant="ghost" className="h-8" onClick={() => removeFrom('students', i)}><X
-                      className="h-4 w-4"/></Button>
+                    <div className="flex flex-col gap-1 w-48">
+                      <label className="text-xs font-medium">Carreras</label>
+                      <div className="border rounded-md p-2 flex flex-wrap gap-1 min-h-8 bg-muted/30">
+                        {s.careers?.length ? s.careers.map(c => (
+                          <span key={c} className="text-xs px-2 py-0.5 rounded-md bg-primary/10 border border-primary/40 flex items-center gap-1">
+                            {c}
+                            <button type="button" className="hover:text-destructive" onClick={()=>{
+                              setDraft(d=>{ const arr=[...d.students]; arr[i]={...arr[i], careers: arr[i].careers.filter(x=>x!==c)}; return {...d, students:arr}; });
+                            }}>
+                              ×
+                            </button>
+                          </span>
+                        )) : <span className="text-xs text-muted-foreground">Ninguna</span>}
+                      </div>
+                      <Select onValueChange={(val)=>{
+                        if (!val) return;
+                        setDraft(d=>{ const arr=[...d.students]; if(!arr[i].careers.includes(val)) arr[i]={...arr[i], careers:[...arr[i].careers, val]}; return {...d, students:arr}; });
+                      }} value="">
+                        <SelectTrigger className="h-8"><SelectValue placeholder="Agregar carrera" /></SelectTrigger>
+                        <SelectContent>
+                          {careerList.filter(c => !s.careers.includes(c)).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -403,8 +419,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
                 className="font-medium">Subtipos</span><span>{draft.subtypes.join(', ') || '—'}</span></div>
               <div className="flex justify-between gap-4"><span
                 className="font-medium">Dominio</span><span>{draft.applicationDomain?.name || '—'}</span></div>
-              <div className="flex justify-between gap-4"><span
-                className="font-medium">Fecha presentación</span><span>{draft.initialSubmission || '—'}</span></div>
+              <div className="flex justify-between gap-4"><span className="font-medium">Fecha presentación</span><span>{draft.initialSubmission || '—'}</span></div>
               <div className="flex justify-between gap-4"><span className="font-medium">Directores</span><span
                 className="text-right max-w-[60%] break-words">{draft.directors.map(p => [p.lastname, p.name].filter(Boolean).join(', ')).join(' • ') || '—'}</span>
               </div>

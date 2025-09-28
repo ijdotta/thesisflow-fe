@@ -4,7 +4,7 @@ import type {Person} from "@/types/Person.ts";
 
 const mapParticipantToPerson = (participant: Participant): Person => {
   return {
-    id: participant.personDTO.publicId,
+    publicId: participant.personDTO.publicId,
     name: participant.personDTO.name,
     lastname: participant.personDTO.lastname,
   }

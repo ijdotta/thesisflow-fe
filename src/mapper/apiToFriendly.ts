@@ -8,21 +8,23 @@ function buildDisplay(name?: string, lastname?: string) {
 
 export function mapApiPersonToFriendly(p: ApiPerson): FriendlyPerson {
   return {
-    id: p.publicId,
+    publicId: p.publicId || p.id || '',
     name: p.name,
     lastname: p.lastname,
+    email: p.email,
     display: buildDisplay(p.name, p.lastname)
   }
 }
 
 export function mapApiStudentToFriendly(s: ApiStudent): FriendlyStudent {
+  const careers: string[] = Array.isArray(s.careers) ? [...s.careers] : [];
+  if (s.career && !careers.includes(s.career)) careers.push(s.career);
   return {
-    id: s.publicId,
+    publicId: s.publicId || s.id || '',
     name: s.name,
     lastname: s.lastname,
-    email: s.email,
     studentId: s.studentId,
-    career: s.careers,
+    careers,
     display: buildDisplay(s.name, s.lastname)
   }
 }
@@ -38,7 +40,7 @@ export function mapApiApplicationDomainToFriendly(d: ApiApplicationDomain): Frie
 
 export function mapApiCareerToFriendly(c: ApiCareer): import('@/types/FriendlyEntities').FriendlyCareer {
   return {
-    id: c.publicId,
+    publicId: c.publicId,
     name: c.name,
     description: c.description,
     display: c.name
