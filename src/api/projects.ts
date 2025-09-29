@@ -34,3 +34,8 @@ export async function setProjectParticipants(projectPublicId: string, participan
   if (!participants.length) return;
   await api.put(`/projects/${projectPublicId}/participants`, { participants });
 }
+
+export async function getProject(publicId: string): Promise<GetProjectsResponse['content'][number]> {
+  const { data } = await api.get(`/projects/${publicId}`);
+  return data;
+}

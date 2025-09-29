@@ -40,3 +40,13 @@ export function useToast() {
   return ctx;
 }
 
+export function useOptionalToast(): ToastContextValue {
+  const ctx = useContext(ToastContext);
+  if (ctx) return ctx;
+  // Fallback no-op implementation to avoid crashes if provider missing
+  return {
+    toasts: [],
+    push: () => { if (typeof console !== 'undefined') console.warn('[toast] Provider missing; toast ignored'); },
+    dismiss: () => {}
+  };
+}
