@@ -1,4 +1,4 @@
-import type {ApiPerson, ApiStudent, ApiApplicationDomain, ApiCareer} from '@/types/ApiEntities'
+import type {ApiPerson, ApiStudent, ApiApplicationDomain, ApiCareer, ApiTag} from '@/types/ApiEntities'
 import type { FriendlyPerson, FriendlyStudent, FriendlyApplicationDomain } from '@/types/FriendlyEntities'
 
 function buildDisplay(name?: string, lastname?: string) {
@@ -45,4 +45,8 @@ export function mapApiCareerToFriendly(c: ApiCareer): import('@/types/FriendlyEn
     description: c.description,
     display: c.name
   }
+}
+
+export function mapApiTagToFriendly(t: ApiTag): import('@/types/FriendlyEntities').FriendlyTag {
+  return { publicId: t.publicId, name: t.name, description: t.description, display: t.name };
 }

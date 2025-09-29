@@ -32,6 +32,11 @@ export interface ApiCareer extends  ApiResource {
   id?: string; // fallback local id if needed
 }
 
+export interface ApiTag extends ApiResource {
+  name: string;
+  description?: string;
+}
+
 export interface Page<T> {
   content: T[];
   totalElements: number;

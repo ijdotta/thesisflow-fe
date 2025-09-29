@@ -19,3 +19,22 @@ export async function getCareers(): Promise<GetCareersResponse> {
   }
   return { content: [], totalElements: 0, totalPages: 0, size: 0, number: 0 } as Page<ApiCareer>;
 }
+
+// NEW paginated list with sorting / filtering
+export interface FetchCareerListParams { page: number; size: number; sort: { field: string; dir: 'asc'|'desc'}; filters?: Record<string,string>; }
+export async function getCareersList({ page, size, sort, filters = {} }: FetchCareerListParams): Promise<GetCareersResponse> {
+  const params: Record<string,string> = { page: String(page), size: String(size), sort: `${sort.field},${sort.dir}`, ...filters };
+  const { data } = await api.get('/careers', { params });
+  if (data?.content && Array.isArray(data.content)) return data as GetCareersResponse;
+  return { content: [], totalElements: 0, totalPages: 0, size, number: page } as GetCareersResponse;
+}
+
+export async function createCareer(body: { name: string; description?: string }): Promise<ApiCareer> {
+  const { data } = await api.post('/careers', body);
+  return data;
+}
+
+export async function updateCareer(publicId: string, body: { name: string; description?: string }): Promise<ApiCareer> {
+  const { data } = await api.put(`/careers/${publicId}`, body);
+  return data;
+}

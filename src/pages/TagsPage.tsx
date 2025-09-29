@@ -1,10 +1,11 @@
 import AdminLayout from '@/layouts/AdminLayout';
-import PeopleTable from '@/components/PeopleTable';
+import TagsTable from '@/components/TagsTable';
 
-export function PeoplePage() {
+export function TagsPage() {
   return (
     <AdminLayout>
-      <PeopleTable />
+      <TagsTable />
     </AdminLayout>
   );
 }
+

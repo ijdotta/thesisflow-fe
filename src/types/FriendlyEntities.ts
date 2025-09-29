@@ -25,3 +25,10 @@ export interface FriendlyCareer {
   description?: string;
   display: string;
 }
+
+export interface FriendlyTag {
+  publicId: string;
+  name: string;
+  description?: string;
+  display: string;
+}

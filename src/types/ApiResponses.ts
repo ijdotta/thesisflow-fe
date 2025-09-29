@@ -1,4 +1,4 @@
-import type {ApiPerson, ApiStudent, ApiApplicationDomain, ApiCareer, ApiProfessor} from '@/types/ApiEntities'
+import type {ApiPerson, ApiStudent, ApiApplicationDomain, ApiCareer, ApiProfessor, ApiTag} from '@/types/ApiEntities'
 import type { Page } from '@/types/ApiEntities'
 
 export type GetProfessorsResponse = Page<ApiProfessor>
@@ -6,6 +6,7 @@ export type GetPeopleResponse = Page<ApiPerson>
 export type GetStudentsResponse = Page<ApiStudent>
 export type GetApplicationDomainsResponse = Page<ApiApplicationDomain>
 export type GetCareersResponse = Page<ApiCareer>
+export type GetTagsResponse = Page<ApiTag>
 
 // Helper to coerce arbitrary backend responses into a Page<T>
 export function ensurePage<T>(raw: any, mapItem: (x:any)=>T): Page<T> {
@@ -23,4 +24,3 @@ export function ensurePage<T>(raw: any, mapItem: (x:any)=>T): Page<T> {
   }
   return { content: [], totalElements: 0, totalPages: 0, size: 0, number: 0 }
 }
-
