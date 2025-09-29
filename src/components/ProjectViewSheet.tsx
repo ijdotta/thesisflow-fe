@@ -7,6 +7,8 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { useOptionalToast } from '@/components/ui/toast';
 import { Separator } from '@/components/ui/separator';
 
+const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', PROJECT: 'Proyecto Final' };
+
 interface Props { publicId: string | null; open: boolean; onOpenChange: (o:boolean)=>void; initial?: import('@/types/Project').Project | null }
 
 export function ProjectViewSheet({ publicId, open, onOpenChange, initial }: Props) {
@@ -33,9 +35,9 @@ export function ProjectViewSheet({ publicId, open, onOpenChange, initial }: Prop
     if (!project) return;
     const lines: string[] = [];
     lines.push(`Título: ${project.title}`);
-    lines.push(`Tipo: ${project.type}`);
+    lines.push(`Tipo: ${TYPE_LABELS[project.type] || project.type}`);
     lines.push(`Subtipos: ${project.subtypes.join(', ') || '—'}`);
-    lines.push(`Fecha Presentación: ${project.initialSubmission || '—'}`);
+    lines.push(`Fecha de carga: ${project.initialSubmission || '—'}`);
     lines.push(`Estado: ${project.completion ? 'Finalizado' : 'En curso'}`);
     lines.push(`Dominio: ${project.applicationDomain?.name || '—'}`);
     lines.push('');
@@ -82,9 +84,9 @@ export function ProjectViewSheet({ publicId, open, onOpenChange, initial }: Prop
               <h3 className="text-base font-semibold tracking-tight">Información General</h3>
               <div className="grid gap-4 md:grid-cols-2">
                 <Info label="Título" value={project.title} />
-                <Info label="Tipo" value={project.type} />
+                <Info label="Tipo" value={TYPE_LABELS[project.type] || project.type} />
                 <Info label="Subtipos" value={project.subtypes?.join(', ') || '—'} />
-                <Info label="Fecha Presentación" value={project.initialSubmission || '—'} />
+                <Info label="Fecha de carga" value={project.initialSubmission || '—'} />
                 <Info label="Estado" value={project.completion ? 'Finalizado' : 'En curso'} />
                 <Info label="Dominio" value={project.applicationDomain?.name || '—'} />
               </div>

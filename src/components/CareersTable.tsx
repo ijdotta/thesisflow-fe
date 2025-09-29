@@ -26,7 +26,6 @@ export default function CareersTable() {
 
   const columns = React.useMemo<Column<FriendlyCareer>[]>(() => [
     { id: 'name', header: 'Nombre', accessor: r => r.name, sortField: 'name', filter: { type: 'text', placeholder: 'Filtrar nombre'} },
-    { id: 'description', header: 'Descripción', accessor: r => r.description || '—', sortField: 'description', filter: { type: 'text', placeholder: 'Filtrar descripción'} },
     { id: 'actions', header: 'Acciones', accessor: (row) => (
       <div className="flex gap-2">
         <Button size="sm" variant="outline" onClick={() => setEditing({ mode: 'edit', entity: row })} title="Editar"><Edit className="h-4 w-4" /></Button>
@@ -40,7 +39,7 @@ export default function CareersTable() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget as HTMLFormElement);
-    const body = { name: String(fd.get('name')||'').trim(), description: String(fd.get('description')||'').trim() || undefined };
+    const body = { name: String(fd.get('name')||'').trim() };
     if (!body.name) { push({ variant:'error', title:'Falta nombre', message:'Nombre es obligatorio'}); return; }
     try {
       if (editing?.mode === 'create') { await createCareer(body); push({ variant:'success', title:'Creado', message:'Carrera creada'}); }
@@ -81,10 +80,6 @@ export default function CareersTable() {
               <label className="text-xs font-medium">Nombre</label>
               <Input name="name" defaultValue={entity?.name} required autoFocus/>
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Descripción</label>
-              <Input name="description" defaultValue={entity?.description} />
-            </div>
             <SheetFooter className="gap-2">
               <Button type="submit" size="sm">Guardar</Button>
               <Button type="button" size="sm" variant="outline" onClick={closeSheet}>Cancelar</Button>
@@ -95,4 +90,3 @@ export default function CareersTable() {
     </div>
   );
 }
-

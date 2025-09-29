@@ -8,6 +8,8 @@ import CreateProjectWizard from "@/components/CreateProjectWizard.tsx";
 import { useQueryClient } from '@tanstack/react-query';
 import { ProjectViewSheet } from '@/components/ProjectViewSheet';
 
+const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', PROJECT: 'Proyecto Final' };
+
 export default function ProjectsTable() {
 	const [page, setPage] = React.useState(0);
 	const [size, setSize] = React.useState(25);
@@ -63,12 +65,11 @@ export default function ProjectsTable() {
 		{
 			id: "type",
 			header: "Tipo",
-			accessor: (row) => row.type,
+			accessor: (row) => TYPE_LABELS[row.type] || row.type,
 			sortField: "type",
 			filter: { type: 'select', placeholder: 'Todos', options: [
-				{ value: 'THESIS', label: 'Tesis' },
-				{ value: 'PROJECT', label: 'Proyecto' },
-				{ value: 'OTHER', label: 'Otro' },
+				{ value: 'THESIS', label: TYPE_LABELS.THESIS },
+				{ value: 'PROJECT', label: TYPE_LABELS.PROJECT },
 			] }
 		},
 		{

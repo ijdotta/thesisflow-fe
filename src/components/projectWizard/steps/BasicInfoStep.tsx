@@ -3,6 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import type { ProjectDraft } from '../types';
 import { SUBTYPE_OPTIONS } from '../types';
+import * as React from 'react';
 
 interface DomainItem { publicId: string; name: string; display?: string }
 
@@ -14,10 +15,25 @@ interface Props {
   domainItems: DomainItem[];
 }
 
+// NEW: mapping for type labels (UI localized)
+const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', PROJECT: 'Proyecto Final' };
+
 export function BasicInfoStep({ draft, onPatch, domainQuery, setDomainQuery, domainItems }: Props) {
   function toggleSubtype(st: string) {
     onPatch({ subtypes: draft.subtypes.includes(st) ? draft.subtypes.filter(x => x !== st) : [...draft.subtypes, st] });
   }
+
+  // NEW: ensure default date (today) if none set
+  React.useEffect(() => {
+    if (!draft.initialSubmission) {
+      const today = new Date();
+      const iso = today.toISOString().slice(0,10);
+      onPatch({ initialSubmission: iso });
+    }
+  }, [draft.initialSubmission, onPatch]);
+
+  const dateValue = draft.initialSubmission || new Date().toISOString().slice(0,10);
+
   return (
     <div className="space-y-4 p-4">
       <div className="space-y-1">
@@ -30,13 +46,13 @@ export function BasicInfoStep({ draft, onPatch, domainQuery, setDomainQuery, dom
           <Select value={draft.type} onValueChange={val => onPatch({ type: val })}>
             <SelectTrigger><SelectValue placeholder="Seleccione tipo" /></SelectTrigger>
             <SelectContent>
-              {['THESIS', 'PROJECT', 'OTHER'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              {Object.entries(TYPE_LABELS).map(([value,label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1">
-          <label className="text-sm font-medium">Fecha de presentación</label>
-            <Input type="date" value={draft.initialSubmission || ''} onChange={e => onPatch({ initialSubmission: e.target.value })} />
+          <label className="text-sm font-medium">Fecha de carga</label>
+          <Input type="date" value={dateValue} onChange={e => onPatch({ initialSubmission: e.target.value })} />
         </div>
       </div>
       <div className="space-y-2">

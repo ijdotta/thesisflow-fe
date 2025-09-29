@@ -27,7 +27,6 @@ export default function PeopleTable() {
   const columns = React.useMemo<Column<FriendlyPerson>[]>(() => [
     { id: 'lastname', header: 'Apellido', accessor: r => r.lastname, sortField: 'lastname', filter: { type: 'text', placeholder: 'Filtrar apellido'} },
     { id: 'name', header: 'Nombre', accessor: r => r.name, sortField: 'name', filter: { type: 'text', placeholder: 'Filtrar nombre'} },
-    { id: 'email', header: 'Email', accessor: r => r.email || '—', sortField: 'email', filter: { type: 'text', placeholder: 'Buscar email'} },
     { id: 'actions', header: 'Acciones', accessor: (row) => (
       <div className="flex gap-2">
         <Button size="sm" variant="outline" onClick={() => setEditing({ mode: 'edit', entity: row })} title="Editar"><Edit className="h-4 w-4" /></Button>
@@ -45,7 +44,6 @@ export default function PeopleTable() {
     const body = {
       name: String(fd.get('name')||'').trim(),
       lastname: String(fd.get('lastname')||'').trim(),
-      email: String(fd.get('email')||'').trim() || undefined,
     };
     if (!body.name || !body.lastname) { push({ variant:'error', title:'Datos incompletos', message:'Nombre y apellido son obligatorios'}); return; }
     try {
@@ -101,10 +99,6 @@ export default function PeopleTable() {
               <label className="text-xs font-medium">Apellido</label>
               <Input name="lastname" defaultValue={entity?.lastname} required />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Email</label>
-              <Input name="email" type="email" defaultValue={entity?.email} />
-            </div>
             <SheetFooter className="gap-2">
               <Button type="submit" size="sm">Guardar</Button>
               <Button type="button" size="sm" variant="outline" onClick={closeSheet}>Cancelar</Button>
@@ -115,4 +109,3 @@ export default function PeopleTable() {
     </div>
   );
 }
-
