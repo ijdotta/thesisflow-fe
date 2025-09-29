@@ -1,6 +1,6 @@
 import { createPerson } from '@/api/people';
 import { createProfessor } from '@/api/professors';
-import { createStudent, setStudentCareers } from '@/api/students';
+import { createStudent } from '@/api/students';
 import { createProject, setProjectApplicationDomain, setProjectParticipants } from '@/api/projects';
 import type { ProjectDraft, PersonBase, StudentDraft } from './types';
 
@@ -26,9 +26,6 @@ export async function persistStudent(s: StudentDraft): Promise<StudentDraft> {
   const personId = requirePublicId(person);
   const student = await createStudent({ personPublicId: personId, studentId: s.studentId, email: s.email });
   const studentId = requirePublicId(student);
-  if (s.careers?.length) {
-    await setStudentCareers(studentId, s.careers);
-  }
   return { ...s, publicId: studentId };
 }
 
@@ -73,4 +70,3 @@ export async function submitProject(draft: ProjectDraft) {
   }
   return project;
 }
-

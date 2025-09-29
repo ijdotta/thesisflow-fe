@@ -25,6 +25,7 @@ export function mapApiStudentToFriendly(s: ApiStudent): FriendlyStudent {
     lastname: s.lastname,
     studentId: s.studentId,
     careers,
+    email: s.email, // added email mapping
     display: buildDisplay(s.name, s.lastname)
   }
 }

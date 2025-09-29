@@ -10,6 +10,7 @@ export interface FriendlyPerson {
 export interface FriendlyStudent extends FriendlyPerson {
   studentId?: string;
   careers?: string[]; // multi-career list
+  email?: string; // added
 }
 
 export interface FriendlyApplicationDomain {

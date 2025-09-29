@@ -8,7 +8,6 @@ export interface PersonBase {
 
 export interface StudentDraft extends PersonBase {
   studentId?: string;
-  careers: string[]; // career publicIds
 }
 
 export interface Domain { publicId: string; name: string; }
@@ -38,4 +37,3 @@ export const emptyDraft: ProjectDraft = {
   collaborators: [],
   students: [],
 };
-
