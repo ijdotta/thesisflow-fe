@@ -72,19 +72,22 @@ export default function TagsTable() {
         onFiltersChange={setFilters}
       />
       <Sheet open={!!editing} onOpenChange={(o)=> !o && closeSheet()}>
-        <SheetContent className="sm:max-w-[480px]">
+        <SheetContent className="sm:max-w-[560px] px-6 py-6 overflow-y-auto">
           <SheetHeader><SheetTitle>{editing?.mode === 'create' ? 'Crear Etiqueta' : 'Editar Etiqueta'}</SheetTitle></SheetHeader>
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Nombre</label>
-              <Input name="name" defaultValue={entity?.name} required autoFocus/>
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Descripción</label>
-              <Input name="description" defaultValue={entity?.description} />
-            </div>
-            <SheetFooter className="gap-2">
-              <Button type="submit" size="sm">Guardar</Button>
+          <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+            <section className="space-y-4">
+              <h3 className="text-sm font-semibold tracking-tight">Datos de la etiqueta</h3>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Nombre *</label>
+                <Input name="name" defaultValue={entity?.name} required autoFocus/>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Descripción</label>
+                <Input name="description" defaultValue={entity?.description} />
+              </div>
+            </section>
+            <SheetFooter className="gap-2 pt-2">
+              <Button type="submit" size="sm" className="min-w-24">Guardar</Button>
               <Button type="button" size="sm" variant="outline" onClick={closeSheet}>Cancelar</Button>
             </SheetFooter>
           </form>
@@ -93,4 +96,3 @@ export default function TagsTable() {
     </div>
   );
 }
-

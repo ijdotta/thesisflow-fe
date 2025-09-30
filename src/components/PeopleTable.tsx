@@ -86,21 +86,26 @@ export default function PeopleTable() {
         filterDebounceMs={400}
       />
       <Sheet open={!!editing} onOpenChange={(o)=> !o && closeSheet()}>
-        <SheetContent className="sm:max-w-[480px]">
+        <SheetContent className="sm:max-w-[520px] px-6 py-6 overflow-y-auto">
           <SheetHeader>
             <SheetTitle>{editing?.mode === 'create' ? 'Crear Persona' : 'Editar Persona'}</SheetTitle>
           </SheetHeader>
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Nombre</label>
-              <Input name="name" defaultValue={entity?.name} required autoFocus />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Apellido</label>
-              <Input name="lastname" defaultValue={entity?.lastname} required />
-            </div>
-            <SheetFooter className="gap-2">
-              <Button type="submit" size="sm">Guardar</Button>
+          <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+            <section className="space-y-4">
+              <h3 className="text-sm font-semibold tracking-tight">Datos básicos</h3>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Nombre *</label>
+                  <Input name="name" defaultValue={entity?.name} required autoFocus />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Apellido *</label>
+                  <Input name="lastname" defaultValue={entity?.lastname} required />
+                </div>
+              </div>
+            </section>
+            <SheetFooter className="gap-2 pt-2">
+              <Button type="submit" size="sm" className="min-w-24">Guardar</Button>
               <Button type="button" size="sm" variant="outline" onClick={closeSheet}>Cancelar</Button>
             </SheetFooter>
           </form>

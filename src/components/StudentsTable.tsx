@@ -119,58 +119,73 @@ function CreateStudentSheet({ open, onOpenChange }: { open: boolean; onOpenChang
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-[600px]">
+      <SheetContent className="sm:max-w-[640px] px-6 py-6 overflow-y-auto">
         <SheetHeader><SheetTitle>Nuevo Alumno</SheetTitle></SheetHeader>
-        <form onSubmit={handleSubmit} className="mt-4 space-y-6">
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Nombre *</label>
-              <Input value={name} onChange={e=> { setName(e.target.value); if (selectedPerson) clearSelection(); }} required disabled={!!selectedPerson} />
+        <form onSubmit={handleSubmit} className="mt-6 space-y-7">
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold tracking-tight">Datos de la persona</h3>
+              {selectedPerson && (
+                <button type="button" onClick={clearSelection} className="text-xs underline text-muted-foreground hover:text-foreground transition-colors">Cambiar selección</button>
+              )}
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Apellido *</label>
-              <Input value={lastname} onChange={e=> { setLastname(e.target.value); if (selectedPerson) clearSelection(); }} required disabled={!!selectedPerson} />
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Nombre *</label>
+                <Input value={name} onChange={e=> { setName(e.target.value); if (selectedPerson) clearSelection(); }} required disabled={!!selectedPerson} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Apellido *</label>
+                <Input value={lastname} onChange={e=> { setLastname(e.target.value); if (selectedPerson) clearSelection(); }} required disabled={!!selectedPerson} />
+              </div>
             </div>
-          </div>
-          {showSuggestions && (
-            <div className="rounded border max-h-40 overflow-auto divide-y text-xs">
-              {people.map(p => (
-                <button type="button" key={p.publicId} onClick={()=> pickPerson(p)} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}{p.email ? ` • ${p.email}`:''}</button>
-              ))}
+            <p className="text-[11px] text-muted-foreground">Escribe nombre y apellido para sugerencias de personas existentes.</p>
+            {showSuggestions && (
+              <div className="rounded-md border bg-background shadow-sm max-h-44 overflow-auto divide-y text-xs">
+                {people.map(p => (
+                  <button key={p.publicId} type="button" onClick={()=> pickPerson(p)} className="w-full text-left px-3 py-1.5 hover:bg-accent focus:bg-accent focus:outline-none transition-colors">{p.display}{p.email ? ` • ${p.email}`:''}</button>
+                ))}
+              </div>
+            )}
+            {selectedPerson && (
+              <div className="text-xs bg-muted/60 border rounded-md px-3 py-2 flex flex-wrap gap-2 items-center">
+                <span className="font-medium">Seleccionado:</span>
+                <span>{selectedPerson.display}</span>
+                {selectedPerson.email && <span className="text-muted-foreground">({selectedPerson.email})</span>}
+              </div>
+            )}
+          </section>
+
+          <section className="space-y-4">
+            <h3 className="text-sm font-semibold tracking-tight">Identificación</h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Legajo *</label>
+                <Input value={studentId} onChange={e=> setStudentId(e.target.value)} required />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Email *</label>
+                <Input value={email} onChange={e=> setEmail(e.target.value)} required />
+              </div>
             </div>
-          )}
-          {selectedPerson && (
-            <div className="flex items-center gap-2 text-xs">
-              <span className="font-medium">Seleccionado:</span>
-              <span>{selectedPerson.display}</span>
-              <button type="button" onClick={clearSelection} className="underline text-muted-foreground">Cambiar</button>
-            </div>
-          )}
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Legajo *</label>
-              <Input value={studentId} onChange={e=> setStudentId(e.target.value)} required />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Email *</label>
-              <Input value={email} onChange={e=> setEmail(e.target.value)} required />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-xs font-medium">Carreras</label>
+          </section>
+
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold tracking-tight">Carreras</h3>
             <div className="flex flex-wrap gap-2">
               {careers.map(c => {
                 const active = selectedCareers.includes(c.publicId);
                 return (
-                  <button key={c.publicId} type="button" onClick={()=> toggleCareer(c.publicId)} className={`px-2 py-1 rounded border text-xs ${active? 'bg-primary text-primary-foreground border-primary':'bg-muted hover:bg-muted/70'}`}>{c.name}</button>
+                  <button key={c.publicId} type="button" onClick={()=> toggleCareer(c.publicId)} className={`px-2 py-1 rounded border text-xs transition-colors ${active? 'bg-primary text-primary-foreground border-primary':'bg-muted hover:bg-muted/70'}`}>{c.name}</button>
                 );
               })}
               {careers.length===0 && <span className="text-xs text-muted-foreground">(Sin carreras)</span>}
             </div>
             {selectedCareers.length>0 && <div className="text-[11px] text-muted-foreground">Seleccionadas: {selectedCareers.length}</div>}
-          </div>
-          <SheetFooter className="gap-2">
-            <Button type="submit" size="sm" disabled={loading}>{loading? 'Creando…':'Crear'}</Button>
+          </section>
+
+          <SheetFooter className="gap-2 pt-2">
+            <Button type="submit" size="sm" disabled={loading} className="min-w-24">{loading? 'Creando…':'Crear'}</Button>
             <Button type="button" size="sm" variant="outline" onClick={()=> onOpenChange(false)}>Cancelar</Button>
           </SheetFooter>
         </form>

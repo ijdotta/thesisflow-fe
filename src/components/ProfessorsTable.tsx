@@ -111,40 +111,59 @@ function CreateProfessorSheet({ open, onOpenChange, onCreated }: { open: boolean
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetContent className="sm:max-w-[560px]">
+			<SheetContent className="sm:max-w-[620px] px-6 py-6 overflow-y-auto">
 				<SheetHeader><SheetTitle>Nuevo Profesor</SheetTitle></SheetHeader>
-				<form onSubmit={handleSubmit} className="mt-4 space-y-5">
-					<div className="grid sm:grid-cols-2 gap-4">
+				<form onSubmit={handleSubmit} className="mt-6 space-y-7">
+					<section className="space-y-4">
+						<div className="flex items-center justify-between">
+							<h3 className="text-sm font-semibold tracking-tight">Datos de la persona</h3>
+							{selectedPerson && (
+								<button type="button" onClick={clearSelection} className="text-xs underline text-muted-foreground hover:text-foreground transition-colors">Cambiar selección</button>
+							)}
+						</div>
+						<div className="grid sm:grid-cols-2 gap-4">
+							<div className="space-y-1">
+								<label className="text-xs font-medium">Nombre *</label>
+								<Input value={name} onChange={e=> { setName(e.target.value); if (selectedPerson) clearSelection(); }} required disabled={!!selectedPerson} />
+							</div>
+							<div className="space-y-1">
+								<label className="text-xs font-medium">Apellido *</label>
+								<Input value={lastname} onChange={e=> { setLastname(e.target.value); if (selectedPerson) clearSelection(); }} required disabled={!!selectedPerson} />
+							</div>
+						</div>
+						<p className="text-[11px] text-muted-foreground">Escribe nombre y apellido para sugerencias de personas existentes.</p>
+						{showSuggestions && (
+							<div className="rounded-md border bg-background shadow-sm max-h-44 overflow-auto divide-y text-xs">
+								{people.map(p => (
+									<button
+										type="button"
+										key={p.publicId}
+										onClick={()=> pickPerson(p)}
+										className="w-full text-left px-3 py-1.5 hover:bg-accent focus:bg-accent focus:outline-none transition-colors"
+									>{p.display}{p.email ? ` • ${p.email}`:''}</button>
+								))}
+							</div>
+						)}
+						{selectedPerson && (
+							<div className="text-xs bg-muted/60 border rounded-md px-3 py-2 flex flex-wrap gap-2 items-center">
+								<span className="font-medium">Seleccionado:</span>
+								<span>{selectedPerson.display}</span>
+								{selectedPerson.email && <span className="text-muted-foreground">({selectedPerson.email})</span>}
+							</div>
+						)}
+					</section>
+
+					<section className="space-y-3">
+						<h3 className="text-sm font-semibold tracking-tight">Credenciales</h3>
 						<div className="space-y-1">
-							<label className="text-xs font-medium">Nombre *</label>
-							<Input value={name} onChange={e=> { setName(e.target.value); if (selectedPerson) clearSelection(); }} required disabled={!!selectedPerson} />
+							<label className="text-xs font-medium">Email institucional *</label>
+							<Input value={email} onChange={e=> setEmail(e.target.value)} placeholder="usuario@cs.uns.edu.ar" required />
+							<p className="text-[11px] text-muted-foreground">Debe terminar en <code>@cs.uns.edu.ar</code> o <code>@uns.edu.ar</code>.</p>
 						</div>
-						<div className="space-y-1">
-							<label className="text-xs font-medium">Apellido *</label>
-							<Input value={lastname} onChange={e=> { setLastname(e.target.value); if (selectedPerson) clearSelection(); }} required disabled={!!selectedPerson} />
-						</div>
-					</div>
-					{showSuggestions && (
-						<div className="rounded border max-h-40 overflow-auto divide-y text-xs">
-							{people.map(p => (
-								<button type="button" key={p.publicId} onClick={()=> pickPerson(p)} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}{p.email ? ` • ${p.email}`:''}</button>
-							))}
-						</div>
-					)}
-					{selectedPerson && (
-						<div className="flex items-center gap-2 text-xs">
-							<span className="font-medium">Seleccionado:</span>
-							<span>{selectedPerson.display}</span>
-							<button type="button" onClick={clearSelection} className="underline text-muted-foreground">Cambiar</button>
-						</div>
-					)}
-					<div className="space-y-1">
-						<label className="text-xs font-medium">Email institucional *</label>
-						<Input value={email} onChange={e=> setEmail(e.target.value)} placeholder="usuario@cs.uns.edu.ar" required />
-						<p className="text-[11px] text-muted-foreground">Debe terminar en @cs.uns.edu.ar o @uns.edu.ar</p>
-					</div>
-					<SheetFooter className="gap-2">
-						<Button type="submit" size="sm" disabled={loading}>{loading? 'Creando…':'Crear'}</Button>
+					</section>
+
+					<SheetFooter className="gap-2 pt-2">
+						<Button type="submit" size="sm" disabled={loading} className="min-w-24">{loading? 'Creando…':'Crear'}</Button>
 						<Button type="button" size="sm" variant="outline" onClick={()=> onOpenChange(false)}>Cancelar</Button>
 					</SheetFooter>
 				</form>
