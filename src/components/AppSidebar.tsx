@@ -11,17 +11,16 @@ import {
 
 import type {SidebarItem} from "@/constants/sidebar.ts";
 
-type AppSidebarProps = { items: SidebarItem[] }
-export function AppSidebar({ items = [] }: AppSidebarProps) {
-  console.log("AppSidebar items:", items)
+interface AppSidebarProps { items: SidebarItem[]; utilItems?: SidebarItem[] }
+export function AppSidebar({ items = [], utilItems = [] }: AppSidebarProps) {
   return (
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel>Explorar</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {Array.isArray(items) && items.map((item) => (
+              {items.map(item => (
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton asChild>
                     <a href={item.href}>
@@ -34,6 +33,25 @@ export function AppSidebar({ items = [] }: AppSidebarProps) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {utilItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Herramientas</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {utilItems.map(item => (
+                  <SidebarMenuItem key={item.label}>
+                    <SidebarMenuButton asChild>
+                      <a href={item.href}>
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   )

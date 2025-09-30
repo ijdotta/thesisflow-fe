@@ -1,5 +1,5 @@
 import { ROUTES } from './routes';
-import {Files, type LucideProps, Users2, GraduationCap, School, Tag, Layers, Landmark} from "lucide-react"
+import {Files, type LucideProps, Users2, GraduationCap, School, Tag, Layers, Landmark, Database, UploadCloud} from "lucide-react"
 import type {ForwardRefExoticComponent, RefAttributes} from "react";
 
 export type SidebarItem = {
@@ -14,6 +14,11 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
   { label: 'Profesores', href: ROUTES.professors, icon: School },
   { label: 'Alumnos', href: ROUTES.students, icon: GraduationCap },
   { label: 'Carreras', href: ROUTES.careers, icon: Landmark },
-  { label: 'Dominios de aplicación', href: ROUTES.applicationDomains, icon: Layers },
+  { label: 'Dominios', href: ROUTES.applicationDomains, icon: Layers },
   { label: 'Etiquetas', href: ROUTES.tags, icon: Tag },
+];
+
+export const SIDEBAR_UTIL_ITEMS: SidebarItem[] = [
+  { label: 'Backup', href: ROUTES.backup, icon: Database },
+  { label: 'Import Data', href: ROUTES.importData, icon: UploadCloud },
 ];

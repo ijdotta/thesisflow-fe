@@ -11,11 +11,15 @@ import { ApplicationDomainsPage } from '@/pages/ApplicationDomainsPage';
 import { TagsPage } from '@/pages/TagsPage';
 import { ROUTES } from '@/constants/routes';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BackupPage } from '@/pages/BackupPage';
+import { ImportDataPage } from '@/pages/ImportDataPage';
 
 const queryClient = new QueryClient()
 
 export function Router() {
   const path = window.location.pathname;
+  if (path.startsWith(ROUTES.backup)) return <BackupPage />;
+  if (path.startsWith(ROUTES.importData)) return <ImportDataPage />;
   if (path.startsWith(ROUTES.careers)) return <CareersPage />;
   if (path.startsWith(ROUTES.applicationDomains)) return <ApplicationDomainsPage />;
   if (path.startsWith(ROUTES.tags)) return <TagsPage />;

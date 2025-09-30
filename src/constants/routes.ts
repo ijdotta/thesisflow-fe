@@ -6,4 +6,6 @@ export const ROUTES = {
   careers: '/careers',
   applicationDomains: '/application-domains',
   tags: '/tags',
+  backup: '/backup',
+  importData: '/import-data',
 }
