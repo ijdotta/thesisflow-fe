@@ -9,11 +9,11 @@ export type SidebarItem = {
 }
 
 export const SIDEBAR_ITEMS: SidebarItem[] = [
-  { label: 'Projects', href: ROUTES.projects, icon: Files},
-  { label: 'People', href: ROUTES.people, icon: Users2 },
-  { label: 'Professors', href: ROUTES.professors, icon: School },
-  { label: 'Students', href: ROUTES.students, icon: GraduationCap },
-  { label: 'Careers', href: ROUTES.careers, icon: Landmark },
-  { label: 'Domains', href: ROUTES.applicationDomains, icon: Layers },
-  { label: 'Tags', href: ROUTES.tags, icon: Tag },
+  { label: 'Proyectos', href: ROUTES.projects, icon: Files},
+  { label: 'Personas', href: ROUTES.people, icon: Users2 },
+  { label: 'Profesores', href: ROUTES.professors, icon: School },
+  { label: 'Alumnos', href: ROUTES.students, icon: GraduationCap },
+  { label: 'Carreras', href: ROUTES.careers, icon: Landmark },
+  { label: 'Dominios de aplicación', href: ROUTES.applicationDomains, icon: Layers },
+  { label: 'Etiquetas', href: ROUTES.tags, icon: Tag },
 ];
