@@ -39,3 +39,7 @@ export async function getProject(publicId: string): Promise<GetProjectsResponse[
   const { data } = await api.get(`/projects/${publicId}`);
   return data;
 }
+
+export async function setProjectTags(projectPublicId: string, tagPublicIds: string[]): Promise<void> {
+  await api.put(`/projects/${projectPublicId}/tags`, { tags: tagPublicIds });
+}

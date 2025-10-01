@@ -49,5 +49,7 @@ export function mapApiCareerToFriendly(c: ApiCareer): import('@/types/FriendlyEn
 }
 
 export function mapApiTagToFriendly(t: ApiTag): import('@/types/FriendlyEntities').FriendlyTag {
-  return { publicId: t.publicId, name: t.name, description: t.description, display: t.name };
+  // Fallbacks: some backends may send id instead of publicId
+  const pid = (t as any).publicId || (t as any).id || `${t.name}`;
+  return { publicId: pid, name: t.name, description: (t as any).description, display: t.name };
 }

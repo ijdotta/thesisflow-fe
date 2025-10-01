@@ -1,12 +1,13 @@
 import {type Column, DataTable, type Sort} from "@/components/DataTable.tsx";
 import type {Project} from "@/types/Project.ts";
 import {Button} from "@/components/ui/button.tsx";
-import {Edit, EyeIcon} from "lucide-react";
+import {Edit, EyeIcon, Tag as TagIcon} from "lucide-react";
 import {useProjects} from "@/hooks/useProjects.ts";
 import * as React from "react";
 import CreateProjectWizard from "@/components/CreateProjectWizard.tsx";
 import { useQueryClient } from '@tanstack/react-query';
 import { ProjectViewSheet } from '@/components/ProjectViewSheet';
+import { ProjectTagsSheet } from '@/components/ProjectTagsSheet';
 
 const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', PROJECT: 'Proyecto Final' };
 
@@ -17,6 +18,8 @@ export default function ProjectsTable() {
 	const [filters, setFilters] = React.useState<Record<string, string>>({});
 	const [viewProjectId, setViewProjectId] = React.useState<string | null>(null);
 	const [viewOpen, setViewOpen] = React.useState(false);
+	const [tagsProject, setTagsProject] = React.useState<{ publicId: string; title: string; tags: Project['tags'] } | null>(null);
+	const [tagsOpen, setTagsOpen] = React.useState(false);
 	const queryClient = useQueryClient();
 
 	const { data, isLoading, error } = useProjects({ page, size, sort, filters });
@@ -53,6 +56,7 @@ export default function ProjectsTable() {
 
 	const openView = React.useCallback((id: string) => { setViewProjectId(id); setViewOpen(true); updateUrlParam(id); }, [updateUrlParam]);
 	const handleViewOpenChange = React.useCallback((o: boolean) => { setViewOpen(o); if (!o) { setViewProjectId(null); updateUrlParam(null); } }, [updateUrlParam]);
+	const openTags = React.useCallback((p: Project) => { setTagsProject({ publicId: p.publicId, title: p.title, tags: p.tags }); setTagsOpen(true); }, []);
 
 	const columns = React.useMemo<Column<Project>[]>(() => [
 		{
@@ -105,9 +109,10 @@ export default function ProjectsTable() {
 			id: "actions",
 			header: "Acciones",
 			accessor: (row) => (
-				<div className="flex gap-2">
+				<div className="flex gap-2 flex-wrap">
 					<Button variant="default" onClick={() => openView(row.publicId)} title="Ver detalles"><EyeIcon /></Button>
-					<Button variant="secondary" disabled title="Editar (próximamente)"><Edit /></Button>
+					<Button variant="outline" size="sm" onClick={() => openTags(row)} title="Gestionar etiquetas"><TagIcon className="h-4 w-4" /></Button>
+					<Button variant="secondary" size="sm" disabled title="Editar (próximamente)"><Edit className="h-4 w-4" /></Button>
 				</div>
 			)
 		}
@@ -140,6 +145,7 @@ export default function ProjectsTable() {
 				filterDebounceMs={500}
 			/>
 			<ProjectViewSheet publicId={viewProjectId} open={viewOpen} onOpenChange={handleViewOpenChange} initial={selectedProject} />
+			<ProjectTagsSheet project={tagsProject} open={tagsOpen} onOpenChange={setTagsOpen} />
 		</div>
 	);
 }

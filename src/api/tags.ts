@@ -28,3 +28,16 @@ export async function updateTag(publicId: string, body: { name: string; descript
   return data;
 }
 
+// NEW: lightweight search (fallback to client filter if backend lacks ?q= support)
+export async function searchTags(query: string): Promise<ApiTag[]> {
+  const q = query.trim();
+  if (!q) return [];
+  try {
+    const { data } = await api.get('/tags', { params: { q } });
+    if (data?.content && Array.isArray(data.content)) return data.content as ApiTag[];
+    if (Array.isArray(data)) return data as ApiTag[];
+    return [];
+  } catch {
+    return [];
+  }
+}
