@@ -16,7 +16,7 @@ interface Props {
 }
 
 // NEW: mapping for type labels (UI localized)
-const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', PROJECT: 'Proyecto Final' };
+const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', FINAL_PROJECT: 'Proyecto Final' };
 
 export function BasicInfoStep({ draft, onPatch, domainQuery, setDomainQuery, domainItems }: Props) {
   function toggleSubtype(st: string) {

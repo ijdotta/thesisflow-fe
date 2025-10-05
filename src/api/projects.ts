@@ -26,11 +26,11 @@ export async function createProject(body: CreateProjectBody): Promise<{ publicId
   return data;
 }
 
-export async function setProjectApplicationDomain(projectPublicId: string, applicationDomainPublicId: string): Promise<void> {
-  await api.put(`/projects/${projectPublicId}/application-domain`, { applicationDomainPublicId });
+export async function setProjectApplicationDomain(projectPublicId: string, applicationDomainId: string): Promise<void> {
+  await api.put(`/projects/${projectPublicId}/application-domain`, { applicationDomainId });
 }
 
-export async function setProjectParticipants(projectPublicId: string, participants: { personPublicId: string; role: 'STUDENT' | 'DIRECTOR' | 'CO_DIRECTOR' | 'COLLABORATOR'}[]): Promise<void> {
+export async function setProjectParticipants(projectPublicId: string, participants: { personId: string; role: 'STUDENT' | 'DIRECTOR' | 'CO_DIRECTOR' | 'COLLABORATOR'}[]): Promise<void> {
   if (!participants.length) return;
   await api.put(`/projects/${projectPublicId}/participants`, { participants });
 }

@@ -39,12 +39,12 @@ export async function persistAllManualEntities(draft: ProjectDraft) {
 
 export type ParticipantRole = 'STUDENT' | 'DIRECTOR' | 'CO_DIRECTOR' | 'COLLABORATOR';
 
-export function buildParticipants(draft: ProjectDraft): { personPublicId: string; role: ParticipantRole }[] {
-  const map = new Map<string, { personPublicId: string; role: ParticipantRole }>();
-  function add(personPublicId?: string, role?: ParticipantRole) {
-    if (!personPublicId || !role) return;
-    const key = personPublicId + role;
-    if (!map.has(key)) map.set(key, { personPublicId, role });
+export function buildParticipants(draft: ProjectDraft): { personId: string; role: ParticipantRole }[] {
+  const map = new Map<string, { personId: string; role: ParticipantRole }>();
+  function add(personId?: string, role?: ParticipantRole) {
+    if (!personId || !role) return;
+    const key = personId + role;
+    if (!map.has(key)) map.set(key, { personId, role });
   }
   draft.directors.forEach(d => add(d.publicId, 'DIRECTOR'));
   draft.codirectors.forEach(d => add(d.publicId, 'CO_DIRECTOR'));

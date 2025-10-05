@@ -23,7 +23,7 @@ describe('buildParticipants', () => {
     });
     const result = buildParticipants(draft);
     // Person appears in multiple roles so expect 3 entries with unique role combos
-    expect(result.filter(r => r.personPublicId==='p1').map(r=>r.role).sort()).toEqual(['CO_DIRECTOR','DIRECTOR','STUDENT']);
+    expect(result.filter(r => r.personId==='p1').map(r=>r.role).sort()).toEqual(['CO_DIRECTOR','DIRECTOR','STUDENT']);
   });
   it('handles multiple distinct participants', () => {
     const draft = makeDraft({
@@ -32,7 +32,7 @@ describe('buildParticipants', () => {
       students: [ { publicId: 's1', name:'S', lastname:'1', studentId: 'X', careers: [] } as any ],
     });
     const result = buildParticipants(draft);
-    const roles = result.reduce<Record<string,string[]>>((acc,p)=>{acc[p.personPublicId]=(acc[p.personPublicId]||[]).concat(p.role);return acc;},{});
+    const roles = result.reduce<Record<string,string[]>>((acc,p)=>{acc[p.personId]=(acc[p.personId]||[]).concat(p.role);return acc;},{});
     expect(roles).toEqual({ d1:['DIRECTOR'], c1:['COLLABORATOR'], s1:['STUDENT'] });
   });
 });
