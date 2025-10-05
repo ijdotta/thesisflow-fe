@@ -38,3 +38,7 @@ export async function updateCareer(publicId: string, body: { name: string; descr
   const { data } = await api.put(`/careers/${publicId}`, body);
   return data;
 }
+
+export async function deleteCareer(publicId: string): Promise<void> {
+  await api.delete(`/careers/${publicId}`);
+}

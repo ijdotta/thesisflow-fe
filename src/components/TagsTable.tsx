@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { DataTable, type Column, type Sort } from '@/components/DataTable';
 import { Button } from '@/components/ui/button';
-import { Edit, Plus } from 'lucide-react';
+import { Edit, Plus, Trash } from 'lucide-react';
 import { usePagedTags } from '@/hooks/usePagedTags';
 import type { FriendlyTag } from '@/types/FriendlyEntities';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
-import { createTag, updateTag } from '@/api/tags';
+import { createTag, updateTag, deleteTag } from '@/api/tags';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOptionalToast } from '@/components/ui/toast';
 
@@ -29,8 +29,15 @@ export default function TagsTable() {
     { id: 'actions', header: 'Acciones', accessor: (row) => (
       <div className="flex gap-2">
         <Button size="sm" variant="outline" onClick={() => setEditing({ mode: 'edit', entity: row })}><Edit className="h-4 w-4" /></Button>
+        <Button size="sm" variant="destructive" title="Eliminar" onClick={() => {
+          if (window.confirm(`Eliminar etiqueta \"${row.name}\"?`)) {
+            deleteTag(row.publicId)
+              .then(()=> { push({ variant:'success', title:'Eliminado', message:'Etiqueta eliminada'}); queryClient.invalidateQueries({ queryKey:['tags'] }); })
+              .catch((err:any)=> push({ variant:'error', title:'Error', message: err?.message || 'No se pudo eliminar'}));
+          }
+        }}><Trash className="h-4 w-4" /></Button>
       </div>)},
-  ], []);
+  ], [push, queryClient]);
 
   function openCreate() { setEditing({ mode: 'create' }); }
   function closeSheet() { setEditing(null); }

@@ -7,8 +7,9 @@ import type { FriendlyPerson } from '@/types/FriendlyEntities';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { useQueryClient } from '@tanstack/react-query';
-import { createPerson, updatePerson } from '@/api/people';
+import { createPerson, updatePerson, deletePerson } from '@/api/people';
 import { useOptionalToast } from '@/components/ui/toast';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export default function PeopleTable() {
   const [page, setPage] = React.useState(0);
@@ -62,6 +63,20 @@ export default function PeopleTable() {
   }
 
   const entity = editing?.entity;
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+
+  async function handleDelete() {
+    if (!entity) return;
+    try {
+      await deletePerson(entity.publicId);
+      push({ variant:'success', title:'Eliminado', message:'Persona eliminada'});
+      queryClient.invalidateQueries({ queryKey: ['people'] });
+      setDeleteOpen(false);
+      closeSheet();
+    } catch (err:any) {
+      push({ variant:'error', title:'Error', message: err?.message || 'No se pudo eliminar'});
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -107,8 +122,20 @@ export default function PeopleTable() {
             <SheetFooter className="gap-2 pt-2">
               <Button type="submit" size="sm" className="min-w-24">Guardar</Button>
               <Button type="button" size="sm" variant="outline" onClick={closeSheet}>Cancelar</Button>
+              {editing?.mode === 'edit' && entity && (
+                <Button type="button" size="sm" variant="destructive" onClick={()=> setDeleteOpen(true)}>Eliminar…</Button>
+              )}
             </SheetFooter>
           </form>
+          {entity && (
+            <ConfirmDeleteDialog
+              open={deleteOpen}
+              onOpenChange={setDeleteOpen}
+              entityName={`${entity.name}-${entity.lastname}`}
+              label="persona"
+              onConfirm={handleDelete}
+            />
+          )}
         </SheetContent>
       </Sheet>
     </div>

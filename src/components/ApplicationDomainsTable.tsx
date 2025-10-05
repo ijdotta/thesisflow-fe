@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { DataTable, type Column, type Sort } from '@/components/DataTable';
 import { Button } from '@/components/ui/button';
-import { Edit, Plus } from 'lucide-react';
+import { Edit, Plus, Trash } from 'lucide-react';
 import { usePagedApplicationDomains } from '@/hooks/usePagedApplicationDomains';
 import type { FriendlyApplicationDomain } from '@/types/FriendlyEntities';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
-import { createApplicationDomain, updateApplicationDomain } from '@/api/applicationDomains';
+import { createApplicationDomain, updateApplicationDomain, deleteApplicationDomain } from '@/api/applicationDomains';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOptionalToast } from '@/components/ui/toast';
 
@@ -29,8 +29,15 @@ export default function ApplicationDomainsTable() {
     { id: 'actions', header: 'Acciones', accessor: (row) => (
       <div className="flex gap-2">
         <Button size="sm" variant="outline" onClick={() => setEditing({ mode: 'edit', entity: row })}><Edit className="h-4 w-4" /></Button>
+        <Button size="sm" variant="destructive" onClick={() => {
+          if (window.confirm(`Eliminar dominio "${row.name}"?`)) {
+            deleteApplicationDomain(row.publicId)
+              .then(()=> { push({ variant:'success', title:'Eliminado', message:'Dominio eliminado'}); queryClient.invalidateQueries({ queryKey:['application-domains'] }); })
+              .catch((err:any)=> push({ variant:'error', title:'Error', message: err?.message || 'No se pudo eliminar'}));
+          }
+        }} title="Eliminar"><Trash className="h-4 w-4" /></Button>
       </div>)},
-  ], []);
+  ], [push, queryClient]);
 
   function openCreate() { setEditing({ mode: 'create' }); }
   function closeSheet() { setEditing(null); }

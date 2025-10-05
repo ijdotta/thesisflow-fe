@@ -28,6 +28,10 @@ export async function updateTag(publicId: string, body: { name: string; descript
   return data;
 }
 
+export async function deleteTag(publicId: string): Promise<void> {
+  await api.delete(`/tags/${publicId}`);
+}
+
 // NEW: lightweight search (fallback to client filter if backend lacks ?q= support)
 export async function searchTags(query: string): Promise<ApiTag[]> {
   const q = query.trim();

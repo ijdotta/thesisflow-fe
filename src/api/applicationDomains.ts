@@ -27,3 +27,7 @@ export async function updateApplicationDomain(publicId: string, body: { name: st
   const { data } = await api.put(`/application-domains/${publicId}`, body);
   return data;
 }
+
+export async function deleteApplicationDomain(publicId: string): Promise<void> {
+  await api.delete(`/application-domains/${publicId}`);
+}

@@ -43,3 +43,7 @@ export async function getProject(publicId: string): Promise<GetProjectsResponse[
 export async function setProjectTags(projectPublicId: string, tagPublicIds: string[]): Promise<void> {
   await api.put(`/projects/${projectPublicId}/tags`, { tags: tagPublicIds });
 }
+
+export async function deleteProject(publicId: string): Promise<void> {
+  await api.delete(`/projects/${publicId}`);
+}

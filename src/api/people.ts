@@ -27,3 +27,7 @@ export async function updatePerson(publicId: string, body: { name: string; lastn
   const { data } = await api.put(`/people/${publicId}`, body);
   return data;
 }
+
+export async function deletePerson(publicId: string): Promise<void> {
+  await api.delete(`/people/${publicId}`);
+}
