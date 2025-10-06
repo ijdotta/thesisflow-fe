@@ -7,6 +7,7 @@ import type { FriendlyCareer } from '@/types/FriendlyEntities';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { createCareer, updateCareer, deleteCareer } from '@/api/careers';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOptionalToast } from '@/components/ui/toast';
 
@@ -16,6 +17,7 @@ export default function CareersTable() {
   const [sort, setSort] = React.useState<Sort>({ field: 'name', dir: 'asc' });
   const [filters, setFilters] = React.useState<Record<string,string>>({});
   const [editing, setEditing] = React.useState<{ mode: 'create'|'edit'; entity?: FriendlyCareer | null } | null>(null);
+  const [deleteState, setDeleteState] = React.useState<{ open: boolean; target?: FriendlyCareer | null }>({ open:false });
 
   const queryClient = useQueryClient();
   const { push } = useOptionalToast();
@@ -29,16 +31,10 @@ export default function CareersTable() {
     { id: 'actions', header: 'Acciones', accessor: (row) => (
       <div className="flex gap-2">
         <Button size="sm" variant="outline" onClick={() => setEditing({ mode: 'edit', entity: row })} title="Editar"><Edit className="h-4 w-4" /></Button>
-        <Button size="sm" variant="destructive" title="Eliminar" onClick={() => {
-          if (window.confirm(`Eliminar carrera "${row.name}"?`)) {
-            deleteCareer(row.publicId)
-              .then(()=> { push({ variant:'success', title:'Eliminado', message:'Carrera eliminada'}); queryClient.invalidateQueries({ queryKey:['careers'] }); })
-              .catch((err:any)=> push({ variant:'error', title:'Error', message: err?.message || 'No se pudo eliminar'}));
-          }
-        }}><Trash className="h-4 w-4" /></Button>
+        <Button size="sm" variant="destructive" title="Eliminar" onClick={() => setDeleteState({ open:true, target: row })}><Trash className="h-4 w-4" /></Button>
       </div>
     ) },
-  ], [push, queryClient]);
+  ], []);
 
   function openCreate() { setEditing({ mode: 'create' }); }
   function closeSheet() { setEditing(null); }
@@ -97,6 +93,19 @@ export default function CareersTable() {
           </form>
         </SheetContent>
       </Sheet>
+      <ConfirmDeleteDialog
+        open={deleteState.open}
+        onOpenChange={(o)=> setDeleteState(s=> ({ ...s, open:o, ...(o?{}:{target:null}) }))}
+        entityName={deleteState.target?.name || ''}
+        label="carrera"
+        requireSlug={false}
+        onConfirm={async ()=> {
+          const t = deleteState.target; if (!t) return;
+            try { await deleteCareer(t.publicId); push({ variant:'success', title:'Eliminado', message:'Carrera eliminada'}); queryClient.invalidateQueries({ queryKey:['careers'] }); }
+            catch(err:any){ push({ variant:'error', title:'Error', message: err?.message || 'No se pudo eliminar'}); }
+            finally { setDeleteState({ open:false, target:null }); }
+        }}
+      />
     </div>
   );
 }

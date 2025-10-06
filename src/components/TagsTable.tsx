@@ -7,6 +7,7 @@ import type { FriendlyTag } from '@/types/FriendlyEntities';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { createTag, updateTag, deleteTag } from '@/api/tags';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOptionalToast } from '@/components/ui/toast';
 
@@ -16,6 +17,7 @@ export default function TagsTable() {
   const [sort, setSort] = React.useState<Sort>({ field: 'name', dir: 'asc' });
   const [filters, setFilters] = React.useState<Record<string,string>>({});
   const [editing, setEditing] = React.useState<{ mode: 'create'|'edit'; entity?: FriendlyTag | null } | null>(null);
+  const [deleteState, setDeleteState] = React.useState<{ open: boolean; target?: FriendlyTag | null }>({ open:false });
   const queryClient = useQueryClient();
   const { push } = useOptionalToast();
 
@@ -29,15 +31,9 @@ export default function TagsTable() {
     { id: 'actions', header: 'Acciones', accessor: (row) => (
       <div className="flex gap-2">
         <Button size="sm" variant="outline" onClick={() => setEditing({ mode: 'edit', entity: row })}><Edit className="h-4 w-4" /></Button>
-        <Button size="sm" variant="destructive" title="Eliminar" onClick={() => {
-          if (window.confirm(`Eliminar etiqueta \"${row.name}\"?`)) {
-            deleteTag(row.publicId)
-              .then(()=> { push({ variant:'success', title:'Eliminado', message:'Etiqueta eliminada'}); queryClient.invalidateQueries({ queryKey:['tags'] }); })
-              .catch((err:any)=> push({ variant:'error', title:'Error', message: err?.message || 'No se pudo eliminar'}));
-          }
-        }}><Trash className="h-4 w-4" /></Button>
+        <Button size="sm" variant="destructive" title="Eliminar" onClick={() => setDeleteState({ open:true, target: row })}><Trash className="h-4 w-4" /></Button>
       </div>)},
-  ], [push, queryClient]);
+  ], []);
 
   function openCreate() { setEditing({ mode: 'create' }); }
   function closeSheet() { setEditing(null); }
@@ -100,6 +96,19 @@ export default function TagsTable() {
           </form>
         </SheetContent>
       </Sheet>
+      <ConfirmDeleteDialog
+        open={deleteState.open}
+        onOpenChange={(o)=> setDeleteState(s=> ({ ...s, open:o, ...(o?{}:{target:null}) }))}
+        entityName={deleteState.target?.name || ''}
+        label="etiqueta"
+        requireSlug={false}
+        onConfirm={async ()=> {
+          const t = deleteState.target; if (!t) return;
+          try { await deleteTag(t.publicId); push({ variant:'success', title:'Eliminado', message:'Etiqueta eliminada'}); queryClient.invalidateQueries({ queryKey:['tags'] }); }
+          catch(err:any){ push({ variant:'error', title:'Error', message: err?.message || 'No se pudo eliminar'}); }
+          finally { setDeleteState({ open:false, target:null }); }
+        }}
+      />
     </div>
   );
 }
