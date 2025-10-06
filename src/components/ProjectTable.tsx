@@ -114,9 +114,9 @@ export default function ProjectsTable() {
 			header: "Acciones",
 			accessor: (row) => (
 				<div className="flex gap-2 flex-wrap">
-					<Button variant="default" onClick={() => openView(row.publicId)} title="Ver detalles"><EyeIcon /></Button>
+					<Button variant="default" size="sm" onClick={() => openView(row.publicId)} title="Ver detalles"><EyeIcon className="h-4 w-4" /></Button>
 					<Button variant="outline" size="sm" onClick={() => openTags(row)} title="Gestionar etiquetas"><TagIcon className="h-4 w-4" /></Button>
-					<Button variant="secondary" size="sm" onClick={() => openManage(row)} title="Editar / Eliminar"><Edit className="h-4 w-4" /></Button>
+					<Button variant="default" size="sm" onClick={() => openManage(row)} title="Editar / Eliminar"><Edit className="h-4 w-4" /></Button>
 				</div>
 			)
 		}

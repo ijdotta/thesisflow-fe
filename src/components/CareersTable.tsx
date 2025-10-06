@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { DataTable, type Column, type Sort } from '@/components/DataTable';
 import { Button } from '@/components/ui/button';
-import { Edit, Plus, Trash } from 'lucide-react';
+import { Edit, Plus, Trash, Loader2 } from 'lucide-react';
 import { usePagedCareers } from '@/hooks/usePagedCareers';
 import type { FriendlyCareer } from '@/types/FriendlyEntities';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
@@ -17,6 +17,7 @@ export default function CareersTable() {
   const [sort, setSort] = React.useState<Sort>({ field: 'name', dir: 'asc' });
   const [filters, setFilters] = React.useState<Record<string,string>>({});
   const [editing, setEditing] = React.useState<{ mode: 'create'|'edit'; entity?: FriendlyCareer | null } | null>(null);
+  const [saving, setSaving] = React.useState(false);
   const [deleteState, setDeleteState] = React.useState<{ open: boolean; target?: FriendlyCareer | null }>({ open:false });
 
   const queryClient = useQueryClient();
@@ -30,7 +31,7 @@ export default function CareersTable() {
     { id: 'name', header: 'Nombre', accessor: r => r.name, sortField: 'name', filter: { type: 'text', placeholder: 'Filtrar nombre'} },
     { id: 'actions', header: 'Acciones', accessor: (row) => (
       <div className="flex gap-2">
-        <Button size="sm" variant="outline" onClick={() => setEditing({ mode: 'edit', entity: row })} title="Editar"><Edit className="h-4 w-4" /></Button>
+        <Button size="sm" variant="default" onClick={() => setEditing({ mode: 'edit', entity: row })} title="Editar"><Edit className="h-4 w-4" /></Button>
         <Button size="sm" variant="destructive" title="Eliminar" onClick={() => setDeleteState({ open:true, target: row })}><Trash className="h-4 w-4" /></Button>
       </div>
     ) },
@@ -41,15 +42,18 @@ export default function CareersTable() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (saving) return;
+    setSaving(true);
     const fd = new FormData(e.currentTarget as HTMLFormElement);
     const body = { name: String(fd.get('name')||'').trim() };
-    if (!body.name) { push({ variant:'error', title:'Falta nombre', message:'Nombre es obligatorio'}); return; }
+    if (!body.name) { push({ variant:'error', title:'Falta nombre', message:'Nombre es obligatorio'}); setSaving(false); return; }
     try {
       if (editing?.mode === 'create') { await createCareer(body); push({ variant:'success', title:'Creado', message:'Carrera creada'}); }
       else if (editing?.mode === 'edit' && editing.entity) { await updateCareer(editing.entity.publicId, body); push({ variant:'success', title:'Actualizado', message:'Carrera actualizada'}); }
       queryClient.invalidateQueries({ queryKey: ['careers'] });
       closeSheet();
     } catch (err:any) { push({ variant:'error', title:'Error', message: err?.message || 'Operación fallida'}); }
+    finally { setSaving(false); }
   }
 
   const entity = editing?.entity;
@@ -87,8 +91,8 @@ export default function CareersTable() {
               </div>
             </section>
             <SheetFooter className="gap-2 pt-2">
-              <Button type="submit" size="sm" className="min-w-24">Guardar</Button>
-              <Button type="button" size="sm" variant="outline" onClick={closeSheet}>Cancelar</Button>
+              <Button type="submit" size="sm" className="min-w-24" disabled={saving}>{saving && <Loader2 className="h-4 w-4 animate-spin" />}Guardar</Button>
+              <Button type="button" size="sm" variant="outline" onClick={closeSheet} disabled={saving}>Cancelar</Button>
             </SheetFooter>
           </form>
         </SheetContent>

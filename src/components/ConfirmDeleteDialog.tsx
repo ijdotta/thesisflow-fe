@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Button } from '@/components/ui/button';
 import { slugify } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 
 interface ConfirmDeleteDialogProps {
   open: boolean;
@@ -54,7 +55,10 @@ export function ConfirmDeleteDialog({ open, onOpenChange, entityName, label, onC
           )}
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" size="sm" onClick={()=> onOpenChange(false)} disabled={loading}>Cancelar</Button>
-            <Button type="button" variant="destructive" size="sm" disabled={!canDelete} onClick={handleConfirm}>{loading ? 'Eliminando…' : 'Eliminar'}</Button>
+            <Button type="button" variant="destructive" size="sm" disabled={!canDelete} onClick={handleConfirm}>
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {loading ? 'Eliminando…' : 'Eliminar'}
+            </Button>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { DataTable, type Column, type Sort } from '@/components/DataTable';
 import { Button } from '@/components/ui/button';
-import { Edit, Plus } from 'lucide-react';
+import { Edit, Plus, Loader2 } from 'lucide-react';
 import { usePagedPeople } from '@/hooks/usePagedPeople';
 import type { FriendlyPerson } from '@/types/FriendlyEntities';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
@@ -17,6 +17,7 @@ export default function PeopleTable() {
   const [sort, setSort] = React.useState<Sort>({ field: 'lastname', dir: 'asc' });
   const [filters, setFilters] = React.useState<Record<string,string>>({});
   const [editing, setEditing] = React.useState<{ mode: 'create' | 'edit'; entity?: FriendlyPerson | null } | null>(null);
+  const [saving, setSaving] = React.useState(false);
 
   const queryClient = useQueryClient();
   const { push } = useOptionalToast();
@@ -40,6 +41,8 @@ export default function PeopleTable() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (saving) return;
+    setSaving(true);
     const form = e.currentTarget as HTMLFormElement;
     const fd = new FormData(form);
     const body = {
@@ -59,6 +62,8 @@ export default function PeopleTable() {
       closeSheet();
     } catch (err:any) {
       push({ variant:'error', title:'Error', message: err?.message || 'Operación fallida'});
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -120,10 +125,10 @@ export default function PeopleTable() {
               </div>
             </section>
             <SheetFooter className="gap-2 pt-2">
-              <Button type="submit" size="sm" className="min-w-24">Guardar</Button>
-              <Button type="button" size="sm" variant="outline" onClick={closeSheet}>Cancelar</Button>
+              <Button type="submit" size="sm" className="min-w-24" disabled={saving}>{saving && <Loader2 className="h-4 w-4 animate-spin" />}Guardar</Button>
+              <Button type="button" size="sm" variant="outline" onClick={closeSheet} disabled={saving}>Cancelar</Button>
               {editing?.mode === 'edit' && entity && (
-                <Button type="button" size="sm" variant="destructive" onClick={()=> setDeleteOpen(true)}>Eliminar…</Button>
+                <Button type="button" size="sm" variant="destructive" onClick={()=> setDeleteOpen(true)} disabled={saving}>Eliminar…</Button>
               )}
             </SheetFooter>
           </form>
