@@ -17,8 +17,26 @@ export function mapApiPersonToFriendly(p: ApiPerson): FriendlyPerson {
 }
 
 export function mapApiStudentToFriendly(s: ApiStudent): FriendlyStudent {
-  const careers: string[] = Array.isArray(s.careers) ? [...s.careers] : [];
-  if (s.career && !careers.includes(s.career)) careers.push(s.career);
+  const careers: string[] = [];
+
+  // Handle new careers array format (array of career objects)
+  if (Array.isArray(s.careers)) {
+    s.careers.forEach(c => {
+      if (typeof c === 'object' && c.name) {
+        // Career object with name property
+        if (!careers.includes(c.name)) careers.push(c.name);
+      } else if (typeof c === 'string') {
+        // Legacy: career as string
+        if (!careers.includes(c)) careers.push(c);
+      }
+    });
+  }
+
+  // Handle legacy single career object format from backend
+  if (s.career && typeof s.career === 'object' && s.career.name) {
+    if (!careers.includes(s.career.name)) careers.push(s.career.name);
+  }
+
   return {
     publicId: s.publicId || s.id || '',
     name: s.name,

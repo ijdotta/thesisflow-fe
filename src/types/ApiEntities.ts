@@ -17,8 +17,8 @@ export interface ApiProfessor extends ApiPerson {
 
 export interface ApiStudent extends ApiPerson {
   studentId?: string;
-  career?: string; // legacy
-  careers?: string[]; // new multi-career
+  career?: { publicId: string; name: string; description?: string }; // Legacy single career object
+  careers?: Array<{ publicId: string; name: string; description?: string }> | string[]; // New: array of career objects or legacy string array
 }
 
 export interface ApiApplicationDomain extends ApiResource {

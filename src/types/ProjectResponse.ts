@@ -31,6 +31,7 @@ export interface ProjectResponse {
   initialSubmission: string,
   completion: string,
   applicationDomain: ApplicationDomain,
+  career: { publicId: string; name: string; description?: string },
   tags: Tag[],
   participants: Participant[],
 }
