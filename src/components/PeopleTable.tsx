@@ -31,7 +31,7 @@ export default function PeopleTable() {
     { id: 'name', header: 'Nombre', accessor: r => r.name, sortField: 'name', filter: { type: 'text', placeholder: 'Filtrar nombre'} },
     { id: 'actions', header: 'Acciones', accessor: (row) => (
       <div className="flex gap-2">
-        <Button size="sm" variant="outline" onClick={() => setEditing({ mode: 'edit', entity: row })} title="Editar"><Edit className="h-4 w-4" /></Button>
+        <Button size="sm" variant="soft" onClick={() => setEditing({ mode: 'edit', entity: row })} title="Editar"><Edit className="h-4 w-4" /></Button>
       </div>
     ) },
   ], []);

@@ -31,7 +31,7 @@ export default function ApplicationDomainsTable() {
     { id: 'description', header: 'Descripción', accessor: r => r.description || '—', sortField: 'description', filter: { type: 'text', placeholder: 'Filtrar descripción'} },
     { id: 'actions', header: 'Acciones', accessor: (row) => (
       <div className="flex gap-2">
-        <Button size="sm" variant="default" onClick={() => setEditing({ mode: 'edit', entity: row })}><Edit className="h-4 w-4" /></Button>
+        <Button size="sm" variant="soft" onClick={() => setEditing({ mode: 'edit', entity: row })}><Edit className="h-4 w-4" /></Button>
         <Button size="sm" variant="destructive" onClick={() => setDeleteState({ open: true, target: row })} title="Eliminar"><Trash className="h-4 w-4" /></Button>
       </div>)},
   ], []);
