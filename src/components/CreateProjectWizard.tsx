@@ -47,7 +47,16 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
       onCreated?.();
       setOpen(false);
       reset();
-    } catch (e:any) { setError(e?.message || 'Error creando proyecto'); } finally { setSaving(false); }
+    } catch (e:any) {
+      setError(e?.message || 'Error creando proyecto');
+      // Close wizard after showing error briefly
+      setTimeout(() => {
+        setOpen(false);
+        reset();
+      }, 2000);
+    } finally {
+      setSaving(false);
+    }
   }
 
   function renderStep() {

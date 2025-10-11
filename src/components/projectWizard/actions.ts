@@ -1,7 +1,7 @@
 import { createPerson } from '@/api/people';
 import { createProfessor } from '@/api/professors';
 import { createStudent } from '@/api/students';
-import { createProject, setProjectApplicationDomain, setProjectParticipants } from '@/api/projects';
+import { createProject, setProjectApplicationDomain, setProjectParticipants, deleteProject } from '@/api/projects';
 import type { ProjectDraft, PersonBase, StudentDraft } from './types';
 
 export function isTemp(publicId?: string) { return !publicId || publicId.startsWith('manual-'); }
@@ -59,20 +59,40 @@ export async function submitProject(draft: ProjectDraft) {
     throw new Error('Career is required');
   }
 
-  // Create base project first
-  const project = await createProject({
-    title: draft.title,
-    type: draft.type,
-    subtypes: draft.subtypes,
-    careerPublicId: draft.career.publicId,
-    initialSubmission: draft.initialSubmission || undefined,
-  });
-  if (draft.applicationDomain?.publicId) {
-    await setProjectApplicationDomain(project.publicId, draft.applicationDomain.publicId);
+  let createdProjectId: string | null = null;
+
+  try {
+    // Create base project first
+    const project = await createProject({
+      title: draft.title,
+      type: draft.type,
+      subtypes: draft.subtypes,
+      careerPublicId: draft.career.publicId,
+      initialSubmission: draft.initialSubmission || undefined,
+    });
+    createdProjectId = project.publicId;
+
+    // Set application domain if provided
+    if (draft.applicationDomain?.publicId) {
+      await setProjectApplicationDomain(createdProjectId, draft.applicationDomain.publicId);
+    }
+
+    // Set participants
+    const participants = buildParticipants(draft);
+    if (participants.length) {
+      await setProjectParticipants(createdProjectId, participants);
+    }
+
+    return project;
+  } catch (error) {
+    // Rollback: delete project if it was created
+    if (createdProjectId) {
+      try {
+        await deleteProject(createdProjectId);
+      } catch (rollbackError) {
+        console.error('Failed to rollback project creation:', rollbackError);
+      }
+    }
+    throw error;
   }
-  const participants = buildParticipants(draft);
-  if (participants.length) {
-    await setProjectParticipants(project.publicId, participants);
-  }
-  return project;
 }
