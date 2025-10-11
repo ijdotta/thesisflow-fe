@@ -1,6 +1,6 @@
 import { createPerson } from '@/api/people';
 import { createProfessor } from '@/api/professors';
-import { createStudent } from '@/api/students';
+import { createStudent, setStudentCareers } from '@/api/students';
 import { createProject, setProjectApplicationDomain, setProjectParticipants, deleteProject } from '@/api/projects';
 import type { ProjectDraft, PersonBase, StudentDraft } from './types';
 

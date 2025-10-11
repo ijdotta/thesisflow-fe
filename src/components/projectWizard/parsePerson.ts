@@ -6,12 +6,11 @@ export function parsePersonInput(input: string): PersonBase | null {
   if (!trimmed) return null;
   if (trimmed.includes(',')) {
     const [last, name] = trimmed.split(',').map(s => s.trim());
-    return { lastname: last || name || '', name: name || last || '' };
+    return { lastname: last || name || '', name: name || last || '', email: '' };
   }
   const parts = trimmed.split(/\s+/);
-  if (parts.length === 1) return { name: parts[0], lastname: '' };
+  if (parts.length === 1) return { name: parts[0], lastname: '', email: '' };
   const lastname = parts.pop()!;
   const name = parts.join(' ');
-  return { name, lastname };
+  return { name, lastname, email: '' };
 }
-

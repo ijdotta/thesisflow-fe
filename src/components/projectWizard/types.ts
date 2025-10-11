@@ -3,11 +3,12 @@ export interface PersonBase {
   publicId?: string; // local temp for manual entities
   name: string;
   lastname: string;
-  email?: string;
+  email: string; // Now required
 }
 
 export interface StudentDraft extends PersonBase {
   studentId?: string;
+  careers?: string[]; // Career publicIds
 }
 
 export interface Domain { publicId: string; name: string; }
