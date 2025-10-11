@@ -74,6 +74,7 @@ const mapProjectResponseToProject = (projectResponse: ProjectResponse): Project 
     initialSubmission: projectResponse.initialSubmission,
     completion: projectResponse.completion,
     applicationDomain: projectResponse.applicationDomain,
+    career: projectResponse.career,
     tags: projectResponse.tags,
     students: students,
     directors: directors,

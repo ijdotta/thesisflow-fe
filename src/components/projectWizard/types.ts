@@ -3,20 +3,24 @@ export interface PersonBase {
   publicId?: string; // local temp for manual entities
   name: string;
   lastname: string;
-  email?: string;
+  email: string; // Now required
 }
 
 export interface StudentDraft extends PersonBase {
   studentId?: string;
+  careers?: string[]; // Career publicIds
 }
 
 export interface Domain { publicId: string; name: string; }
+
+export interface Career { publicId: string; name: string; }
 
 export interface ProjectDraft {
   title: string;
   type: string;
   subtypes: string[];
   applicationDomain?: Domain | null;
+  career?: Career | null;
   initialSubmission?: string;
   directors: PersonBase[];
   codirectors: PersonBase[];
@@ -31,6 +35,7 @@ export const emptyDraft: ProjectDraft = {
   type: '',
   subtypes: [],
   applicationDomain: null,
+  career: null,
   initialSubmission: undefined,
   directors: [],
   codirectors: [],

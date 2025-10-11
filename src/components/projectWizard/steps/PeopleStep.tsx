@@ -47,7 +47,7 @@ export function PeopleStep({ draft, onPatch }: Props) {
   const [createError, setCreateError] = useState<string | null>(null);
 
   function addTo(key: PersonListKey, item: PersonBase) {
-    const normalized: PersonBase = { publicId: item.publicId || `manual-${Date.now()}-${Math.random().toString(36).slice(2)}`, ...item };
+    const normalized: PersonBase = { publicId: item.publicId || `manual-${Date.now()}-${Math.random().toString(36).slice(2)}`, name: item.name, lastname: item.lastname, email: item.email || '' };
     const next = [...draft[key], normalized];
     onPatch({ [key]: next } as Pick<ProjectDraft, typeof key>);
   }
@@ -89,7 +89,7 @@ export function PeopleStep({ draft, onPatch }: Props) {
           <Button type="button" variant="outline" disabled={!dirQuery.trim()} onClick={() => { addManual('directors', dirQuery); setDirQuery(''); }}>Añadir manual</Button>
         </div>
         {!!dirItems.length && <div className="border rounded-md max-h-36 overflow-auto divide-y text-sm mb-2">{dirItems.map(p => (
-          <button key={p.publicId} onClick={() => { addTo('directors', { publicId: p.publicId, name: p.name, lastname: p.lastname, email: p.email }); setDirQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
+          <button key={p.publicId} onClick={() => { addTo('directors', { publicId: p.publicId, name: p.name, lastname: p.lastname, email: p.email || '' }); setDirQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
         ))}</div>}
         <PersonPills list={draft.directors} onRemove={(i) => removeFrom('directors', i)} />
         <div className="flex items-center gap-2 flex-wrap">
@@ -98,9 +98,9 @@ export function PeopleStep({ draft, onPatch }: Props) {
         {showNewDirector && (
           <div className="border rounded-md p-3 space-y-2 bg-muted/30">
             <div className="flex gap-2 flex-wrap">
-              <Input placeholder="Nombre" value={newDirector.name} onChange={e=>setNewDirector(d=>({...d,name:e.target.value}))} className="h-8" />
-              <Input placeholder="Apellido" value={newDirector.lastname} onChange={e=>setNewDirector(d=>({...d,lastname:e.target.value}))} className="h-8" />
-              <Input placeholder="Email (opcional)" value={newDirector.email} onChange={e=>setNewDirector(d=>({...d,email:e.target.value}))} className="h-8" />
+              <Input placeholder="Nombre *" value={newDirector.name} onChange={e=>setNewDirector(d=>({...d,name:e.target.value}))} className="h-8" />
+              <Input placeholder="Apellido *" value={newDirector.lastname} onChange={e=>setNewDirector(d=>({...d,lastname:e.target.value}))} className="h-8" />
+              <Input placeholder="Email *" value={newDirector.email} onChange={e=>setNewDirector(d=>({...d,email:e.target.value}))} className="h-8" />
               <Button disabled={creating==='directors'} onClick={()=>handleCreatePerson('directors')} className="h-8">{creating==='directors'? 'Creando...' : 'Guardar'}</Button>
             </div>
             {createError && creating==='directors' && <div className="text-xs text-red-600">{createError}</div>}
@@ -115,7 +115,7 @@ export function PeopleStep({ draft, onPatch }: Props) {
           <Button type="button" variant="outline" disabled={!coDirQuery.trim()} onClick={() => { addManual('codirectors', coDirQuery); setCoDirQuery(''); }}>Añadir manual</Button>
         </div>
         {!!coDirItems.length && <div className="border rounded-md max-h-36 overflow-auto divide-y text-sm mb-2">{coDirItems.map(p => (
-          <button key={p.publicId} onClick={() => { addTo('codirectors', { publicId: p.publicId, name: p.name, lastname: p.lastname, email: p.email }); setCoDirQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
+          <button key={p.publicId} onClick={() => { addTo('codirectors', { publicId: p.publicId, name: p.name, lastname: p.lastname, email: p.email || '' }); setCoDirQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
         ))}</div>}
         <PersonPills list={draft.codirectors} onRemove={(i) => removeFrom('codirectors', i)} />
         <div className="flex items-center gap-2 flex-wrap">
@@ -124,9 +124,9 @@ export function PeopleStep({ draft, onPatch }: Props) {
         {showNewCoDirector && (
           <div className="border rounded-md p-3 space-y-2 bg-muted/30">
             <div className="flex gap-2 flex-wrap">
-              <Input placeholder="Nombre" value={newCoDirector.name} onChange={e=>setNewCoDirector(d=>({...d,name:e.target.value}))} className="h-8" />
-              <Input placeholder="Apellido" value={newCoDirector.lastname} onChange={e=>setNewCoDirector(d=>({...d,lastname:e.target.value}))} className="h-8" />
-              <Input placeholder="Email (opcional)" value={newCoDirector.email} onChange={e=>setNewCoDirector(d=>({...d,email:e.target.value}))} className="h-8" />
+              <Input placeholder="Nombre *" value={newCoDirector.name} onChange={e=>setNewCoDirector(d=>({...d,name:e.target.value}))} className="h-8" />
+              <Input placeholder="Apellido *" value={newCoDirector.lastname} onChange={e=>setNewCoDirector(d=>({...d,lastname:e.target.value}))} className="h-8" />
+              <Input placeholder="Email *" value={newCoDirector.email} onChange={e=>setNewCoDirector(d=>({...d,email:e.target.value}))} className="h-8" />
               <Button disabled={creating==='codirectors'} onClick={()=>handleCreatePerson('codirectors')} className="h-8">{creating==='codirectors'? 'Creando...' : 'Guardar'}</Button>
             </div>
             {createError && creating==='codirectors' && <div className="text-xs text-red-600">{createError}</div>}
@@ -141,7 +141,7 @@ export function PeopleStep({ draft, onPatch }: Props) {
           <Button type="button" variant="outline" disabled={!collabQuery.trim()} onClick={() => { addManual('collaborators', collabQuery); setCollabQuery(''); }}>Añadir manual</Button>
         </div>
         {!!collabItems.length && <div className="border rounded-md max-h-36 overflow-auto divide-y text-sm mb-2">{collabItems.map(p => (
-          <button key={p.publicId} onClick={() => { addTo('collaborators', { publicId: p.publicId, name: p.name, lastname: p.lastname, email: p.email }); setCollabQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
+          <button key={p.publicId} onClick={() => { addTo('collaborators', { publicId: p.publicId, name: p.name, lastname: p.lastname, email: p.email || '' }); setCollabQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{p.display}</button>
         ))}</div>}
         <PersonPills list={draft.collaborators} onRemove={(i) => removeFrom('collaborators', i)} />
         <div className="flex items-center gap-2 flex-wrap">
@@ -150,9 +150,9 @@ export function PeopleStep({ draft, onPatch }: Props) {
         {showNewCollaborator && (
           <div className="border rounded-md p-3 space-y-2 bg-muted/30">
             <div className="flex gap-2 flex-wrap">
-              <Input placeholder="Nombre" value={newCollaborator.name} onChange={e=>setNewCollaborator(d=>({...d,name:e.target.value}))} className="h-8" />
-              <Input placeholder="Apellido" value={newCollaborator.lastname} onChange={e=>setNewCollaborator(d=>({...d,lastname:e.target.value}))} className="h-8" />
-              <Input placeholder="Email (opcional)" value={newCollaborator.email} onChange={e=>setNewCollaborator(d=>({...d,email:e.target.value}))} className="h-8" />
+              <Input placeholder="Nombre *" value={newCollaborator.name} onChange={e=>setNewCollaborator(d=>({...d,name:e.target.value}))} className="h-8" />
+              <Input placeholder="Apellido *" value={newCollaborator.lastname} onChange={e=>setNewCollaborator(d=>({...d,lastname:e.target.value}))} className="h-8" />
+              <Input placeholder="Email *" value={newCollaborator.email} onChange={e=>setNewCollaborator(d=>({...d,email:e.target.value}))} className="h-8" />
               <Button disabled={creating==='collaborators'} onClick={()=>handleCreatePerson('collaborators')} className="h-8">{creating==='collaborators'? 'Creando...' : 'Guardar'}</Button>
             </div>
             {createError && creating==='collaborators' && <div className="text-xs text-red-600">{createError}</div>}

@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import type { ProjectDraft } from '../types';
 import { SUBTYPE_OPTIONS } from '../types';
 import * as React from 'react';
+import { useCareers } from '@/hooks/useCareers';
 
 interface DomainItem { publicId: string; name: string; display?: string }
 
@@ -19,6 +20,9 @@ interface Props {
 const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', FINAL_PROJECT: 'Proyecto Final' };
 
 export function BasicInfoStep({ draft, onPatch, domainQuery, setDomainQuery, domainItems }: Props) {
+  const { data: careersData } = useCareers();
+  const careers = careersData?.items ?? [];
+
   function toggleSubtype(st: string) {
     onPatch({ subtypes: draft.subtypes.includes(st) ? draft.subtypes.filter(x => x !== st) : [...draft.subtypes, st] });
   }
@@ -54,6 +58,30 @@ export function BasicInfoStep({ draft, onPatch, domainQuery, setDomainQuery, dom
           <label className="text-sm font-medium">Fecha de carga</label>
           <Input type="date" value={dateValue} onChange={e => onPatch({ initialSubmission: e.target.value })} />
         </div>
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Carrera *</label>
+        <div className="flex flex-wrap gap-2">
+          {careers.map(career => {
+            const isSelected = draft.career?.publicId === career.publicId;
+            return (
+              <button
+                key={career.publicId}
+                type="button"
+                onClick={() => onPatch({ career: { publicId: career.publicId, name: career.name } })}
+                className={`px-3 py-1 rounded-md border text-xs ${isSelected ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted hover:bg-muted/70'}`}
+              >
+                {career.name}
+              </button>
+            );
+          })}
+          {careers.length === 0 && <span className="text-xs text-muted-foreground">Cargando carreras...</span>}
+        </div>
+        {draft.career && (
+          <div className="text-xs text-muted-foreground">
+            Seleccionada: <Badge variant="secondary">{draft.career.name}</Badge>
+          </div>
+        )}
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium">Subtipos</label>

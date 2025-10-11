@@ -30,7 +30,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
 
   // Validation per step (same rules as original)
   const canNext = React.useCallback(() => {
-    if (step === 0) return !!draft.title && !!draft.type;
+    if (step === 0) return !!draft.title && !!draft.type && !!draft.career;
     if (step === 1) return draft.directors.length > 0;
     if (step === 2) return draft.students.length > 0;
     return true;
@@ -47,7 +47,16 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
       onCreated?.();
       setOpen(false);
       reset();
-    } catch (e:any) { setError(e?.message || 'Error creando proyecto'); } finally { setSaving(false); }
+    } catch (e:any) {
+      setError(e?.message || 'Error creando proyecto');
+      // Close wizard after showing error briefly
+      setTimeout(() => {
+        setOpen(false);
+        reset();
+      }, 2000);
+    } finally {
+      setSaving(false);
+    }
   }
 
   function renderStep() {
