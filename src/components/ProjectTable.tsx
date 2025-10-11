@@ -81,6 +81,13 @@ export default function ProjectsTable() {
 			] }
 		},
 		{
+			id: "career",
+			header: "Carrera",
+			accessor: (row) => row.career?.name || '-',
+			sortField: "career",
+			filter: { type: 'text', placeholder: 'Filtrar carrera' }
+		},
+		{
 			id: "subtypes",
 			header: "Subtipos",
 			accessor: (row) => row.subtypes?.join(", "),

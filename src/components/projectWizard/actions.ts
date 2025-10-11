@@ -54,11 +54,17 @@ export function buildParticipants(draft: ProjectDraft): { personId: string; role
 }
 
 export async function submitProject(draft: ProjectDraft) {
+  // Validate career is set
+  if (!draft.career?.publicId) {
+    throw new Error('Career is required');
+  }
+
   // Create base project first
   const project = await createProject({
     title: draft.title,
     type: draft.type,
     subtypes: draft.subtypes,
+    careerPublicId: draft.career.publicId,
     initialSubmission: draft.initialSubmission || undefined,
   });
   if (draft.applicationDomain?.publicId) {

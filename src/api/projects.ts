@@ -18,6 +18,7 @@ export interface CreateProjectBody {
   title: string;
   type: string;
   subtypes: string[];
+  careerPublicId: string;
   initialSubmission?: string;
 }
 
