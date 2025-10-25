@@ -10,6 +10,7 @@ import { CareersPage } from '@/pages/CareersPage';
 import { ApplicationDomainsPage } from '@/pages/ApplicationDomainsPage';
 import { TagsPage } from '@/pages/TagsPage';
 import { LoginPage } from '@/pages/LoginPage';
+import { NotFoundPage, ForbiddenPage, ServerErrorPage } from '@/pages/ErrorPages'
 import { ROUTES } from '@/constants/routes';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BackupPage } from '@/pages/BackupPage';
@@ -17,6 +18,7 @@ import { ImportDataPage } from '@/pages/ImportDataPage';
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const queryClient = new QueryClient()
 
@@ -25,6 +27,9 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/not-found" element={<NotFoundPage />} />
+        <Route path="/forbidden" element={<ForbiddenPage />} />
+        <Route path="/server-error" element={<ServerErrorPage />} />
         <Route
           path={ROUTES.backup}
           element={
@@ -98,6 +103,7 @@ function App() {
           }
         />
         <Route path="/" element={<Navigate to={ROUTES.projects} replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   )
@@ -105,11 +111,13 @@ function App() {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthProvider>
-      <QueryClientProvider client={queryClient}>
-        <App />
-        <Toaster position="top-right" richColors expand={false} closeButton />
-      </QueryClientProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <App />
+          <Toaster position="top-right" richColors expand={false} closeButton />
+        </QueryClientProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   </StrictMode>,
 )
