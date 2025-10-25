@@ -164,8 +164,8 @@ export function ImportDataPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Import Projects</h1>
-          <p className="text-gray-600 mt-2">Upload a CSV file and review projects before applying</p>
+          <h1 className="text-3xl font-bold text-gray-900">Importar Proyectos</h1>
+          <p className="text-gray-600 mt-2">Sube un archivo CSV y revisa los proyectos antes de aplicar</p>
         </div>
 
         {/* Upload Area */}
@@ -186,9 +186,9 @@ export function ImportDataPage() {
                     <>
                       <Upload className="h-12 w-12 text-gray-400 mx-auto mb-2" />
                       <p className="font-medium text-gray-900">
-                        Click to upload or drag and drop
+                        Haz clic para cargar o arrastra y suelta
                       </p>
-                      <p className="text-sm text-gray-600 mt-1">CSV file (max 50MB)</p>
+                      <p className="text-sm text-gray-600 mt-1">Archivo CSV (máx 50MB)</p>
                     </>
                   )}
                 </div>
@@ -208,7 +208,7 @@ export function ImportDataPage() {
                 disabled={!file || isLoading}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-medium py-3 px-4 rounded-lg transition"
               >
-                {isLoading ? 'Parsing...' : 'Parse CSV'}
+                {isLoading ? 'Procesando...' : 'Procesar CSV'}
               </button>
               {file && (
                 <button
@@ -216,7 +216,7 @@ export function ImportDataPage() {
                   disabled={isLoading}
                   className="bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-3 px-6 rounded-lg transition"
                 >
-                  Clear
+                  Limpiar
                 </button>
               )}
             </div>
@@ -226,12 +226,12 @@ export function ImportDataPage() {
             {/* Summary */}
             <div className="grid grid-cols-3 gap-4">
               <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                <p className="text-sm text-green-600 font-medium">Success</p>
+                <p className="text-sm text-green-600 font-medium">Exitosos</p>
                 <p className="text-2xl font-bold text-green-900">{parseResult.successCount}</p>
               </div>
               {parseResult.errorCount > 0 && (
                 <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                  <p className="text-sm text-red-600 font-medium">Failed</p>
+                  <p className="text-sm text-red-600 font-medium">Fallidos</p>
                   <p className="text-2xl font-bold text-red-900">{parseResult.errorCount}</p>
                 </div>
               )}
@@ -247,12 +247,12 @@ export function ImportDataPage() {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Status</th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Title</th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Type</th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Estado</th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Título</th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Tipo</th>
                       <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Director</th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Students</th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Actions</th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Alumnos</th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -320,13 +320,13 @@ export function ImportDataPage() {
                                 onClick={() => handleSaveEdit(project.id)}
                                 className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition"
                               >
-                                Save
+                                Guardar
                               </button>
                               <button
                                 onClick={() => setEditingId(null)}
                                 className="px-3 py-1 bg-gray-300 hover:bg-gray-400 text-gray-900 text-sm rounded transition"
                               >
-                                Cancel
+                                Cancelar
                               </button>
                             </>
                           ) : (
@@ -335,7 +335,7 @@ export function ImportDataPage() {
                                 onClick={() => handleEdit(project)}
                                 className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-900 text-sm rounded transition"
                               >
-                                Edit
+                                Editar
                               </button>
                               <button
                                 onClick={() => handleDeleteRow(project.id)}
@@ -360,21 +360,21 @@ export function ImportDataPage() {
                 disabled={parseResult.projects.length === 0 || isLoading}
                 className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-medium py-3 px-4 rounded-lg transition"
               >
-                {isLoading ? 'Applying...' : `Apply ${parseResult.successCount} Projects`}
+                {isLoading ? 'Aplicando...' : `Aplicar ${parseResult.successCount} Proyectos`}
               </button>
               {parseResult.errorCount > 0 && (
                 <button
                   onClick={handleRemoveAllErrors}
                   className="bg-red-100 hover:bg-red-200 text-red-600 font-medium py-3 px-4 rounded-lg transition"
                 >
-                  Remove Failed
+                  Eliminar Fallidos
                 </button>
               )}
               <button
                 onClick={handleRemoveAll}
                 className="bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-3 px-4 rounded-lg transition"
               >
-                Clear All
+                Limpiar Todo
               </button>
             </div>
           </>
