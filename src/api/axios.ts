@@ -35,6 +35,8 @@ api.interceptors.response.use(
     const status = err?.response?.status
     if (status === 401) {
       localStorage.removeItem('accessToken')
+      localStorage.removeItem('authUser')
+      window.location.href = '/login'
     }
     const message = extractErrorMessage(err)
     if (shouldToast(message)) {
