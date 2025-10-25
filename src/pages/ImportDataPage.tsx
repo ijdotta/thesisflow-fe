@@ -1,49 +1,31 @@
 import { useState } from 'react'
-import { Upload, Trash2, AlertCircle, CheckCircle } from 'lucide-react'
+import { Upload, Trash2, AlertCircle, CheckCircle, SkipForward } from 'lucide-react'
 import AdminLayout from '@/layouts/AdminLayout'
 import { toast } from 'sonner'
-import { api } from '@/api/axios'
-import type { AxiosError } from 'axios'
+import type { ParseCsvResponse, ImportResult } from '@/api/import'
+import { parseCsv } from '@/api/import'
 
-interface ProjectFromImport {
-  id: string
-  title: string
-  type: string
-  director: string
-  codirectors: string
-  collaborators: string
-  students: string
-  tags: string
-  applicationDomain: string
-  status: 'success' | 'error'
-  error?: string
-}
-
-interface ParseResponse {
-  projects: ProjectFromImport[]
-  totalProcessed: number
-  successCount: number
-  errorCount: number
+interface ProjectRowData {
+  result: ImportResult
 }
 
 export function ImportDataPage() {
   const [file, setFile] = useState<File | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [parseResult, setParseResult] = useState<ParseResponse | null>(null)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editValues, setEditValues] = useState<Partial<ProjectFromImport>>({})
+  const [parseResult, setParseResult] = useState<ParseCsvResponse | null>(null)
+  const [rows, setRows] = useState<ProjectRowData[]>([])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (!selectedFile) return
 
     if (!selectedFile.name.endsWith('.csv')) {
-      toast.error('Please select a valid CSV file')
+      toast.error('Por favor selecciona un archivo CSV válido')
       return
     }
 
     if (selectedFile.size > 50 * 1024 * 1024) {
-      toast.error('File size must be less than 50MB')
+      toast.error('El archivo debe ser menor a 50MB')
       return
     }
 
@@ -52,110 +34,121 @@ export function ImportDataPage() {
 
   const handleParse = async () => {
     if (!file) {
-      toast.error('Please select a file first')
+      toast.error('Por favor selecciona un archivo primero')
       return
     }
 
     try {
       setIsLoading(true)
-
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const response = await api.post<ParseResponse>('/projects/parse-csv', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-
-      setParseResult(response.data)
-      toast.success(`Parsed ${response.data.successCount} projects`)
-    } catch (error: unknown) {
+      const response = await parseCsv(file)
+      setParseResult(response)
+      setRows(response.results.map((result) => ({ result })))
+      
+      const message = `Se procesaron ${response.summary.success} proyectos exitosamente`
+      if (response.summary.skipped > 0) {
+        toast.success(`${message}, ${response.summary.skipped} omitidos`)
+      } else {
+        toast.success(message)
+      }
+    } catch {
       setParseResult(null)
-      const err = error as AxiosError<{ message?: string }>
-      const message = err?.response?.data?.message || 'Parse failed. Please try again.'
-      toast.error(message)
+      setRows([])
+      toast.error('El procesamiento falló. Por favor intenta de nuevo.')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleEdit = (project: ProjectFromImport) => {
-    setEditingId(project.id)
-    setEditValues(project)
-  }
-
-  const handleSaveEdit = (id: string) => {
-    if (!parseResult) return
-
-    const updatedProjects = parseResult.projects.map((p) =>
-      p.id === id ? { ...p, ...editValues } : p
-    )
-
-    setParseResult({
-      ...parseResult,
-      projects: updatedProjects,
-    })
-
-    setEditingId(null)
-    setEditValues({})
-    toast.success('Project updated')
-  }
-
-  const handleDeleteRow = (id: string) => {
-    if (!parseResult) return
-
-    const updated = parseResult.projects.filter((p) => p.id !== id)
-    setParseResult({
-      ...parseResult,
-      projects: updated,
-      successCount: updated.filter((p) => p.status === 'success').length,
-      errorCount: updated.filter((p) => p.status === 'error').length,
-    })
-
-    toast.success('Project removed')
+  const handleDeleteRow = (lineNumber: number) => {
+    const filtered = rows.filter((r) => r.result.lineNumber !== lineNumber)
+    setRows(filtered)
+    
+    if (parseResult) {
+      const result = parseResult.results.find((r) => r.lineNumber === lineNumber)
+      if (result) {
+        const newSummary = { ...parseResult.summary }
+        if (result.status === 'SUCCESS') newSummary.success -= 1
+        else if (result.status === 'SKIPPED') newSummary.skipped -= 1
+        else if (result.status === 'FAILED') newSummary.failed -= 1
+        newSummary.total -= 1
+        
+        setParseResult({
+          ...parseResult,
+          summary: newSummary,
+          results: parseResult.results.filter((r) => r.lineNumber !== lineNumber),
+        })
+      }
+    }
+    toast.success('Proyecto eliminado')
   }
 
   const handleRemoveAllErrors = () => {
-    if (!parseResult) return
-
-    const successOnly = parseResult.projects.filter((p) => p.status === 'success')
-    setParseResult({
-      ...parseResult,
-      projects: successOnly,
-      errorCount: 0,
-    })
-
-    toast.success('Removed all failed projects')
+    const filtered = rows.filter((r) => r.result.status !== 'FAILED')
+    setRows(filtered)
+    
+    if (parseResult) {
+      const failedCount = parseResult.summary.failed
+      setParseResult({
+        ...parseResult,
+        summary: {
+          ...parseResult.summary,
+          total: parseResult.summary.total - failedCount,
+          failed: 0,
+        },
+        results: parseResult.results.filter((r) => r.status !== 'FAILED'),
+      })
+    }
+    toast.success('Se eliminaron todos los proyectos fallidos')
   }
 
   const handleRemoveAll = () => {
     setParseResult(null)
+    setRows([])
     setFile(null)
-    setEditingId(null)
-    setEditValues({})
-    toast.success('Cleared all data')
+    toast.success('Se limpió todo')
   }
 
-  const handleApply = async () => {
-    if (!parseResult || parseResult.projects.length === 0) {
-      toast.error('No projects to apply')
-      return
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'SUCCESS':
+        return <CheckCircle className="h-5 w-5 text-green-600" />
+      case 'SKIPPED':
+        return <SkipForward className="h-5 w-5 text-yellow-600" />
+      default:
+        return <AlertCircle className="h-5 w-5 text-red-600" />
     }
+  }
 
-    try {
-      setIsLoading(true)
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'SUCCESS':
+        return 'bg-green-50 border-green-200'
+      case 'SKIPPED':
+        return 'bg-yellow-50 border-yellow-200'
+      default:
+        return 'bg-red-50 border-red-200'
+    }
+  }
 
-      await api.post('/projects/import', {
-        projects: parseResult.projects.filter((p) => p.status === 'success'),
-      })
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'SUCCESS':
+        return 'bg-green-100 text-green-800'
+      case 'SKIPPED':
+        return 'bg-yellow-100 text-yellow-800'
+      default:
+        return 'bg-red-100 text-red-800'
+    }
+  }
 
-      toast.success(`Applied ${parseResult.successCount} projects`)
-      handleRemoveAll()
-    } catch (error: unknown) {
-      const err = error as AxiosError<{ message?: string }>
-      const message = err?.response?.data?.message || 'Apply failed. Please try again.'
-      toast.error(message)
-    } finally {
-      setIsLoading(false)
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'SUCCESS':
+        return 'Exitoso'
+      case 'SKIPPED':
+        return 'Omitido'
+      default:
+        return 'Fallido'
     }
   }
 
@@ -224,158 +217,123 @@ export function ImportDataPage() {
         ) : (
           <>
             {/* Summary */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                <p className="text-sm text-green-600 font-medium">Exitosos</p>
-                <p className="text-2xl font-bold text-green-900">{parseResult.successCount}</p>
-              </div>
-              {parseResult.errorCount > 0 && (
-                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                  <p className="text-sm text-red-600 font-medium">Fallidos</p>
-                  <p className="text-2xl font-bold text-red-900">{parseResult.errorCount}</p>
-                </div>
-              )}
+            <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Object.values(parseResult.summary).filter((v) => v > 0 || Object.values(parseResult.summary).indexOf(v) === 0).length}, 1fr)` }}>
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <p className="text-sm text-blue-600 font-medium">Total</p>
-                <p className="text-2xl font-bold text-blue-900">{parseResult.totalProcessed}</p>
+                <p className="text-2xl font-bold text-blue-900">{parseResult.summary.total}</p>
               </div>
+              {parseResult.summary.success > 0 && (
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <p className="text-sm text-green-600 font-medium">Exitosos</p>
+                  <p className="text-2xl font-bold text-green-900">{parseResult.summary.success}</p>
+                </div>
+              )}
+              {parseResult.summary.skipped > 0 && (
+                <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <p className="text-sm text-yellow-600 font-medium">Omitidos</p>
+                  <p className="text-2xl font-bold text-yellow-900">{parseResult.summary.skipped}</p>
+                </div>
+              )}
+              {parseResult.summary.failed > 0 && (
+                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                  <p className="text-sm text-red-600 font-medium">Fallidos</p>
+                  <p className="text-2xl font-bold text-red-900">{parseResult.summary.failed}</p>
+                </div>
+              )}
             </div>
 
-            {/* Table */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Estado</th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Título</th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Tipo</th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Director</th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Alumnos</th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {parseResult.projects.map((project) => (
-                      <tr key={project.id} className="border-b border-gray-200 hover:bg-gray-50">
-                        <td className="px-6 py-3">
-                          {project.status === 'success' ? (
-                            <CheckCircle className="h-5 w-5 text-green-600" />
-                          ) : (
-                            <AlertCircle className="h-5 w-5 text-red-600" />
+            {/* Results Cards */}
+            <div className="space-y-4">
+              {rows.map((row) => (
+                <div key={row.result.lineNumber} className={`p-6 rounded-lg border ${getStatusColor(row.result.status)}`}>
+                  <div className="flex items-start gap-4">
+                    {/* Status Icon */}
+                    <div className="flex-shrink-0 pt-1">{getStatusIcon(row.result.status)}</div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">{row.result.title}</h3>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusBadge(row.result.status)}`}>
+                          {getStatusText(row.result.status)} - Línea {row.result.lineNumber}
+                        </span>
+                      </div>
+
+                      {/* Message */}
+                      <p className="text-sm text-gray-600 mb-3">{row.result.message}</p>
+
+                      {/* Project Details */}
+                      {row.result.project && (
+                        <div className="bg-white bg-opacity-50 rounded p-3 space-y-2 text-sm">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="font-medium text-gray-700">Tipo</p>
+                              <p className="text-gray-600">{row.result.project.type}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-700">Carrera</p>
+                              <p className="text-gray-600">{row.result.project.career.name}</p>
+                            </div>
+                            {row.result.project.applicationDomainDTO && (
+                              <div>
+                                <p className="font-medium text-gray-700">Dominio</p>
+                                <p className="text-gray-600">{row.result.project.applicationDomainDTO.name}</p>
+                              </div>
+                            )}
+                            {row.result.project.tags.length > 0 && (
+                              <div>
+                                <p className="font-medium text-gray-700">Etiquetas</p>
+                                <p className="text-gray-600 truncate">{row.result.project.tags.map((t) => t.name).join(', ')}</p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Participants */}
+                          {row.result.project.participants.length > 0 && (
+                            <div>
+                              <p className="font-medium text-gray-700 mb-2">Participantes</p>
+                              <div className="space-y-1">
+                                {row.result.project.participants.map((p, idx) => (
+                                  <p key={idx} className="text-gray-600">
+                                    <span className="font-medium">{p.role}:</span> {p.personDTO.name} {p.personDTO.lastname}
+                                  </p>
+                                ))}
+                              </div>
+                            </div>
                           )}
-                        </td>
-                        <td className="px-6 py-3">
-                          {editingId === project.id ? (
-                            <input
-                              type="text"
-                              value={editValues.title || ''}
-                              onChange={(e) => setEditValues({ ...editValues, title: e.target.value })}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                            />
-                          ) : (
-                            <span className="text-sm text-gray-900">{project.title}</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-3">
-                          {editingId === project.id ? (
-                            <input
-                              type="text"
-                              value={editValues.type || ''}
-                              onChange={(e) => setEditValues({ ...editValues, type: e.target.value })}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                            />
-                          ) : (
-                            <span className="text-sm text-gray-900">{project.type}</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-3">
-                          {editingId === project.id ? (
-                            <input
-                              type="text"
-                              value={editValues.director || ''}
-                              onChange={(e) => setEditValues({ ...editValues, director: e.target.value })}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                            />
-                          ) : (
-                            <span className="text-sm text-gray-600">{project.director}</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-3">
-                          {editingId === project.id ? (
-                            <input
-                              type="text"
-                              value={editValues.students || ''}
-                              onChange={(e) => setEditValues({ ...editValues, students: e.target.value })}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                            />
-                          ) : (
-                            <span className="text-sm text-gray-600">{project.students}</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-3 flex gap-2">
-                          {editingId === project.id ? (
-                            <>
-                              <button
-                                onClick={() => handleSaveEdit(project.id)}
-                                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition"
-                              >
-                                Guardar
-                              </button>
-                              <button
-                                onClick={() => setEditingId(null)}
-                                className="px-3 py-1 bg-gray-300 hover:bg-gray-400 text-gray-900 text-sm rounded transition"
-                              >
-                                Cancelar
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button
-                                onClick={() => handleEdit(project)}
-                                className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-900 text-sm rounded transition"
-                              >
-                                Editar
-                              </button>
-                              <button
-                                onClick={() => handleDeleteRow(project.id)}
-                                className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-600 text-sm rounded transition"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Delete Button */}
+                    <button
+                      onClick={() => handleDeleteRow(row.result.lineNumber)}
+                      className="flex-shrink-0 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 text-sm rounded transition"
+                      title="Eliminar proyecto"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Actions */}
             <div className="flex gap-3">
               <button
-                onClick={handleApply}
-                disabled={parseResult.projects.length === 0 || isLoading}
-                className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-medium py-3 px-4 rounded-lg transition"
-              >
-                {isLoading ? 'Aplicando...' : `Aplicar ${parseResult.successCount} Proyectos`}
-              </button>
-              {parseResult.errorCount > 0 && (
-                <button
-                  onClick={handleRemoveAllErrors}
-                  className="bg-red-100 hover:bg-red-200 text-red-600 font-medium py-3 px-4 rounded-lg transition"
-                >
-                  Eliminar Fallidos
-                </button>
-              )}
-              <button
                 onClick={handleRemoveAll}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-3 px-4 rounded-lg transition"
+                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-3 px-4 rounded-lg transition"
               >
                 Limpiar Todo
               </button>
+              {parseResult.summary.failed > 0 && (
+                <button
+                  onClick={handleRemoveAllErrors}
+                  className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 font-medium py-3 px-4 rounded-lg transition"
+                >
+                  Eliminar Fallidos ({parseResult.summary.failed})
+                </button>
+              )}
             </div>
           </>
         )}
@@ -383,4 +341,3 @@ export function ImportDataPage() {
     </AdminLayout>
   )
 }
-
