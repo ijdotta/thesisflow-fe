@@ -17,22 +17,25 @@ describe('buildParticipants', () => {
   });
   it('deduplicates same person across roles', () => {
     const draft = makeDraft({
-      directors: [{ publicId: 'p1', name:'A', lastname:'B' }],
-      codirectors: [{ publicId: 'p1', name:'A', lastname:'B' }],
-      students: [{ publicId: 'p1', name:'A', lastname:'B', studentId:'s1', careers: [] } as any],
-    });
-    const result = buildParticipants(draft);
+      directors: [{ publicId: 'p1', name: 'A', lastname: 'B', email: 'a@b.com' }],
+      codirectors: [{ publicId: 'p1', name: 'A', lastname: 'B', email: 'a@b.com' }],
+      students: [{ publicId: 'p1', name: 'A', lastname: 'B', email: 'a@b.com', studentId: 's1', careers: [] } as any],
+    })
+    const result = buildParticipants(draft)
     // Person appears in multiple roles so expect 3 entries with unique role combos
-    expect(result.filter(r => r.personId==='p1').map(r=>r.role).sort()).toEqual(['CO_DIRECTOR','DIRECTOR','STUDENT']);
-  });
+    expect(result.filter((r) => r.personId === 'p1').map((r) => r.role).sort()).toEqual(['CO_DIRECTOR', 'DIRECTOR', 'STUDENT'])
+  })
   it('handles multiple distinct participants', () => {
     const draft = makeDraft({
-      directors: [{ publicId: 'd1', name:'D', lastname:'1' }],
-      collaborators: [{ publicId: 'c1', name:'C', lastname:'1' }],
-      students: [ { publicId: 's1', name:'S', lastname:'1', studentId: 'X', careers: [] } as any ],
-    });
-    const result = buildParticipants(draft);
-    const roles = result.reduce<Record<string,string[]>>((acc,p)=>{acc[p.personId]=(acc[p.personId]||[]).concat(p.role);return acc;},{});
+      directors: [{ publicId: 'd1', name: 'D', lastname: '1', email: 'd1@b.com' }],
+      collaborators: [{ publicId: 'c1', name: 'C', lastname: '1', email: 'c1@b.com' }],
+      students: [{ publicId: 's1', name: 'S', lastname: '1', email: 's1@b.com', studentId: 'X', careers: [] } as any],
+    })
+    const result = buildParticipants(draft)
+    const roles = result.reduce<Record<string, string[]>>((acc, p) => {
+      acc[p.personId] = (acc[p.personId] || []).concat(p.role)
+      return acc
+    }, {})
     expect(roles).toEqual({ d1:['DIRECTOR'], c1:['COLLABORATOR'], s1:['STUDENT'] });
   });
 });
