@@ -1,8 +1,8 @@
-import { createPerson } from '@/api/people';
-import { createProfessor } from '@/api/professors';
-import { createStudent, setStudentCareers } from '@/api/students';
-import { createProject, setProjectApplicationDomain, setProjectParticipants, deleteProject } from '@/api/projects';
-import type { ProjectDraft, PersonBase, StudentDraft } from './types';
+import { createPerson } from '@/api/people'
+import { createProfessor } from '@/api/professors'
+import { createStudent } from '@/api/students'
+import { createProject, setProjectApplicationDomain, setProjectParticipants, deleteProject } from '@/api/projects'
+import type { ProjectDraft, PersonBase, StudentDraft } from './types'
 
 export function isTemp(publicId?: string) { return !publicId || publicId.startsWith('manual-'); }
 export function requirePublicId(obj: { publicId?: string; id?: string }): string { const pid = obj.publicId || obj.id; if(!pid) throw new Error('Missing publicId'); return pid; }
