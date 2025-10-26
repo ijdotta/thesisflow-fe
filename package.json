@@ -35,7 +35,6 @@
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.13",
     "typescript": "~5.8.3",
-    "use-echarts": "^0.0.0",
     "vis-network": "^10.0.2",
     "vite": "^7.1.6"
   },

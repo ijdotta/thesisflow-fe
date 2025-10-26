@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { publicAPI } from '@/api/publicApi'
 import { useAnalyticsFilters } from '@/pages/public/AnalyticsContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useECharts } from 'use-echarts'
+import { useECharts } from '@/hooks/useECharts'
 import { useEffect, useRef } from 'react'
 
 export function TopicsHeatmap() {
