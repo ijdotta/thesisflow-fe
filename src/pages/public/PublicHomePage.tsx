@@ -32,7 +32,7 @@ export function PublicHomePage() {
               Filtra por carrera, profesor o rango de años para encontrar exactamente lo que buscas.
             </p>
             <Button asChild className="w-full">
-              <Link to="/public/projects">Ver Proyectos</Link>
+              <Link to="/projects">Ver Proyectos</Link>
             </Button>
           </CardContent>
         </Card>
@@ -55,7 +55,7 @@ export function PublicHomePage() {
               <li>• Estadísticas por carrera y año</li>
             </ul>
             <Button asChild className="w-full" variant="default">
-              <Link to="/public/analytics">Ver Análisis</Link>
+              <Link to="/analytics">Ver Análisis</Link>
             </Button>
           </CardContent>
         </Card>

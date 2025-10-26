@@ -18,7 +18,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Public access routes - no auth required */}
-        <Route path="/public/*" element={<PublicRouter />} />
+        <Route path="/*" element={<PublicRouter />} />
 
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
@@ -26,8 +26,8 @@ function App() {
         <Route path="/forbidden" element={<ForbiddenPage />} />
         <Route path="/server-error" element={<ServerErrorPage />} />
 
-        {/* Protected routes - handled by RoleBasedRouter */}
-        <Route path="/*" element={<RoleBasedRouter />} />
+        {/* Protected admin routes - handled by RoleBasedRouter */}
+        <Route path="/admin/*" element={<RoleBasedRouter />} />
       </Routes>
     </BrowserRouter>
   )

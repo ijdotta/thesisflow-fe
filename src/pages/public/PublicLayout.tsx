@@ -1,12 +1,20 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { BarChart3, Folder } from 'lucide-react'
+import { BarChart3, Folder, LogIn } from 'lucide-react'
+import { useAuth } from '@/contexts/useAuth'
 
 export function PublicLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { logout } = useAuth()
 
-  const isOnProjects = location.pathname === '/public/projects'
-  const isOnAnalytics = location.pathname === '/public/analytics'
+  const isOnProjects = location.pathname === '/projects'
+  const isOnAnalytics = location.pathname === '/analytics'
+
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -14,7 +22,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link to="/public" className="text-xl font-bold text-blue-600">
+            <Link to="/" className="text-xl font-bold text-blue-600">
               ThesisFlow
             </Link>
 
@@ -26,7 +34,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                 asChild
                 className="flex items-center gap-2"
               >
-                <Link to="/public/projects">
+                <Link to="/projects">
                   <Folder className="h-4 w-4" />
                   Proyectos
                 </Link>
@@ -38,11 +46,22 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                 asChild
                 className="flex items-center gap-2"
               >
-                <Link to="/public/analytics">
+                <Link to="/analytics">
                   <BarChart3 className="h-4 w-4" />
                   Análisis
                 </Link>
               </Button>
+
+              <div className="ml-4 border-l border-slate-200 pl-4">
+                <Button
+                  onClick={() => navigate('/login')}
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Iniciar Sesión
+                </Button>
+              </div>
             </nav>
           </div>
         </div>

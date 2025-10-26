@@ -4,8 +4,17 @@ import { PublicHomePage } from '@/pages/public/PublicHomePage'
 import { BrowseProjectsPage } from '@/pages/public/BrowseProjectsPage'
 import { AnalyticsDashboardPage } from '@/pages/public/AnalyticsDashboardPage'
 import { AnalyticsProvider } from '@/pages/public/AnalyticsContext'
+import { RoleBasedRouter } from '@/router/RoleBasedRouter'
+import { useAuth } from '@/contexts/useAuth'
 
 export function PublicRouter() {
+  const { user } = useAuth()
+
+  // If authenticated, redirect to admin area
+  if (user) {
+    return <RoleBasedRouter />
+  }
+
   return (
     <PublicLayout>
       <Routes>
@@ -19,7 +28,7 @@ export function PublicRouter() {
           }
         />
         <Route path="/analytics" element={<AnalyticsDashboardPage />} />
-        <Route path="*" element={<Navigate to="/public" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </PublicLayout>
   )
