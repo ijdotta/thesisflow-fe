@@ -7,12 +7,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { ProjectDetailDialog } from '@/components/ProjectDetailDialog'
+import { getRoleDisplayName } from '@/utils/roleMapper'
+import { ProjectResponse } from '@/types/ProjectResponse'
 
 export function BrowseProjectsPage() {
   const { filters } = useAnalyticsFilters()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
   const [pageSize] = useState(12)
+  const [selectedProject, setSelectedProject] = useState<ProjectResponse | null>(null)
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['browse-projects', { ...filters, search, page, size: pageSize }],
@@ -55,7 +59,11 @@ export function BrowseProjectsPage() {
           {/* Projects Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.content.map((project) => (
-              <Card key={project.publicId} className="hover:shadow-lg transition-shadow">
+              <Card
+                key={project.publicId}
+                className="hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => setSelectedProject(project)}
+              >
                 <CardHeader>
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
@@ -110,14 +118,16 @@ export function BrowseProjectsPage() {
                     <div className="space-y-1 text-xs">
                       {project.participants.slice(0, 3).map((p, idx) => (
                         <div key={idx} className="flex items-center justify-between">
-                          <span className="text-muted-foreground">{p.role}</span>
+                          <span className="text-muted-foreground">{getRoleDisplayName(p.role)}</span>
                           <span className="font-medium">
                             {p.personDTO.name} {p.personDTO.lastname}
                           </span>
                         </div>
                       ))}
                       {project.participants.length > 3 && (
-                        <div className="text-muted-foreground italic">+{project.participants.length - 3} más</div>
+                        <div className="text-muted-foreground italic cursor-pointer hover:underline" onClick={(e) => { e.stopPropagation(); setSelectedProject(project); }}>
+                          +{project.participants.length - 3} más
+                        </div>
                       )}
                     </div>
                   </div>
@@ -168,6 +178,12 @@ export function BrowseProjectsPage() {
           )}
         </>
       )}
+
+      <ProjectDetailDialog
+        project={selectedProject}
+        open={!!selectedProject}
+        onOpenChange={(open) => !open && setSelectedProject(null)}
+      />
     </div>
   )
 }
