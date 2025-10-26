@@ -9,6 +9,7 @@ import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { RoleBasedRouter } from '@/router/RoleBasedRouter'
+import { PublicRouter } from '@/pages/public/PublicRouter'
 
 const queryClient = new QueryClient()
 
@@ -16,6 +17,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public access routes - no auth required */}
+        <Route path="/public/*" element={<PublicRouter />} />
+
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/not-found" element={<NotFoundPage />} />
