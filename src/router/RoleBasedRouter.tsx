@@ -97,7 +97,7 @@ export function RoleBasedRouter() {
       {adminRoutes.map((route) => (
         <Route
           key={route.path}
-          path={route.path}
+          path={`/${route.path}`}
           element={
             route.allowedRoles.includes(userRole) ? (
               <ProtectedRoute allowedRoles={route.allowedRoles}>{route.element}</ProtectedRoute>
@@ -109,7 +109,7 @@ export function RoleBasedRouter() {
       ))}
 
       {/* Default redirect for authenticated users */}
-      <Route path="/" element={<Navigate to="/projects" replace />} />
+      <Route path="/" element={<Navigate to="/admin/projects" replace />} />
 
       {/* Error pages */}
       <Route path="/forbidden" element={<ForbiddenPage />} />
