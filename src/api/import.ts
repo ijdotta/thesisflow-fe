@@ -85,7 +85,7 @@ export async function parseCsv(file: File): Promise<ParseCsvResponse> {
   return data
 }
 
-export async function applyProjects(): Promise<void> {
+export async function applyProjects(_projects: ProjectFromImport[]): Promise<void> {
   // This is handled by the backend - we only display what was already imported
   // The actual import happens when parseCsv is called
   // This function is kept for consistency with the UI flow
