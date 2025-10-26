@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { publicAPI, CareerYearStatsData } from '@/api/publicApi'
+import { publicAPI } from '@/api/publicApi'
 import { useAnalyticsFilters } from '@/pages/public/AnalyticsContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useMemo } from 'react'
