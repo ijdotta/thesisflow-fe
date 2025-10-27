@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { ProjectDetailDialog } from '@/components/ProjectDetailDialog'
 import { getRoleDisplayName } from '@/utils/roleMapper'
-import { ProjectResponse } from '@/types/ProjectResponse'
+import type { ProjectResponse } from '@/types/ProjectResponse'
 
 export function BrowseProjectsPage() {
   const { filters } = useAnalyticsFilters()

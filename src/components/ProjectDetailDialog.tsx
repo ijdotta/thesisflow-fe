@@ -1,6 +1,6 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Badge } from '@/components/ui/badge'
-import { ProjectResponse } from '@/types/ProjectResponse'
+import type { ProjectResponse } from '@/types/ProjectResponse'
 import { getRoleDisplayName } from '@/utils/roleMapper'
 
 interface ProjectDetailDialogProps {
