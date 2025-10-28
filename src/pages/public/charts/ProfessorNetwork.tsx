@@ -27,7 +27,7 @@ export function ProfessorNetwork() {
     const nodes = new DataSet(
       data.nodes.map((node) => ({
         id: node.id,
-        label: node.name,
+        label: `${node.name}\n${node.projectCount} proyectos`,
         title: `${node.name}\n${node.projectCount} proyectos`, // tooltip
         size: 30 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 70 : 0),
         value: node.projectCount,
