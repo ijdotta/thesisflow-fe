@@ -12,6 +12,8 @@ import { ImportDataPage } from '@/pages/ImportDataPage'
 import { NotFoundPage, ForbiddenPage, ServerErrorPage } from '@/pages/ErrorPages'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import type { Role } from '@/types/Auth'
+import { ROUTES } from '@/constants/routes'
+import { useMemo } from 'react'
 
 interface RoleRoute {
   path: string
@@ -23,55 +25,55 @@ interface RoleRoute {
 // Admin-only routes
 const adminRoutes: RoleRoute[] = [
   {
-    path: 'projects',
+    path: ROUTES.projects,
     element: <ProjectsPage />,
     allowedRoles: ['ADMIN', 'PROFESSOR'],
     label: 'Projects',
   },
   {
-    path: 'people',
+    path: ROUTES.people,
     element: <PeoplePage />,
     allowedRoles: ['ADMIN'],
     label: 'People',
   },
   {
-    path: 'professors',
+    path: ROUTES.professors,
     element: <ProfessorsPage />,
     allowedRoles: ['ADMIN'],
     label: 'Professors',
   },
   {
-    path: 'students',
+    path: ROUTES.students,
     element: <StudentsPage />,
     allowedRoles: ['ADMIN'],
     label: 'Students',
   },
   {
-    path: 'careers',
+    path: ROUTES.careers,
     element: <CareersPage />,
     allowedRoles: ['ADMIN'],
     label: 'Careers',
   },
   {
-    path: 'application-domains',
+    path: ROUTES.applicationDomains,
     element: <ApplicationDomainsPage />,
     allowedRoles: ['ADMIN'],
     label: 'Application Domains',
   },
   {
-    path: 'tags',
+    path: ROUTES.tags,
     element: <TagsPage />,
     allowedRoles: ['ADMIN'],
     label: 'Tags',
   },
   {
-    path: 'backup',
+    path: ROUTES.backup,
     element: <BackupPage />,
     allowedRoles: ['ADMIN'],
     label: 'Backup',
   },
   {
-    path: 'import-data',
+    path: ROUTES.importData,
     element: <ImportDataPage />,
     allowedRoles: ['ADMIN'],
     label: 'Import Data',
@@ -91,13 +93,20 @@ export function RoleBasedRouter() {
 
   const userRole = user.role as Role
 
+  const redirectPath = useMemo(() => {
+    if (userRole === 'PROFESSOR') {
+      return ROUTES.projects
+    }
+    return ROUTES.projects
+  }, [userRole])
+
   return (
     <Routes>
       {/* Admin routes - filtered by role */}
       {adminRoutes.map((route) => (
         <Route
           key={route.path}
-          path={`/${route.path}`}
+          path={route.path}
           element={
             route.allowedRoles.includes(userRole) ? (
               <ProtectedRoute allowedRoles={route.allowedRoles}>{route.element}</ProtectedRoute>
@@ -109,7 +118,8 @@ export function RoleBasedRouter() {
       ))}
 
       {/* Default redirect for authenticated users */}
-      <Route path="/" element={<Navigate to="/admin/projects" replace />} />
+      <Route path="/" element={<Navigate to={redirectPath} replace />} />
+      <Route path="/admin" element={<Navigate to={redirectPath} replace />} />
 
       {/* Error pages */}
       <Route path="/forbidden" element={<ForbiddenPage />} />

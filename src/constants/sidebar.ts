@@ -22,3 +22,7 @@ export const SIDEBAR_UTIL_ITEMS: SidebarItem[] = [
   { label: 'Backup', href: ROUTES.backup, icon: Database },
   { label: 'Import Data', href: ROUTES.importData, icon: UploadCloud },
 ];
+
+export const PROFESSOR_SIDEBAR_ITEMS: SidebarItem[] = [
+  { label: 'Mis Proyectos', href: ROUTES.projects, icon: Files },
+]
