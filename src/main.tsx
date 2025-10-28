@@ -10,6 +10,8 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { RoleBasedRouter } from '@/router/RoleBasedRouter'
 import { PublicRouter } from '@/pages/public/PublicRouter'
+import { ProfessorLoginPage } from '@/pages/ProfessorLoginPage'
+import { ProfessorLoginVerifyPage } from '@/pages/ProfessorLoginVerifyPage'
 
 const queryClient = new QueryClient()
 
@@ -22,6 +24,8 @@ function App() {
 
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/professor-login" element={<ProfessorLoginPage />} />
+        <Route path="/professor-login/verify" element={<ProfessorLoginVerifyPage />} />
         <Route path="/not-found" element={<NotFoundPage />} />
         <Route path="/forbidden" element={<ForbiddenPage />} />
         <Route path="/server-error" element={<ServerErrorPage />} />

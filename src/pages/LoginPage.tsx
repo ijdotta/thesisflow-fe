@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/contexts/useAuth'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ROUTES } from '@/constants/routes'
 import { BookOpen, Lock, User } from 'lucide-react'
@@ -93,9 +93,15 @@ export function LoginPage() {
 
           {/* Footer */}
           <div className="bg-gray-50 px-8 py-4 border-t border-gray-100">
-            <p className="text-center text-xs text-gray-500">
-              ThesisFlow • Gestión de Proyectos de Tesis
-            </p>
+            <div className="flex flex-col items-center gap-2 text-xs text-gray-500">
+              <p>ThesisFlow • Gestión de Proyectos de Tesis</p>
+              <Link
+                to={ROUTES.professorLogin}
+                className="text-blue-600 hover:text-blue-700 font-medium"
+              >
+                ¿Eres profesor? Solicita acceso con enlace mágico
+              </Link>
+            </div>
           </div>
         </div>
 
