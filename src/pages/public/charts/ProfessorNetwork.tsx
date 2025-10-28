@@ -74,14 +74,15 @@ export function ProfessorNetwork() {
         label: `${edge.weight}`, // Add weight label
         font: {
           size: 13,
-          color: '#0f172a',
+          color: '#ffffff',
           face: 'Inter, system-ui, sans-serif',
-          strokeColor: '#e2e8f0',
-          strokeWidth: 2,
+          strokeColor: '#ffffff',
+          strokeWidth: 1,
           background: {
             enabled: true,
-            color: 'rgba(255, 255, 255, 0.9)',
+            color: 'rgba(15, 23, 42, 0.85)',
             padding: 6,
+            cornerRadius: 4,
           },
         },
         color: {
