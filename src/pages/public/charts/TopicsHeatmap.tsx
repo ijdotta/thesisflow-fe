@@ -30,6 +30,9 @@ export function TopicsHeatmap() {
     ])
 
     const maxCount = Math.max(...data.data.map((d) => d.count))
+    
+    // Calculate dynamic height based on number of topics
+    const minHeight = Math.max(400, topics.length * 25 + 100)
 
     const option = {
       tooltip: {
@@ -43,9 +46,10 @@ export function TopicsHeatmap() {
         },
       },
       grid: {
-        height: '80%',
-        top: 10,
+        height: '85%',
+        top: 20,
         left: 150,
+        bottom: 40,
       },
       xAxis: {
         type: 'category',
@@ -78,7 +82,7 @@ export function TopicsHeatmap() {
           type: 'heatmap',
           data: heatmapData,
           label: {
-            show: true,
+            show: heatmapData.length <= 50, // Show labels only if not too many
           },
           emphasis: {
             itemStyle: {
@@ -91,7 +95,10 @@ export function TopicsHeatmap() {
     }
 
     setOption(option)
-  }, [data, setOption])
+    
+    // Ensure the chart is rendered
+    getInstance()?.resize()
+  }, [data, setOption, getInstance])
 
   if (isLoading) {
     return (
@@ -129,7 +136,7 @@ export function TopicsHeatmap() {
         <CardTitle>Popularidad de Temas (Mapa de Calor)</CardTitle>
       </CardHeader>
       <CardContent>
-        <div ref={ref} style={{ width: '100%', height: '400px' }} />
+        <div ref={ref} style={{ width: '100%', height: '600px', minHeight: '600px', border: '1px solid #e5e7eb' }} />
       </CardContent>
     </Card>
   )

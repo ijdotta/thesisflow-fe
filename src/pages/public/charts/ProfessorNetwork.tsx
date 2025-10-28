@@ -36,7 +36,7 @@ export function ProfessorNetwork() {
       }))
     )
 
-    // Create edges
+    // Create edges with labels
     const edges = new DataSet(
       data.edges.map((edge) => ({
         from: edge.source,
@@ -44,6 +44,16 @@ export function ProfessorNetwork() {
         value: edge.weight,
         width: Math.max(1, Math.min(5, edge.weight / 2)),
         title: `${edge.collaborations} colaboraciones`,
+        label: `${edge.weight}`, // Add weight label
+        font: {
+          size: 12,
+          color: '#666',
+          background: {
+            enabled: true,
+            color: '#ffffff',
+            padding: 4,
+          },
+        },
         color: {
           color: 'rgba(200, 200, 200, 0.5)',
           highlight: '#3b82f6',
