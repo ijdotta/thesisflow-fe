@@ -2,6 +2,7 @@ export const roleDisplayNames: Record<string, string> = {
   DIRECTOR: 'Director',
   STUDENT: 'Alumno',
   CODIRECTOR: 'Co-director',
+  CO_DIRECTOR: 'Co-director',
   COLLABORATOR: 'Colaborador',
 }
 

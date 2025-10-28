@@ -14,12 +14,12 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="max-w-2xl overflow-y-auto">
-        <SheetHeader>
+      <SheetContent className="max-w-2xl overflow-y-auto p-6">
+        <SheetHeader className="mb-4">
           <SheetTitle className="line-clamp-2">{project.title}</SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-6 mt-6">
+        <div className="space-y-6">
           <div className="space-y-6">
             {/* Header Info */}
             <div className="space-y-3">
