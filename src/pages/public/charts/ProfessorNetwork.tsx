@@ -27,35 +27,40 @@ export function ProfessorNetwork() {
     const variableNodeSize = 140
 
     const nodes = new DataSet(
-      data.nodes.map((node) => ({
-        id: node.id,
-        label: `${node.name}\n${node.projectCount} proyectos`,
-        title: `${node.name}\n${node.projectCount} proyectos`, // tooltip
-        size:
+      data.nodes.map((node) => {
+        const multilineName = node.name.split(' ').join('\n')
+        const nodeSize =
           baseNodeSize +
-          (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * variableNodeSize : 0),
-        value: node.projectCount,
-        color: {
-          background: '#3b82f6',
-          border: '#1e40af',
-          highlight: {
-            background: '#1d4ed8',
-            border: '#1e3a8a',
+          (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * variableNodeSize : 0)
+
+        return {
+          id: node.id,
+          label: `${multilineName}\n${node.projectCount}`,
+          title: `${node.name}\n${node.projectCount} proyectos`, // tooltip
+          size: nodeSize,
+          value: node.projectCount,
+          color: {
+            background: '#3b82f6',
+            border: '#1e40af',
+            highlight: {
+              background: '#1d4ed8',
+              border: '#1e3a8a',
+            },
+            hover: {
+              background: '#2563eb',
+              border: '#1e3a8a',
+            },
           },
-          hover: {
-            background: '#2563eb',
-            border: '#1e3a8a',
-          },
-        },
-        font: {
-          color: '#ffffff',
-          size: 18 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 6 : 0),
-          bold: {
+          font: {
             color: '#ffffff',
-            size: 18,
+            size: 18 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 6 : 0),
+            bold: {
+              color: '#ffffff',
+              size: 20,
+            },
           },
-        },
-      }))
+        }
+      })
     )
 
     // Create edges with labels
@@ -68,17 +73,20 @@ export function ProfessorNetwork() {
         title: `${edge.collaborations} colaboraciones`,
         label: `${edge.weight}`, // Add weight label
         font: {
-          size: 12,
-          color: '#666',
+          size: 13,
+          color: '#0f172a',
+          face: 'Inter, system-ui, sans-serif',
+          strokeColor: '#e2e8f0',
+          strokeWidth: 2,
           background: {
             enabled: true,
-            color: '#ffffff',
-            padding: 4,
+            color: 'rgba(255, 255, 255, 0.9)',
+            padding: 6,
           },
         },
         color: {
-          color: 'rgba(200, 200, 200, 0.5)',
-          highlight: '#3b82f6',
+          color: 'rgba(148, 163, 184, 0.7)',
+          highlight: '#1e40af',
         },
       }))
     )
