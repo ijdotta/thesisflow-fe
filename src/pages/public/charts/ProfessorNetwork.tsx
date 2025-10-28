@@ -21,17 +21,22 @@ export function ProfessorNetwork() {
     if (!networkRef.current || !data) return
 
     // Create nodes
-    const maxProjectCount = Math.max(...data.nodes.map((n) => n.projectCount), 10)
+    const projectCounts = data.nodes.map((n) => n.projectCount)
+    const maxProjectCount = projectCounts.length ? Math.max(...projectCounts) : 0
 
     const nodes = new DataSet(
       data.nodes.map((node) => ({
         id: node.id,
         label: node.name,
         title: `${node.name}\n${node.projectCount} proyectos`, // tooltip
-        size: 20 + (node.projectCount / maxProjectCount) * 60,
+        size: 30 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 70 : 0),
+        value: node.projectCount,
         color: {
           background: '#3b82f6',
           border: '#1e40af',
+        },
+        font: {
+          size: 16 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 6 : 0),
         },
       }))
     )
@@ -71,6 +76,18 @@ export function ProfessorNetwork() {
     const networkData = { nodes, edges }
 
     const options = {
+      nodes: {
+        shape: 'dot',
+        scaling: {
+          min: 25,
+          max: 80,
+          label: {
+            min: 14,
+            max: 24,
+            drawThreshold: 8,
+          },
+        },
+      },
       physics: {
         enabled: true,
         barnesHut: {

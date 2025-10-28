@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface ChartData {
   year: number
-  [professorName: string]: number | string
+  [professorId: string]: number | string
 }
 
 export function TimelineChart() {
@@ -50,10 +50,10 @@ export function TimelineChart() {
 
   // Transform data for recharts
   const chartData: ChartData[] = []
-  const professors = new Set<string>()
+  const professors = new Map<string, string>()
 
   data.data.forEach((item) => {
-    professors.add(item.professorName)
+    professors.set(item.professorId, item.professorName)
   })
 
   const yearsMap = new Map<number, Record<string, number>>()
@@ -61,7 +61,7 @@ export function TimelineChart() {
     if (!yearsMap.has(item.year)) {
       yearsMap.set(item.year, { year: item.year })
     }
-    yearsMap.get(item.year)![item.professorName] = item.count
+    yearsMap.get(item.year)![item.professorId] = item.count
   })
 
   Array.from(yearsMap.values())
@@ -92,13 +92,21 @@ export function TimelineChart() {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="year" />
             <YAxis />
-            <Tooltip formatter={(value) => value as number} />
+            <Tooltip
+              formatter={(value, name) => [
+                value as number,
+                professors.get(name as string) ?? (name as string),
+              ]}
+            />
             <Legend />
-            {Array.from(professors).map((prof, index) => (
+            {Array.from(professors.entries())
+              .sort((a, b) => a[1].localeCompare(b[1]))
+              .map(([profId, profName], index) => (
               <Line
-                key={prof}
+                key={profId}
                 type="monotone"
-                dataKey={prof}
+                dataKey={profId}
+                name={profName}
                 stroke={colors[index % colors.length]}
                 connectNulls
                 isAnimationActive={false}

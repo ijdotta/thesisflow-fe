@@ -24,8 +24,8 @@ export function TopicsHeatmap() {
 
     // Create matrix data for heatmap
     const heatmapData = data.data.map((d) => [
-      topics.indexOf(d.topic),
       years.indexOf(d.year),
+      topics.indexOf(d.topic),
       d.count,
     ])
 
@@ -39,8 +39,8 @@ export function TopicsHeatmap() {
         position: 'top',
         formatter: (params: any) => {
           if (!params.componentSubType || params.componentSubType !== 'heatmap') return ''
-          const topic = topics[params.value[0]]
-          const year = years[params.value[1]]
+          const topic = topics[params.value[1]]
+          const year = years[params.value[0]]
           const count = params.value[2]
           return `${topic}<br/>${year}: ${count} proyectos`
         },

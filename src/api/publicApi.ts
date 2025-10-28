@@ -124,7 +124,10 @@ export interface OverviewStats {
   totalProjects: number
   filteredProjects: number
   uniqueDomains: number
-  uniqueTags: number
+  uniqueTags?: number
+  uniqueTopics?: number
+  totalTopics?: number
+  topicsInDateRange?: number
   uniqueProfessors: number
 }
 

@@ -21,11 +21,26 @@ export function DashboardStats() {
   }
 
   const { overview, topDomains, topTags, topProfessors } = data
+  const totalTopics =
+    overview.totalTopics ?? overview.uniqueTopics ?? overview.uniqueTags ?? 0
+  const topicsInRange = overview.topicsInDateRange ?? null
+
+  const showTopicsInRange = topicsInRange !== null
+
+  const filteredProjectPercent =
+    overview.totalProjects > 0
+      ? ((overview.filteredProjects / overview.totalProjects) * 100).toFixed(1)
+      : '0.0'
+  const filteredTopicsPercent =
+    showTopicsInRange && totalTopics > 0
+      ? ((topicsInRange / totalTopics) * 100).toFixed(1)
+      : null
+  const statGridCols = showTopicsInRange ? 'lg:grid-cols-6' : 'lg:grid-cols-5'
 
   return (
     <div className="space-y-6">
       {/* Overview Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className={`grid grid-cols-1 md:grid-cols-2 ${statGridCols} gap-4`}>
         <Card>
           <CardContent className="pt-6">
             <div className="text-sm font-medium text-muted-foreground mb-2">Total de Proyectos</div>
@@ -34,25 +49,36 @@ export function DashboardStats() {
         </Card>
         <Card className="border-blue-300 bg-blue-50 dark:bg-blue-950/30">
           <CardContent className="pt-6">
-            <div className="text-sm font-medium text-muted-foreground mb-2">Proyectos (Filtrados)</div>
+            <div className="text-sm font-medium text-muted-foreground mb-2">Proyectos (en rango)</div>
             <div className="text-3xl font-bold">{overview.filteredProjects}</div>
             <div className="text-xs text-slate-600 dark:text-slate-400 mt-2">
-              {overview.totalProjects > 0 
-                ? ((overview.filteredProjects / overview.totalProjects) * 100).toFixed(1) 
-                : 0}% del total
+              {filteredProjectPercent}% del total
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-sm font-medium text-muted-foreground mb-2">Dominios Únicos</div>
-            <div className="text-3xl font-bold">{overview.uniqueDomains}</div>
+            <div className="text-sm font-medium text-muted-foreground mb-2">Temas Totales</div>
+            <div className="text-3xl font-bold">{totalTopics}</div>
           </CardContent>
         </Card>
+        {showTopicsInRange && (
+          <Card className="border-purple-300 bg-purple-50 dark:bg-purple-950/30">
+            <CardContent className="pt-6">
+              <div className="text-sm font-medium text-muted-foreground mb-2">Temas (en rango)</div>
+              <div className="text-3xl font-bold">{topicsInRange}</div>
+              {filteredTopicsPercent && (
+                <div className="text-xs text-slate-600 dark:text-slate-400 mt-2">
+                  {filteredTopicsPercent}% del total
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardContent className="pt-6">
-            <div className="text-sm font-medium text-muted-foreground mb-2">Tags Únicos</div>
-            <div className="text-3xl font-bold">{overview.uniqueTags}</div>
+            <div className="text-sm font-medium text-muted-foreground mb-2">Dominios Únicos</div>
+            <div className="text-3xl font-bold">{overview.uniqueDomains}</div>
           </CardContent>
         </Card>
         <Card>
@@ -90,7 +116,7 @@ export function DashboardStats() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Top Tags</CardTitle>
+            <CardTitle className="text-base">Top Temas</CardTitle>
           </CardHeader>
           <CardContent>
             {topTags && topTags.length > 0 ? (
