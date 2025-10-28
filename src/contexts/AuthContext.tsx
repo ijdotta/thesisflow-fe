@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import type { AuthContextType, AuthUser } from '@/types/Auth'
+import type { AuthContextType, AuthUser, LoginResponse } from '@/types/Auth'
 import { authApi } from '@/api/auth'
 import { AuthContext } from './AuthContextDefinition'
 
@@ -10,24 +10,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   })
   const [isLoading, setIsLoading] = useState(false)
 
+  const persistSession = useCallback((response: LoginResponse) => {
+    const authUser: AuthUser = {
+      userId: response.userId,
+      role: response.role,
+      professorId: response.professorId,
+      token: response.token,
+      expiresAt: response.expiresAt,
+    }
+    localStorage.setItem('accessToken', response.token)
+    localStorage.setItem('authUser', JSON.stringify(authUser))
+    setUser(authUser)
+  }, [])
+
   const login = useCallback(async (username: string, password: string) => {
     setIsLoading(true)
     try {
       const response = await authApi.login({ username, password })
-      const authUser: AuthUser = {
-        userId: response.userId,
-        role: response.role,
-        professorId: response.professorId,
-        token: response.token,
-        expiresAt: response.expiresAt,
-      }
-      localStorage.setItem('accessToken', response.token)
-      localStorage.setItem('authUser', JSON.stringify(authUser))
-      setUser(authUser)
+      persistSession(response)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [persistSession])
+
+  const requestProfessorMagicLink = useCallback(async (email: string) => {
+    setIsLoading(true)
+    try {
+      await authApi.requestProfessorMagicLink({ email })
     } finally {
       setIsLoading(false)
     }
   }, [])
+
+  const verifyProfessorMagicLink = useCallback(async (token: string) => {
+    setIsLoading(true)
+    try {
+      const response = await authApi.verifyProfessorMagicLink({ token })
+      persistSession(response)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [persistSession])
 
   const logout = useCallback(() => {
     localStorage.removeItem('accessToken')
@@ -50,6 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     isLoading,
     login,
+    requestProfessorMagicLink,
+    verifyProfessorMagicLink,
     logout,
     isAuthenticated: !!user,
   }

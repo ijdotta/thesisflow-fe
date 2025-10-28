@@ -6,6 +6,18 @@ export interface LoginRequest {
   password: string
 }
 
+export interface RequestMagicLinkRequest {
+  email: string
+}
+
+export interface VerifyMagicLinkRequest {
+  token: string
+}
+
+export interface RequestMagicLinkResponse {
+  message: string
+}
+
 export interface LoginResponse {
   token: string
   expiresAt: string
@@ -26,6 +38,8 @@ export interface AuthContextType {
   user: AuthUser | null
   isLoading: boolean
   login: (username: string, password: string) => Promise<void>
+  requestProfessorMagicLink: (email: string) => Promise<void>
+  verifyProfessorMagicLink: (token: string) => Promise<void>
   logout: () => void
   isAuthenticated: boolean
 }
