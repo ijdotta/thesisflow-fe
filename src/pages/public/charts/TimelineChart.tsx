@@ -22,7 +22,7 @@ export function TimelineChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Tesis por Profesor (Línea de Tiempo)</CardTitle>
+          <CardTitle>Tesis por Profesor (Barras por Año)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center text-sm text-muted-foreground">
@@ -37,7 +37,7 @@ export function TimelineChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Tesis por Profesor (Línea de Tiempo)</CardTitle>
+          <CardTitle>Tesis por Profesor (Barras por Año)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center text-sm text-muted-foreground">
@@ -83,8 +83,8 @@ export function TimelineChart() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Tesis por Profesor (Línea de Tiempo)</CardTitle>
+        <CardHeader>
+          <CardTitle>Tesis por Profesor (Barras por Año)</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={400}>

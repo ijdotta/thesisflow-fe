@@ -73,17 +73,24 @@ export function ProjectTypeStats() {
       <CardHeader>
         <CardTitle>Proyectos por Tipo y Año</CardTitle>
       </CardHeader>
-      <CardContent className="overflow-x-auto">
-        <table className="w-full text-sm">
+      <CardContent className="px-6 pb-6">
+        <table className="w-full text-sm table-fixed">
           <thead>
             <tr className="border-b">
-              <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Tipo</th>
+              <th className="px-4 py-2 text-left font-semibold text-muted-foreground break-words">
+                Tipo
+              </th>
               {years.map((year) => (
-                <th key={year} className="px-4 py-2 text-center font-semibold text-muted-foreground">
+                <th
+                  key={year}
+                  className="px-4 py-2 text-center font-semibold text-muted-foreground break-words"
+                >
                   {year}
                 </th>
               ))}
-              <th className="px-4 py-2 text-center font-semibold text-muted-foreground">Total</th>
+              <th className="px-4 py-2 text-center font-semibold text-muted-foreground break-words">
+                Total
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -96,7 +103,7 @@ export function ProjectTypeStats() {
 
               return (
                 <tr key={typeKey} className="border-b hover:bg-slate-50">
-                  <td className="px-4 py-2 font-medium">{displayName}</td>
+                  <td className="px-4 py-2 font-medium break-words">{displayName}</td>
                   {years.map((year) => {
                     const item = data.data.find(
                       (d) => d.year === year && d.projectType === typeKey

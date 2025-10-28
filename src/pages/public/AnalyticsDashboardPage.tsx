@@ -24,7 +24,7 @@ function AnalyticsDashboardContent() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
             <TabsTrigger value="timeline" className="text-xs lg:text-sm">
-              Línea de Tiempo
+              Barras por Año
             </TabsTrigger>
             <TabsTrigger value="heatmap" className="text-xs lg:text-sm">
               Mapa de Calor
