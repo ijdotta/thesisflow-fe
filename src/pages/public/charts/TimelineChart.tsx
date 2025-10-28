@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { publicAPI } from '@/api/publicApi'
 import { useAnalyticsFilters } from '@/pages/public/AnalyticsContext'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface ChartData {
@@ -88,10 +88,10 @@ export function TimelineChart() {
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+          <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="year" />
-            <YAxis />
+            <YAxis allowDecimals={false} />
             <Tooltip
               formatter={(value, name) => [
                 value as number,
@@ -102,17 +102,17 @@ export function TimelineChart() {
             {Array.from(professors.entries())
               .sort((a, b) => a[1].localeCompare(b[1]))
               .map(([profId, profName], index) => (
-              <Line
+              <Bar
                 key={profId}
-                type="monotone"
                 dataKey={profId}
                 name={profName}
-                stroke={colors[index % colors.length]}
-                connectNulls
+                fill={colors[index % colors.length]}
+                barSize={24}
+                radius={[4, 4, 0, 0]}
                 isAnimationActive={false}
               />
             ))}
-          </LineChart>
+          </BarChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>
