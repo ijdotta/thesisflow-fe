@@ -5,6 +5,8 @@ import { TimelineChart } from '@/pages/public/charts/TimelineChart'
 import { TopicsHeatmap } from '@/pages/public/charts/TopicsHeatmap'
 import { ProfessorNetwork } from '@/pages/public/charts/ProfessorNetwork'
 import { StatsTable } from '@/pages/public/charts/StatsTable'
+import { DashboardStats } from '@/pages/public/charts/DashboardStats'
+import { ProjectTypeStats } from '@/pages/public/charts/ProjectTypeStats'
 import { AnalyticsProvider } from '@/pages/public/AnalyticsContext'
 
 function AnalyticsDashboardContent() {
@@ -22,7 +24,7 @@ function AnalyticsDashboardContent() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
             <TabsTrigger value="timeline" className="text-xs lg:text-sm">
-              Línea de Tiempo
+              Barras por Año
             </TabsTrigger>
             <TabsTrigger value="heatmap" className="text-xs lg:text-sm">
               Mapa de Calor
@@ -48,7 +50,11 @@ function AnalyticsDashboardContent() {
           </TabsContent>
 
           <TabsContent value="stats" className="mt-6">
-            <StatsTable />
+            <div className="space-y-6">
+              <DashboardStats />
+              <ProjectTypeStats />
+              <StatsTable />
+            </div>
           </TabsContent>
         </Tabs>
       </div>

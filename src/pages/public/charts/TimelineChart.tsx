@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { publicAPI } from '@/api/publicApi'
 import { useAnalyticsFilters } from '@/pages/public/AnalyticsContext'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface ChartData {
   year: number
-  [professorName: string]: number | string
+  [professorId: string]: number | string
 }
 
 export function TimelineChart() {
@@ -22,7 +22,7 @@ export function TimelineChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Tesis por Profesor (Línea de Tiempo)</CardTitle>
+          <CardTitle>Tesis por Profesor (Barras por Año)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center text-sm text-muted-foreground">
@@ -37,7 +37,7 @@ export function TimelineChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Tesis por Profesor (Línea de Tiempo)</CardTitle>
+          <CardTitle>Tesis por Profesor (Barras por Año)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center text-sm text-muted-foreground">
@@ -50,10 +50,10 @@ export function TimelineChart() {
 
   // Transform data for recharts
   const chartData: ChartData[] = []
-  const professors = new Set<string>()
+  const professors = new Map<string, string>()
 
   data.data.forEach((item) => {
-    professors.add(item.professorName)
+    professors.set(item.professorId, item.professorName)
   })
 
   const yearsMap = new Map<number, Record<string, number>>()
@@ -61,7 +61,7 @@ export function TimelineChart() {
     if (!yearsMap.has(item.year)) {
       yearsMap.set(item.year, { year: item.year })
     }
-    yearsMap.get(item.year)![item.professorName] = item.count
+    yearsMap.get(item.year)![item.professorId] = item.count
   })
 
   Array.from(yearsMap.values())
@@ -83,28 +83,36 @@ export function TimelineChart() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Tesis por Profesor (Línea de Tiempo)</CardTitle>
+        <CardHeader>
+          <CardTitle>Tesis por Profesor (Barras por Año)</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+          <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="year" />
-            <YAxis />
-            <Tooltip formatter={(value) => value as number} />
+            <YAxis allowDecimals={false} />
+            <Tooltip
+              formatter={(value, name) => [
+                value as number,
+                professors.get(name as string) ?? (name as string),
+              ]}
+            />
             <Legend />
-            {Array.from(professors).map((prof, index) => (
-              <Line
-                key={prof}
-                type="monotone"
-                dataKey={prof}
-                stroke={colors[index % colors.length]}
-                connectNulls
+            {Array.from(professors.entries())
+              .sort((a, b) => a[1].localeCompare(b[1]))
+              .map(([profId, profName], index) => (
+              <Bar
+                key={profId}
+                dataKey={profId}
+                name={profName}
+                fill={colors[index % colors.length]}
+                barSize={24}
+                radius={[4, 4, 0, 0]}
                 isAnimationActive={false}
               />
             ))}
-          </LineChart>
+          </BarChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>

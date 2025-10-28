@@ -21,22 +21,49 @@ export function ProfessorNetwork() {
     if (!networkRef.current || !data) return
 
     // Create nodes
-    const maxProjectCount = Math.max(...data.nodes.map((n) => n.projectCount), 10)
+    const projectCounts = data.nodes.map((n) => n.projectCount)
+    const maxProjectCount = projectCounts.length ? Math.max(...projectCounts) : 0
+    const baseNodeSize = 60
+    const variableNodeSize = 140
 
     const nodes = new DataSet(
-      data.nodes.map((node) => ({
-        id: node.id,
-        label: node.name,
-        title: `${node.name}\n${node.projectCount} proyectos`, // tooltip
-        size: 20 + (node.projectCount / maxProjectCount) * 60,
-        color: {
-          background: '#3b82f6',
-          border: '#1e40af',
-        },
-      }))
+      data.nodes.map((node) => {
+        const multilineName = node.name.split(' ').join('\n')
+        const nodeSize =
+          baseNodeSize +
+          (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * variableNodeSize : 0)
+
+        return {
+          id: node.id,
+          label: `${multilineName}\n${node.projectCount}`,
+          title: `${node.name}\n${node.projectCount} proyectos`, // tooltip
+          size: nodeSize,
+          value: node.projectCount,
+          color: {
+            background: '#3b82f6',
+            border: '#1e40af',
+            highlight: {
+              background: '#1d4ed8',
+              border: '#1e3a8a',
+            },
+            hover: {
+              background: '#2563eb',
+              border: '#1e3a8a',
+            },
+          },
+          font: {
+            color: '#ffffff',
+            size: 18 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 6 : 0),
+            bold: {
+              color: '#ffffff',
+              size: 20,
+            },
+          },
+        }
+      })
     )
 
-    // Create edges
+    // Create edges with labels
     const edges = new DataSet(
       data.edges.map((edge) => ({
         from: edge.source,
@@ -44,9 +71,23 @@ export function ProfessorNetwork() {
         value: edge.weight,
         width: Math.max(1, Math.min(5, edge.weight / 2)),
         title: `${edge.collaborations} colaboraciones`,
+        label: `${edge.weight}`, // Add weight label
+        font: {
+          size: 13,
+          color: '#ffffff',
+          face: 'Inter, system-ui, sans-serif',
+          strokeColor: '#ffffff',
+          strokeWidth: 1,
+          background: {
+            enabled: true,
+            color: 'rgba(15, 23, 42, 0.85)',
+            padding: 6,
+            cornerRadius: 4,
+          },
+        },
         color: {
-          color: 'rgba(200, 200, 200, 0.5)',
-          highlight: '#3b82f6',
+          color: 'rgba(148, 163, 184, 0.7)',
+          highlight: '#1e40af',
         },
       }))
     )
@@ -61,6 +102,25 @@ export function ProfessorNetwork() {
     const networkData = { nodes, edges }
 
     const options = {
+      nodes: {
+        shape: 'circle',
+        borderWidth: 2,
+        font: {
+          color: '#ffffff',
+          size: 18,
+          align: 'center',
+        },
+        scaling: {
+          min: baseNodeSize,
+          max: baseNodeSize + variableNodeSize,
+          label: {
+            enabled: true,
+            min: 16,
+            max: 28,
+            drawThreshold: 10,
+          },
+        },
+      },
       physics: {
         enabled: true,
         barnesHut: {

@@ -24,28 +24,32 @@ export function TopicsHeatmap() {
 
     // Create matrix data for heatmap
     const heatmapData = data.data.map((d) => [
-      topics.indexOf(d.topic),
       years.indexOf(d.year),
+      topics.indexOf(d.topic),
       d.count,
     ])
 
     const maxCount = Math.max(...data.data.map((d) => d.count))
+    
+    // Calculate dynamic height based on number of topics
+    const minHeight = Math.max(400, topics.length * 25 + 100)
 
     const option = {
       tooltip: {
         position: 'top',
         formatter: (params: any) => {
           if (!params.componentSubType || params.componentSubType !== 'heatmap') return ''
-          const topic = topics[params.value[0]]
-          const year = years[params.value[1]]
+          const topic = topics[params.value[1]]
+          const year = years[params.value[0]]
           const count = params.value[2]
           return `${topic}<br/>${year}: ${count} proyectos`
         },
       },
       grid: {
-        height: '80%',
-        top: 10,
+        height: '85%',
+        top: 20,
         left: 150,
+        bottom: 40,
       },
       xAxis: {
         type: 'category',
@@ -78,7 +82,7 @@ export function TopicsHeatmap() {
           type: 'heatmap',
           data: heatmapData,
           label: {
-            show: true,
+            show: heatmapData.length <= 50, // Show labels only if not too many
           },
           emphasis: {
             itemStyle: {
@@ -91,7 +95,10 @@ export function TopicsHeatmap() {
     }
 
     setOption(option)
-  }, [data, setOption])
+    
+    // Ensure the chart is rendered
+    getInstance()?.resize()
+  }, [data, setOption, getInstance])
 
   if (isLoading) {
     return (
@@ -129,7 +136,7 @@ export function TopicsHeatmap() {
         <CardTitle>Popularidad de Temas (Mapa de Calor)</CardTitle>
       </CardHeader>
       <CardContent>
-        <div ref={ref} style={{ width: '100%', height: '400px' }} />
+        <div ref={ref} style={{ width: '100%', height: '600px', minHeight: '600px', border: '1px solid #e5e7eb' }} />
       </CardContent>
     </Card>
   )
