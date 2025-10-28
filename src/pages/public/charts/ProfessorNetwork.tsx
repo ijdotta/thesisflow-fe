@@ -23,20 +23,37 @@ export function ProfessorNetwork() {
     // Create nodes
     const projectCounts = data.nodes.map((n) => n.projectCount)
     const maxProjectCount = projectCounts.length ? Math.max(...projectCounts) : 0
+    const baseNodeSize = 60
+    const variableNodeSize = 140
 
     const nodes = new DataSet(
       data.nodes.map((node) => ({
         id: node.id,
         label: `${node.name}\n${node.projectCount} proyectos`,
         title: `${node.name}\n${node.projectCount} proyectos`, // tooltip
-        size: 30 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 70 : 0),
+        size:
+          baseNodeSize +
+          (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * variableNodeSize : 0),
         value: node.projectCount,
         color: {
           background: '#3b82f6',
           border: '#1e40af',
+          highlight: {
+            background: '#1d4ed8',
+            border: '#1e3a8a',
+          },
+          hover: {
+            background: '#2563eb',
+            border: '#1e3a8a',
+          },
         },
         font: {
-          size: 16 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 6 : 0),
+          color: '#ffffff',
+          size: 18 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 6 : 0),
+          bold: {
+            color: '#ffffff',
+            size: 18,
+          },
         },
       }))
     )
@@ -77,14 +94,21 @@ export function ProfessorNetwork() {
 
     const options = {
       nodes: {
-        shape: 'dot',
+        shape: 'circle',
+        borderWidth: 2,
+        font: {
+          color: '#ffffff',
+          size: 18,
+          align: 'center',
+        },
         scaling: {
-          min: 25,
-          max: 80,
+          min: baseNodeSize,
+          max: baseNodeSize + variableNodeSize,
           label: {
-            min: 14,
-            max: 24,
-            drawThreshold: 8,
+            enabled: true,
+            min: 16,
+            max: 28,
+            drawThreshold: 10,
           },
         },
       },
