@@ -88,24 +88,17 @@ export function StatsTable() {
       <CardHeader>
         <CardTitle>Proyectos por Carrera y Año</CardTitle>
       </CardHeader>
-      <CardContent className="px-6 pb-6">
-        <table className="w-full text-sm table-fixed">
+      <CardContent className="overflow-x-auto">
+        <table className="w-full text-sm">
           <thead>
             <tr className="border-b">
-              <th className="px-4 py-2 text-left font-semibold text-muted-foreground break-words">
-                Carrera
-              </th>
+              <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Carrera</th>
               {tableData.years.map((year) => (
-                <th
-                  key={year}
-                  className="px-4 py-2 text-center font-semibold text-muted-foreground break-words"
-                >
+                <th key={year} className="px-4 py-2 text-center font-semibold text-muted-foreground">
                   {year}
                 </th>
               ))}
-              <th className="px-4 py-2 text-center font-semibold text-muted-foreground break-words">
-                Total
-              </th>
+              <th className="px-4 py-2 text-center font-semibold text-muted-foreground">Total</th>
             </tr>
           </thead>
           <tbody>
@@ -113,7 +106,7 @@ export function StatsTable() {
               const total = Array.from(career.years.values()).reduce((sum, y) => sum + y.projectCount, 0)
               return (
                 <tr key={career.careerId} className="border-b hover:bg-slate-50">
-                  <td className="px-4 py-2 font-medium break-words">{career.careerName}</td>
+                  <td className="px-4 py-2 font-medium">{career.careerName}</td>
                   {tableData.years.map((year) => {
                     const count = career.years.get(year)?.projectCount || 0
                     return (

@@ -73,24 +73,17 @@ export function ProjectTypeStats() {
       <CardHeader>
         <CardTitle>Proyectos por Tipo y Año</CardTitle>
       </CardHeader>
-      <CardContent className="px-6 pb-6">
-        <table className="w-full text-sm table-fixed">
+      <CardContent className="overflow-x-auto">
+        <table className="w-full text-sm">
           <thead>
             <tr className="border-b">
-              <th className="px-4 py-2 text-left font-semibold text-muted-foreground break-words">
-                Tipo
-              </th>
+              <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Tipo</th>
               {years.map((year) => (
-                <th
-                  key={year}
-                  className="px-4 py-2 text-center font-semibold text-muted-foreground break-words"
-                >
+                <th key={year} className="px-4 py-2 text-center font-semibold text-muted-foreground">
                   {year}
                 </th>
               ))}
-              <th className="px-4 py-2 text-center font-semibold text-muted-foreground break-words">
-                Total
-              </th>
+              <th className="px-4 py-2 text-center font-semibold text-muted-foreground">Total</th>
             </tr>
           </thead>
           <tbody>
@@ -98,12 +91,12 @@ export function ProjectTypeStats() {
               const total = data.data
                 .filter((item) => item.projectType === typeKey)
                 .reduce((sum, item) => sum + item.projectCount, 0)
-              
+
               const displayName = typeKey === 'THESIS' ? 'Tesis' : 'Trabajo Final'
 
               return (
                 <tr key={typeKey} className="border-b hover:bg-slate-50">
-                  <td className="px-4 py-2 font-medium break-words">{displayName}</td>
+                  <td className="px-4 py-2 font-medium">{displayName}</td>
                   {years.map((year) => {
                     const item = data.data.find(
                       (d) => d.year === year && d.projectType === typeKey
