@@ -45,6 +45,10 @@ export async function setProjectTags(projectPublicId: string, tagPublicIds: stri
   await api.put(`/projects/${projectPublicId}/tags`, { tags: tagPublicIds });
 }
 
+export async function setProjectCompletionDate(projectPublicId: string, completionDate: string): Promise<void> {
+  await api.put(`/projects/${projectPublicId}/completion`, { completionDate });
+}
+
 export async function deleteProject(publicId: string): Promise<void> {
   await api.delete(`/projects/${publicId}`);
 }
