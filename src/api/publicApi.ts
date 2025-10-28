@@ -100,6 +100,41 @@ export interface CareerYearStatsData {
   projectCount: number
 }
 
+export interface ProjectTypeStatsData {
+  projectType: string
+  displayName: string
+  year: number
+  projectCount: number
+  percentage: number
+}
+
+export interface TopItemData {
+  id: string
+  name: string
+  count: number
+}
+
+export interface TopProfessorData {
+  id: string
+  name: string
+  projectCount: number
+}
+
+export interface OverviewStats {
+  totalProjects: number
+  filteredProjects: number
+  uniqueDomains: number
+  uniqueTags: number
+  uniqueProfessors: number
+}
+
+export interface DashboardStatsResponse {
+  overview: OverviewStats
+  topDomains: TopItemData[]
+  topTags: TopItemData[]
+  topProfessors: TopProfessorData[]
+}
+
 // ============ API Functions ============
 
 function buildQueryParams(filters?: AnalyticsFilters & Record<string, any>): Record<string, any> {
@@ -172,6 +207,22 @@ export const publicAPI = {
   // Stats: Projects per career per year
   getCareerYearStats: async (filters?: AnalyticsFilters): Promise<{ data: CareerYearStatsData[] }> => {
     const { data } = await api.get('/analytics/career-year-stats', {
+      params: buildQueryParams(filters),
+    })
+    return data
+  },
+
+  // Stats: Projects per type (THESIS/FINAL_PROJECT) per year
+  getProjectTypeStats: async (filters?: AnalyticsFilters): Promise<{ data: ProjectTypeStatsData[] }> => {
+    const { data } = await api.get('/analytics/project-type-stats', {
+      params: buildQueryParams(filters),
+    })
+    return data
+  },
+
+  // Stats: Dashboard overview with top-K items
+  getDashboardStats: async (filters?: AnalyticsFilters): Promise<DashboardStatsResponse> => {
+    const { data } = await api.get('/analytics/dashboard-stats', {
       params: buildQueryParams(filters),
     })
     return data
