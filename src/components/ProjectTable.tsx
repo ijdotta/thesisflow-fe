@@ -1,7 +1,7 @@
 import {type Column, DataTable, type Sort} from "@/components/DataTable.tsx";
 import type {Project} from "@/types/Project.ts";
 import {Button} from "@/components/ui/button.tsx";
-import {Edit, EyeIcon, Tag as TagIcon} from "lucide-react";
+import {Edit, EyeIcon, Tag as TagIcon, CalendarCheck} from "lucide-react";
 import { ProjectManageSheet } from '@/components/ProjectManageSheet';
 import {useProjects} from "@/hooks/useProjects.ts";
 import * as React from "react";
@@ -9,6 +9,7 @@ import CreateProjectWizard from "@/components/CreateProjectWizard.tsx";
 import { useQueryClient } from '@tanstack/react-query';
 import { ProjectViewSheet } from '@/components/ProjectViewSheet';
 import { ProjectTagsSheet } from '@/components/ProjectTagsSheet';
+import { ProjectCompletionSheet } from '@/components/ProjectCompletionSheet';
 
 const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', PROJECT: 'Proyecto Final' };
 
@@ -21,6 +22,8 @@ export default function ProjectsTable() {
 	const [viewOpen, setViewOpen] = React.useState(false);
 	const [tagsProject, setTagsProject] = React.useState<{ publicId: string; title: string; tags: Project['tags'] } | null>(null);
 	const [tagsOpen, setTagsOpen] = React.useState(false);
+	const [completionProject, setCompletionProject] = React.useState<Project | null>(null);
+	const [completionOpen, setCompletionOpen] = React.useState(false);
 	const [manageProject, setManageProject] = React.useState<Project | null>(null);
 	const [manageOpen, setManageOpen] = React.useState(false);
 	const queryClient = useQueryClient();
@@ -60,6 +63,7 @@ export default function ProjectsTable() {
 	const openView = React.useCallback((id: string) => { setViewProjectId(id); setViewOpen(true); updateUrlParam(id); }, [updateUrlParam]);
 	const handleViewOpenChange = React.useCallback((o: boolean) => { setViewOpen(o); if (!o) { setViewProjectId(null); updateUrlParam(null); } }, [updateUrlParam]);
 	const openTags = React.useCallback((p: Project) => { setTagsProject({ publicId: p.publicId, title: p.title, tags: p.tags }); setTagsOpen(true); }, []);
+	const openCompletion = React.useCallback((p: Project) => { setCompletionProject(p); setCompletionOpen(true); }, []);
 	const openManage = React.useCallback((p: Project) => { setManageProject(p); setManageOpen(true); }, []);
 
 	const columns = React.useMemo<Column<Project>[]>(() => [
@@ -123,11 +127,12 @@ export default function ProjectsTable() {
 				<div className="flex gap-2 flex-wrap">
 					<Button variant="default" size="sm" onClick={() => openView(row.publicId)} title="Ver detalles"><EyeIcon className="h-4 w-4" /></Button>
 					<Button variant="outline" size="sm" onClick={() => openTags(row)} title="Gestionar etiquetas"><TagIcon className="h-4 w-4" /></Button>
+					<Button variant="outline" size="sm" onClick={() => openCompletion(row)} title="Definir fecha de finalización"><CalendarCheck className="h-4 w-4" /></Button>
 					<Button variant="soft" size="sm" onClick={() => openManage(row)} title="Editar / Eliminar"><Edit className="h-4 w-4" /></Button>
 				</div>
 			)
 		}
-	], [openView, openTags, openManage]);
+	], [openView, openTags, openCompletion, openManage]);
 
 	const selectedProject = React.useMemo(() => {
 		return viewProjectId ? projects.find(p => p.publicId === viewProjectId) || null : null;
@@ -157,6 +162,10 @@ export default function ProjectsTable() {
 			/>
 			<ProjectViewSheet publicId={viewProjectId} open={viewOpen} onOpenChange={handleViewOpenChange} initial={selectedProject} />
 			<ProjectTagsSheet project={tagsProject} open={tagsOpen} onOpenChange={setTagsOpen} />
+			<ProjectCompletionSheet project={completionProject} open={completionOpen} onOpenChange={(open) => {
+				setCompletionOpen(open);
+				if (!open) setCompletionProject(null);
+			}} />
 			<ProjectManageSheet project={manageProject} open={manageOpen} onOpenChange={setManageOpen} onDeleted={() => {
 				setManageOpen(false); setManageProject(null); queryClient.invalidateQueries({ queryKey:['projects'] });
 			}} />
