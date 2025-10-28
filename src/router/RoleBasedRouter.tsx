@@ -103,23 +103,28 @@ export function RoleBasedRouter() {
   return (
     <Routes>
       {/* Admin routes - filtered by role */}
-      {adminRoutes.map((route) => (
-        <Route
-          key={route.path}
-          path={route.path}
-          element={
-            route.allowedRoles.includes(userRole) ? (
-              <ProtectedRoute allowedRoles={route.allowedRoles}>{route.element}</ProtectedRoute>
-            ) : (
-              <ForbiddenPage />
-            )
-          }
-        />
-      ))}
+      {adminRoutes.map((route) => {
+        const relativePath = route.path.startsWith('/admin/')
+          ? route.path.replace('/admin/', '')
+          : route.path.replace(/^\//, '')
+
+        return (
+          <Route
+            key={route.path}
+            path={relativePath}
+            element={
+              route.allowedRoles.includes(userRole) ? (
+                <ProtectedRoute allowedRoles={route.allowedRoles}>{route.element}</ProtectedRoute>
+              ) : (
+                <ForbiddenPage />
+              )
+            }
+          />
+        )
+      })}
 
       {/* Default redirect for authenticated users */}
-      <Route path="/" element={<Navigate to={redirectPath} replace />} />
-      <Route path="/admin" element={<Navigate to={redirectPath} replace />} />
+      <Route index element={<Navigate to={redirectPath} replace />} />
 
       {/* Error pages */}
       <Route path="/forbidden" element={<ForbiddenPage />} />
