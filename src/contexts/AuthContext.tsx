@@ -1,7 +1,35 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import type { AuthContextType, AuthUser, LoginResponse } from '@/types/Auth'
+import type {
+  AuthContextType,
+  AuthUser,
+  LoginResponse,
+  ProfessorMagicLinkVerifyResponse,
+  Role,
+} from '@/types/Auth'
 import { authApi } from '@/api/auth'
 import { AuthContext } from './AuthContextDefinition'
+
+interface PersistPayload {
+  token: string
+  expiresAt?: string
+  role?: Role
+  userId?: string
+  professorId?: string
+}
+
+function decodeJwtPayload(token: string): Record<string, any> | null {
+  try {
+    const base64Url = token.split('.')[1]
+    if (!base64Url) return null
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, '=')
+    const jsonPayload = atob(padded)
+    return JSON.parse(jsonPayload)
+  } catch (error) {
+    console.error('Failed to decode JWT payload', error)
+    return null
+  }
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => {
@@ -10,15 +38,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   })
   const [isLoading, setIsLoading] = useState(false)
 
-  const persistSession = useCallback((response: LoginResponse) => {
-    const authUser: AuthUser = {
-      userId: response.userId,
-      role: response.role,
-      professorId: response.professorId,
-      token: response.token,
-      expiresAt: response.expiresAt,
+  const persistSession = useCallback((payload: PersistPayload) => {
+    const decoded = decodeJwtPayload(payload.token)
+    const expiresAtFromToken = decoded?.exp
+      ? new Date(decoded.exp * 1000).toISOString()
+      : undefined
+
+    const derivedRole = (payload.role || decoded?.role || decoded?.authorities?.[0]) as Role | undefined
+    const derivedUserId = payload.userId || decoded?.userId || decoded?.sub || decoded?.id
+    const derivedProfessorId = payload.professorId || decoded?.professorId
+    const expiresAt = payload.expiresAt || expiresAtFromToken || new Date(Date.now() + 60 * 60 * 1000).toISOString()
+
+    if (!derivedRole || !derivedUserId) {
+      console.warn('Missing role or user identifier when persisting session')
     }
-    localStorage.setItem('accessToken', response.token)
+
+    const authUser: AuthUser = {
+      userId: derivedUserId ?? '',
+      role: (derivedRole ?? 'PROFESSOR') as Role,
+      professorId: derivedProfessorId,
+      token: payload.token,
+      expiresAt,
+    }
+
+    localStorage.setItem('accessToken', payload.token)
     localStorage.setItem('authUser', JSON.stringify(authUser))
     setUser(authUser)
   }, [])
@@ -27,7 +70,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true)
     try {
       const response = await authApi.login({ username, password })
-      persistSession(response)
+      persistSession({
+        token: response.token,
+        expiresAt: response.expiresAt,
+        role: response.role,
+        userId: response.userId,
+        professorId: response.professorId,
+      })
     } finally {
       setIsLoading(false)
     }
@@ -46,7 +95,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true)
     try {
       const response = await authApi.verifyProfessorMagicLink({ token })
-      persistSession(response)
+      persistSession({ token: response.accessToken })
+      return response.redirectUrl ?? '/'
     } finally {
       setIsLoading(false)
     }
