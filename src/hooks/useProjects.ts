@@ -1,8 +1,10 @@
+import { useMemo } from "react";
 import {useQuery} from "@tanstack/react-query";
 import {getProjects} from "@/api/projects";
 import mapProjectResponseToProject from "@/mapper/responseToProjectMapper.ts";
 import type {Project} from "@/types/Project.ts";
 import type {GetProjectsResponse} from "@/types/ProjectResponse.ts";
+import {useAuth} from "@/contexts/useAuth";
 
 type Sort = { field: string; dir: "asc" | "desc" };
 
@@ -32,9 +34,18 @@ function transform(response: GetProjectsResponse): TransformedProjectsResponse {
 }
 
 export function useProjects({page, size, sort, filters = {}}: FetchProps) {
+  const { user } = useAuth()
+
+  const mergedFilters = useMemo(() => {
+    if (user?.role === 'PROFESSOR' && user.professorId) {
+      return { ...filters, professorId: user.professorId }
+    }
+    return filters
+  }, [filters, user?.professorId, user?.role])
+
   return useQuery({
-    queryKey: ["projects", { page, size, sort, filters }], // include filters for cache key
-    queryFn: () => getProjects({page, size, sort, filters}),
+    queryKey: ["projects", { page, size, sort, filters: mergedFilters }],
+    queryFn: () => getProjects({page, size, sort, filters: mergedFilters}),
     staleTime: 60_000,
     select: (response) => transform(response),
   });
