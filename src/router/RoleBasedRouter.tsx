@@ -95,7 +95,7 @@ export function RoleBasedRouter() {
 
   const redirectPath = useMemo(() => {
     if (userRole === 'PROFESSOR') {
-      return ROUTES.projects
+      return ROUTES.professorProjects
     }
     return ROUTES.projects
   }, [userRole])
@@ -127,9 +127,9 @@ export function RoleBasedRouter() {
       <Route index element={<Navigate to={redirectPath} replace />} />
 
       {/* Error pages */}
-      <Route path="/forbidden" element={<ForbiddenPage />} />
-      <Route path="/server-error" element={<ServerErrorPage />} />
-      <Route path="/not-found" element={<NotFoundPage />} />
+      <Route path="forbidden" element={<ForbiddenPage />} />
+      <Route path="server-error" element={<ServerErrorPage />} />
+      <Route path="not-found" element={<NotFoundPage />} />
 
       {/* Catch all */}
       <Route path="*" element={<NotFoundPage />} />

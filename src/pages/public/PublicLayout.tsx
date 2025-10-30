@@ -1,12 +1,13 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { BarChart3, Folder, LogIn } from 'lucide-react'
+import { BarChart3, Folder, LogIn, LogOut, UserCircle2 } from 'lucide-react'
 import { useAuth } from '@/contexts/useAuth'
+import { ROUTES } from '@/constants/routes'
 
 export function PublicLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
 
   const isOnProjects = location.pathname === '/projects'
   const isOnAnalytics = location.pathname === '/analytics'
@@ -15,6 +16,8 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
     logout()
     navigate('/')
   }
+
+  const dashboardPath = user?.role === 'PROFESSOR' ? ROUTES.professorProjects : ROUTES.projects
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -53,14 +56,37 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
               </Button>
 
               <div className="ml-4 border-l border-slate-200 pl-4">
-                <Button
-                  onClick={() => navigate('/login')}
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  <LogIn className="h-4 w-4" />
-                  Iniciar Sesión
-                </Button>
+                {!user ? (
+                  <Button
+                    onClick={() => navigate('/login')}
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    Iniciar Sesión
+                  </Button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                      onClick={() => navigate(dashboardPath)}
+                    >
+                      <UserCircle2 className="h-4 w-4" />
+                      {user.role === 'PROFESSOR' ? 'Ver mis proyectos' : 'Panel administrador'}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center gap-2"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Cerrar sesión
+                    </Button>
+                  </div>
+                )}
               </div>
             </nav>
           </div>

@@ -5,6 +5,7 @@ import type {
   RequestMagicLinkRequest,
   RequestMagicLinkResponse,
   VerifyMagicLinkRequest,
+  ProfessorMagicLinkVerifyResponse,
 } from '@/types/Auth'
 
 export const authApi = {
@@ -21,8 +22,10 @@ export const authApi = {
     )
     return response.data
   },
-  verifyProfessorMagicLink: async (payload: VerifyMagicLinkRequest): Promise<LoginResponse> => {
-    const response = await api.post<LoginResponse>(
+  verifyProfessorMagicLink: async (
+    payload: VerifyMagicLinkRequest
+  ): Promise<ProfessorMagicLinkVerifyResponse> => {
+    const response = await api.post<ProfessorMagicLinkVerifyResponse>(
       '/auth/professor/verify-login-link',
       payload
     )
