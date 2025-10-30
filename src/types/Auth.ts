@@ -26,6 +26,11 @@ export interface LoginResponse {
   professorId?: string
 }
 
+export interface ProfessorMagicLinkVerifyResponse {
+  accessToken: string
+  redirectUrl?: string
+}
+
 export interface AuthUser {
   userId: string
   role: UserRole
@@ -39,7 +44,7 @@ export interface AuthContextType {
   isLoading: boolean
   login: (username: string, password: string) => Promise<void>
   requestProfessorMagicLink: (email: string) => Promise<void>
-  verifyProfessorMagicLink: (token: string) => Promise<void>
+  verifyProfessorMagicLink: (token: string) => Promise<string>
   logout: () => void
   isAuthenticated: boolean
 }

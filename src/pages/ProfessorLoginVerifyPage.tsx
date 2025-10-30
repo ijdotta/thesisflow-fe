@@ -32,11 +32,12 @@ export function ProfessorLoginVerifyPage() {
     setStatus('loading')
 
     verifyProfessorMagicLink(token)
-      .then(() => {
+      .then((redirectUrl) => {
         if (!isMounted) return
         setStatus('success')
         setTimeout(() => {
-          navigate('/admin/projects', { replace: true })
+          const target = redirectUrl || ROUTES.projects
+          navigate(target, { replace: true })
         }, 1000)
       })
       .catch((err: unknown) => {

@@ -3,6 +3,7 @@ export const ROUTES = {
   professorLogin: '/professor-login',
   professorVerify: '/professor-login/verify',
   projects: '/admin/projects',
+  professorProjects: '/admin/projects',
   people: '/admin/people',
   professors: '/admin/professors',
   students: '/admin/students',
