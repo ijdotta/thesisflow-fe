@@ -70,8 +70,13 @@ export default function ProjectsTable() {
 		{
 			id: "title",
 			header: "Título",
-			accessor: (row) => row.title,
+			accessor: (row) => (
+				<div className="font-medium leading-snug whitespace-normal">
+					{row.title}
+				</div>
+			),
 			sortField: "title",
+			className: "max-w-[320px] whitespace-normal",
 			filter: { type: 'text', placeholder: 'Buscar título' }
 		},
 		{
@@ -79,6 +84,7 @@ export default function ProjectsTable() {
 			header: "Tipo",
 			accessor: (row) => TYPE_LABELS[row.type] || row.type,
 			sortField: "type",
+			className: "whitespace-nowrap",
 			filter: { type: 'select', placeholder: 'Todos', options: [
 				{ value: 'THESIS', label: TYPE_LABELS.THESIS },
 				{ value: 'PROJECT', label: TYPE_LABELS.PROJECT },
@@ -87,27 +93,61 @@ export default function ProjectsTable() {
 		{
 			id: "career",
 			header: "Carrera",
-			accessor: (row) => row.career?.name || '-',
+			accessor: (row) => (
+				<div className="whitespace-normal leading-snug text-sm">
+					{row.career?.name || '-'}
+				</div>
+			),
 			sortField: "career",
+			className: "max-w-[220px] whitespace-normal",
 			filter: { type: 'text', placeholder: 'Filtrar carrera' }
 		},
 		{
 			id: "subtypes",
 			header: "Subtipos",
-			accessor: (row) => row.subtypes?.join(", "),
+			accessor: (row) => (
+				<div className="whitespace-normal text-xs text-muted-foreground">
+					{row.subtypes && row.subtypes.length > 0 ? row.subtypes.join(', ') : '—'}
+				</div>
+			),
+			className: "max-w-[220px] whitespace-normal",
 		},
 		{
 			id: "directors",
 			header: "Directores",
-			accessor: (row) => row.directors.map(s => `${s.lastname}, ${s.name}`).sort().join("\n"),
+			accessor: (row) => (
+				<div className="whitespace-normal text-sm leading-snug">
+					{row.directors.length === 0
+						? <span className="text-muted-foreground">—</span>
+						: row.directors
+							.map(s => `${s.lastname}, ${s.name}`)
+							.sort()
+							.map((name) => (
+								<div key={name}>{name}</div>
+							))}
+				</div>
+			),
 			sortField: "directors",
+			className: "max-w-[240px] whitespace-normal",
 			filter: { type: 'text', placeholder: 'Filtrar director' }
 		},
 		{
 			id: "students",
 			header: "Alumnos",
-			accessor: (row) => row.students.map(s => `${s.lastname}, ${s.name}`).sort().join("\n"),
+			accessor: (row) => (
+				<div className="whitespace-normal text-sm leading-snug">
+					{row.students.length === 0
+						? <span className="text-muted-foreground">—</span>
+						: row.students
+							.map(s => `${s.lastname}, ${s.name}`)
+							.sort()
+							.map((name) => (
+								<div key={name}>{name}</div>
+							))}
+				</div>
+			),
 			sortField: "students",
+			className: "max-w-[240px] whitespace-normal",
 			filter: { type: 'text', placeholder: 'Filtrar alumno' }
 		},
 		{
@@ -115,6 +155,7 @@ export default function ProjectsTable() {
 			header: "Estado",
 			accessor: (row) => row.completion ? "Finalizado" : "En curso",
 			sortField: "completion", // enable filter
+			className: "whitespace-nowrap text-center",
 			filter: { type: 'select', placeholder: 'Todos', options: [
 				{ value: 'true', label: 'Finalizado' },
 				{ value: 'false', label: 'En curso' },
@@ -124,13 +165,14 @@ export default function ProjectsTable() {
 			id: "actions",
 			header: "Acciones",
 			accessor: (row) => (
-				<div className="flex gap-2 flex-wrap">
+				<div className="flex gap-2 justify-end">
 					<Button variant="default" size="sm" onClick={() => openView(row.publicId)} title="Ver detalles"><EyeIcon className="h-4 w-4" /></Button>
 					<Button variant="outline" size="sm" onClick={() => openTags(row)} title="Gestionar etiquetas"><TagIcon className="h-4 w-4" /></Button>
 					<Button variant="outline" size="sm" onClick={() => openCompletion(row)} title="Definir fecha de finalización"><CalendarCheck className="h-4 w-4" /></Button>
 					<Button variant="soft" size="sm" onClick={() => openManage(row)} title="Editar / Eliminar"><Edit className="h-4 w-4" /></Button>
 				</div>
-			)
+			),
+			className: "whitespace-nowrap text-right"
 		}
 	], [openView, openTags, openCompletion, openManage]);
 
