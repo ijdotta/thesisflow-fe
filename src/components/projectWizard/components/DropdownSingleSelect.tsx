@@ -38,7 +38,7 @@ export function DropdownSingleSelect({
         <SelectTrigger>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="max-h-60 overflow-y-auto">
           {availableItems.map(item => (
             <SelectItem key={item.publicId} value={item.publicId}>
               {item.display || item.name}

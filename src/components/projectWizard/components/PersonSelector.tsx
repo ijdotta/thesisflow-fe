@@ -84,7 +84,7 @@ export function PersonSelector({
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar persona..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-60 overflow-y-auto">
                 {people.map(p => (
                   <SelectItem key={p.publicId} value={p.publicId}>
                     {p.display}
