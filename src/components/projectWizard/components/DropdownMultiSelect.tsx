@@ -18,6 +18,7 @@ interface DropdownMultiSelectProps {
   onAddNew: () => void;
   placeholder?: string;
   disabled?: boolean;
+  hideAddButton?: boolean;
 }
 
 export function DropdownMultiSelect({
@@ -28,6 +29,7 @@ export function DropdownMultiSelect({
   onAddNew,
   placeholder = 'Seleccionar...',
   disabled = false,
+  hideAddButton = false,
 }: DropdownMultiSelectProps) {
   const selectedItems = items.filter(i => selectedIds.includes(i.publicId));
   const availableItems = items.filter(i => !selectedIds.includes(i.publicId));
@@ -47,9 +49,11 @@ export function DropdownMultiSelect({
             ))}
           </SelectContent>
         </Select>
-        <Button type="button" variant="outline" size="sm" onClick={onAddNew} disabled={disabled}>
-          <Plus className="h-4 w-4" />
-        </Button>
+        {!hideAddButton && (
+          <Button type="button" variant="outline" size="sm" onClick={onAddNew} disabled={disabled}>
+            <Plus className="h-4 w-4" />
+          </Button>
+        )}
       </div>
       {selectedItems.length > 0 && (
         <div className="flex flex-wrap gap-2">

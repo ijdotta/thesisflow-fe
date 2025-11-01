@@ -139,39 +139,20 @@ export function PeopleStep({ draft, onPatch }: Props) {
       {/* Co-directors */}
       <div className="space-y-2">
         <h4 className="font-medium">Co-directores</h4>
-        {codirectorIds.length === 0 ? (
-          <button
-            type="button"
-            onClick={() => setShowNewCoDirector(true)}
-            className="text-sm text-primary hover:underline"
-          >
-            + Agregar co-director
-          </button>
-        ) : (
-          <>
-            <DropdownMultiSelect
-              items={professorItems}
-              selectedIds={codirectorIds}
-              onSelect={(id) => {
-                const p = professors.find(x => x.publicId === id);
-                if (p) addTo('codirectors', { publicId: p.publicId, name: p.name, lastname: p.lastname, email: p.email || '' });
-              }}
-              onRemove={(id) => {
-                const idx = draft.codirectors.findIndex(d => d.publicId === id);
-                if (idx >= 0) removeFrom('codirectors', idx);
-              }}
-              onAddNew={() => setShowNewCoDirector(true)}
-              placeholder="Seleccionar co-director"
-            />
-            <button
-              type="button"
-              onClick={() => setShowNewCoDirector(true)}
-              className="text-sm text-primary hover:underline"
-            >
-              + Agregar otro co-director
-            </button>
-          </>
-        )}
+        <DropdownMultiSelect
+          items={professorItems}
+          selectedIds={codirectorIds}
+          onSelect={(id) => {
+            const p = professors.find(x => x.publicId === id);
+            if (p) addTo('codirectors', { publicId: p.publicId, name: p.name, lastname: p.lastname, email: p.email || '' });
+          }}
+          onRemove={(id) => {
+            const idx = draft.codirectors.findIndex(d => d.publicId === id);
+            if (idx >= 0) removeFrom('codirectors', idx);
+          }}
+          onAddNew={() => setShowNewCoDirector(true)}
+          placeholder="Seleccionar co-director"
+        />
         {showNewCoDirector && (
           <>
             <PersonSelector

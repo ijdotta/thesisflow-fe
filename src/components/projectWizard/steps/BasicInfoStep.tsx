@@ -19,8 +19,8 @@ export function BasicInfoStep({ draft, onPatch }: Props) {
   const { data: careersData } = useCareers();
   const { data: domainsData } = useAllApplicationDomains();
   const careers = careersData?.items ?? [];
-  const domains = domainsData?.items ?? [];
-  const [showDomainDropdown, setShowDomainDropdown] = React.useState(!!draft.applicationDomain);
+  const domainsRaw = domainsData?.items ?? [];
+  const domains = [...domainsRaw].sort((a, b) => a.name.localeCompare(b.name));
 
   function toggleSubtype(st: string) {
     onPatch({ subtypes: draft.subtypes.includes(st) ? draft.subtypes.filter(x => x !== st) : [...draft.subtypes, st] });
@@ -99,32 +99,22 @@ export function BasicInfoStep({ draft, onPatch }: Props) {
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium">Dominio de aplicación</label>
-        {!showDomainDropdown && (
-          <button
-            type="button"
-            onClick={() => setShowDomainDropdown(true)}
-            className="text-sm text-primary hover:underline"
-          >
-            + Agregar dominio
-          </button>
-        )}
-        {showDomainDropdown && (
-          <DropdownMultiSelect
-            items={domainItems}
-            selectedIds={domainIds}
-            onSelect={(id) => {
-              const d = domains.find(x => x.publicId === id);
-              if (d) onPatch({ applicationDomain: { publicId: d.publicId, name: d.name } });
-            }}
-            onRemove={(id) => {
-              if (draft.applicationDomain?.publicId === id) {
-                onPatch({ applicationDomain: null });
-              }
-            }}
-            onAddNew={() => {}}
-            placeholder="Seleccione dominio"
-          />
-        )}
+        <DropdownMultiSelect
+          items={domainItems}
+          selectedIds={domainIds}
+          onSelect={(id) => {
+            const d = domains.find(x => x.publicId === id);
+            if (d) onPatch({ applicationDomain: { publicId: d.publicId, name: d.name } });
+          }}
+          onRemove={(id) => {
+            if (draft.applicationDomain?.publicId === id) {
+              onPatch({ applicationDomain: null });
+            }
+          }}
+          onAddNew={() => {}}
+          placeholder="Seleccione dominio"
+          hideAddButton={true}
+        />
       </div>
     </div>
   );
