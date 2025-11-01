@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import type { ProjectDraft, StudentDraft } from '../types';
@@ -21,6 +22,7 @@ function ensureId(p: { publicId?: string; id?: string }): string {
 }
 
 export function StudentsStep({ draft, onPatch }: Props) {
+  const queryClient = useQueryClient();
   const { data: studentsData } = useAllStudents();
   const { data: careersData } = useCareers();
   const students = studentsData?.items ?? [];
@@ -116,6 +118,9 @@ export function StudentsStep({ draft, onPatch }: Props) {
         email: newStudentPerson.email,
         careers: newStudentData.careers
       });
+
+      // Invalidate students query to refetch with new student
+      await queryClient.invalidateQueries({ queryKey: ['all-students'] });
 
       setNewStudentPerson(null);
       setNewStudentData({ studentId: '', careers: [] });

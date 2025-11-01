@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { PersonPills } from '../PersonPills';
 import type { ProjectDraft, PersonBase } from '../types';
@@ -23,6 +24,7 @@ function ensureId(p: { publicId?: string; id?: string }): string {
 }
 
 export function PeopleStep({ draft, onPatch }: Props) {
+  const queryClient = useQueryClient();
   const { data: professorsData } = useAllProfessors();
   const { data: peopleData } = useAllPeople();
   const professors = professorsData?.items ?? [];
@@ -74,6 +76,13 @@ export function PeopleStep({ draft, onPatch }: Props) {
         }
 
         addTo(target, { publicId: personId, name: created.name, lastname: created.lastname, email: person.email });
+        
+        // Invalidate professors query to refetch with new person
+        if (target === 'directors' || target === 'codirectors') {
+          await queryClient.invalidateQueries({ queryKey: ['all-professors'] });
+        } else if (target === 'collaborators') {
+          await queryClient.invalidateQueries({ queryKey: ['all-people'] });
+        }
       }
 
       // Reset UI state

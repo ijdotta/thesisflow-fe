@@ -3,7 +3,7 @@ import type { ProjectDraft } from '../types';
 interface Props { draft: ProjectDraft }
 
 // Localized type labels
-const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', PROJECT: 'Proyecto Final' };
+const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', FINAL_PROJECT: 'Proyecto Final' };
 
 export function SummaryStep({ draft }: Props) {
   const localizedType = draft.type ? (TYPE_LABELS[draft.type] || draft.type) : '—';
