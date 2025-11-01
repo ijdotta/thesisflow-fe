@@ -179,18 +179,22 @@ export function DataTable<T>({
         <Table>
           <TableHeader>
             <TableRow>
-              {columns.map(col => {
-                // ...existing code for sort header...
+              {columns.map((col, idx) => {
                 const sortable = !!col.sortField;
                 const active = sortable && sort.field === col.sortField;
+                const isActions = idx === columns.length - 1;
                 return (
                   <TableHead
                     key={col.id}
                     style={col.width ? { width: col.width } : undefined}
-                    className={[col.className ?? "", sortable ? "cursor-pointer select-none" : ""].join(" ")}
+                    className={[
+                      col.className ?? "",
+                      sortable ? "cursor-pointer select-none" : "",
+                      isActions ? "text-right" : ""
+                    ].join(" ")}
                     onClick={sortable ? () => toggleSort(col.sortField!) : undefined}
                   >
-                    <div className="flex items-center gap-1">
+                    <div className={["flex items-center gap-1", isActions ? "justify-end" : ""].join(" ")}>
                       <span>{col.header}</span>
                       {sortable && (
                         <span className="inline-flex items-center">
@@ -208,14 +212,19 @@ export function DataTable<T>({
             </TableRow>
             {hasFilters && (
               <TableRow>
-                {columns.map(col => {
+                {columns.map((col, idx) => {
                   if (!col.sortField) return <TableHead key={col.id} style={col.width ? { width: col.width } : undefined} />;
                   const conf = col.filter || {};
                   const type = conf.type || 'text';
                   const appliedVal = filters[col.sortField];
                   const selectValue = appliedVal ?? CLEAR_SELECT_VALUE;
+                  const isActions = idx === columns.length - 1;
                   return (
-                    <TableHead key={col.id} style={col.width ? { width: col.width } : undefined}>
+                    <TableHead
+                      key={col.id}
+                      style={col.width ? { width: col.width } : undefined}
+                      className={[col.className ?? '', isActions ? 'text-right' : ''].join(' ').trim() || undefined}
+                    >
                       {type === 'select' && conf.options ? (
                         <Select
                           value={selectValue}
@@ -238,7 +247,7 @@ export function DataTable<T>({
                           </SelectContent>
                         </Select>
                       ) : (
-                        <div className="relative">
+                        <div className={["relative", isActions ? "ml-auto" : ""].join(" ")}>
                           <Input
                             ref={assignTextRef}
                             value={inputFilters[col.sortField] ?? ''}
@@ -281,8 +290,13 @@ export function DataTable<T>({
             )}
             {!loading && !error && rows.map((row, i) => (
               <TableRow key={i}>
-                {columns.map(col => (
-                  <TableCell key={col.id} className={col.className}>{col.accessor(row)}</TableCell>
+                {columns.map((col, idx) => (
+                  <TableCell
+                    key={col.id}
+                    className={[col.className ?? '', idx === columns.length - 1 ? 'text-right' : ''].join(' ').trim() || undefined}
+                  >
+                    {col.accessor(row)}
+                  </TableCell>
                 ))}
               </TableRow>
             ))}
