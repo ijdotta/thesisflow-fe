@@ -50,6 +50,8 @@ export function ProjectResourcesPanel({ projectId, resources = [], canEdit = fal
   }
 
   async function handleSave() {
+    console.log('handleSave called with formItems:', formItems);
+    
     // Allow saving empty resources list (to delete all)
     // But validate any items that exist
     for (let i = 0; i < formItems.length; i++) {
@@ -83,11 +85,15 @@ export function ProjectResourcesPanel({ projectId, resources = [], canEdit = fal
 
     setIsSaving(true);
     try {
-      await updateProjectResources(projectId, formItems);
+      console.log('Calling updateProjectResources with:', { projectId, formItems });
+      const result = await updateProjectResources(projectId, formItems);
+      console.log('API Response:', result);
+      
       await queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       setIsEditing(false);
       push({ variant: 'success', title: 'Éxito', message: 'Recursos guardados correctamente' });
     } catch (error) {
+      console.error('Error saving resources:', error);
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
       push({ variant: 'error', title: 'Error al guardar', message: errorMsg });
     } finally {
