@@ -84,9 +84,14 @@ export function ProjectResourcesPanel({ projectId, resources = [], canEdit = fal
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-base font-semibold tracking-tight">Recursos</h3>
-        {canEdit && !isEditing && (
-          <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Editar
+        {canEdit && (
+          <Button 
+            size="sm" 
+            variant={isEditing ? "default" : "outline"} 
+            onClick={() => setIsEditing(!isEditing)}
+          >
+            <Plus className="h-4 w-4 mr-1" /> 
+            {isEditing ? 'Listo' : 'Editar'}
           </Button>
         )}
       </div>
@@ -130,68 +135,70 @@ export function ProjectResourcesPanel({ projectId, resources = [], canEdit = fal
       ) : (
         // Edit mode
         <div className="space-y-4 border rounded-md p-4 bg-muted/30">
-          {items.length === 0 && (
-            <div className="text-xs text-muted-foreground text-center py-4">Sin recursos</div>
-          )}
-          {items.map((resource, idx) => (
-            <div key={idx} className="space-y-3 border rounded p-3 bg-white">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-muted-foreground">Recurso {idx + 1}</span>
-                <button
-                  type="button"
-                  onClick={() => removeResource(idx)}
-                  className="text-destructive hover:text-destructive/70"
-                  title="Eliminar recurso"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium">URL *</label>
-                <Input
-                  type="url"
-                  placeholder="https://..."
-                  value={resource.url}
-                  onChange={(e) => updateResource(idx, 'url', e.target.value)}
-                  className="mt-1 h-8"
-                />
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-medium">Título *</label>
-                  <span className="text-xs text-muted-foreground">
-                    {resource.title.length}/255
-                  </span>
+          <div className="space-y-3">
+            {items.length === 0 && (
+              <div className="text-xs text-muted-foreground text-center py-4">Sin recursos. Agrega uno debajo.</div>
+            )}
+            {items.map((resource, idx) => (
+              <div key={idx} className="space-y-3 border rounded p-3 bg-white">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-muted-foreground">Recurso {idx + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeResource(idx)}
+                    className="text-destructive hover:text-destructive/70"
+                    title="Eliminar recurso"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
-                <Input
-                  placeholder="Nombre del archivo"
-                  value={resource.title}
-                  onChange={(e) => updateResource(idx, 'title', e.target.value.slice(0, 255))}
-                  maxLength={255}
-                  className="mt-1 h-8"
-                />
-              </div>
 
-              <div>
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-medium">Descripción</label>
-                  <span className="text-xs text-muted-foreground">
-                    {(resource.description?.length || 0)}/1000
-                  </span>
+                <div>
+                  <label className="text-xs font-medium">URL *</label>
+                  <Input
+                    type="url"
+                    placeholder="https://..."
+                    value={resource.url}
+                    onChange={(e) => updateResource(idx, 'url', e.target.value)}
+                    className="mt-1 h-8"
+                  />
                 </div>
-                <textarea
-                  placeholder="Detalles sobre el recurso (opcional)"
-                  value={resource.description || ''}
-                  onChange={(e) => updateResource(idx, 'description', e.target.value.slice(0, 1000))}
-                  maxLength={1000}
-                  className="mt-1 w-full px-3 py-2 border rounded text-xs resize-none"
-                  rows={2}
-                />
+
+                <div>
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-medium">Título *</label>
+                    <span className="text-xs text-muted-foreground">
+                      {resource.title.length}/255
+                    </span>
+                  </div>
+                  <Input
+                    placeholder="Nombre del archivo"
+                    value={resource.title}
+                    onChange={(e) => updateResource(idx, 'title', e.target.value.slice(0, 255))}
+                    maxLength={255}
+                    className="mt-1 h-8"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-medium">Descripción</label>
+                    <span className="text-xs text-muted-foreground">
+                      {(resource.description?.length || 0)}/1000
+                    </span>
+                  </div>
+                  <textarea
+                    placeholder="Detalles sobre el recurso (opcional)"
+                    value={resource.description || ''}
+                    onChange={(e) => updateResource(idx, 'description', e.target.value.slice(0, 1000))}
+                    maxLength={1000}
+                    className="mt-1 w-full px-3 py-2 border rounded text-xs resize-none"
+                    rows={2}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
 
           <Button
             type="button"

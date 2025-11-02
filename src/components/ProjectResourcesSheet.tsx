@@ -14,11 +14,11 @@ export function ProjectResourcesSheet({ project, open, onOpenChange }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-[600px] overflow-y-auto">
-        <SheetHeader>
+      <SheetContent className="sm:max-w-[600px] overflow-y-auto py-6 px-6">
+        <SheetHeader className="mb-6">
           <SheetTitle>Gestionar Recursos</SheetTitle>
         </SheetHeader>
-        <div className="mt-6">
+        <div className="space-y-4">
           <ProjectResourcesPanel
             projectId={project.publicId}
             resources={project.resources}
