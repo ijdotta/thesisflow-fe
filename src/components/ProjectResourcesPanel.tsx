@@ -21,6 +21,10 @@ export function ProjectResourcesPanel({ projectId, resources = [], canEdit = fal
   const { push } = useOptionalToast();
   const queryClient = useQueryClient();
 
+  React.useEffect(() => {
+    setFormItems(resources);
+  }, [resources]);
+
   function addNewResource() {
     setFormItems([...formItems, { url: '', title: '', description: '' }]);
   }
@@ -50,7 +54,8 @@ export function ProjectResourcesPanel({ projectId, resources = [], canEdit = fal
   }
 
   async function handleSave() {
-    // Validate all items
+    // Allow saving empty resources list (to delete all)
+    // But validate any items that exist
     for (let i = 0; i < formItems.length; i++) {
       const item = formItems[i];
       
@@ -85,9 +90,10 @@ export function ProjectResourcesPanel({ projectId, resources = [], canEdit = fal
       await updateProjectResources(projectId, formItems);
       await queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       setIsEditing(false);
-      push({ variant: 'success', title: 'Éxito', message: 'Recursos guardados' });
+      push({ variant: 'success', title: 'Éxito', message: 'Recursos guardados correctamente' });
     } catch (error) {
-      push({ variant: 'error', title: 'Error', message: (error as Error).message });
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+      push({ variant: 'error', title: 'Error al guardar', message: errorMsg });
     } finally {
       setIsSaving(false);
     }
