@@ -9,7 +9,8 @@ import { deleteProject, setProjectParticipants } from '@/api/projects';
 import { useOptionalToast } from '@/components/ui/toast';
 import { useSearchStudents } from '@/hooks/useSearchStudents';
 import { useDebounce } from '@/hooks/useDebounce';
-import { X } from 'lucide-react';
+import { ProjectResourcesSheet } from '@/components/ProjectResourcesSheet';
+import { X, FileText } from 'lucide-react';
 
 interface Props {
   project: Project | null;
@@ -21,6 +22,7 @@ interface Props {
 export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: Props) {
   const { push } = useOptionalToast();
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [resourcesOpen, setResourcesOpen] = React.useState(false);
   const [selectedStudents, setSelectedStudents] = React.useState<Array<{ publicId: string; name: string; lastname: string }>>([]);
   const [studentQuery, setStudentQuery] = React.useState('');
   const [saving, setSaving] = React.useState(false);
@@ -178,17 +180,33 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
             </section>
           </div>
         )}
-        <SheetFooter className="gap-2 mt-8">
+        <SheetFooter className="gap-2 mt-8 flex flex-wrap">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setResourcesOpen(true)}
+            disabled={!project}
+          >
+            <FileText className="h-4 w-4 mr-1" />
+            Recursos
+          </Button>
           <Button variant="outline" size="sm" onClick={()=> onOpenChange(false)}>Cerrar</Button>
         </SheetFooter>
         {project && (
-          <ConfirmDeleteDialog
-            open={deleteOpen}
-            onOpenChange={setDeleteOpen}
-            entityName={project.title}
-            label="proyecto"
-            onConfirm={handleDelete}
-          />
+          <>
+            <ConfirmDeleteDialog
+              open={deleteOpen}
+              onOpenChange={setDeleteOpen}
+              entityName={project.title}
+              label="proyecto"
+              onConfirm={handleDelete}
+            />
+            <ProjectResourcesSheet
+              project={project}
+              open={resourcesOpen}
+              onOpenChange={setResourcesOpen}
+            />
+          </>
         )}
       </SheetContent>
     </Sheet>

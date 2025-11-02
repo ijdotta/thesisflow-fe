@@ -16,6 +16,7 @@ export function ProjectViewSheet({ publicId, open, onOpenChange, initial }: Prop
   const { data: fetched, isLoading, error } = useProject(open ? publicId : null);
   const { push } = useOptionalToast();
   const titleRef = React.useRef<HTMLHeadingElement | null>(null);
+  const [canEdit, setCanEdit] = React.useState(false);
 
   const project = React.useMemo(() => {
     if (!fetched && initial) return initial;
@@ -133,7 +134,7 @@ export function ProjectViewSheet({ publicId, open, onOpenChange, initial }: Prop
               <ProjectResourcesPanel 
                 projectId={project.publicId} 
                 resources={project.resources}
-                canEdit={false}
+                canEdit={canEdit}
               />
             </section>
           </div>
