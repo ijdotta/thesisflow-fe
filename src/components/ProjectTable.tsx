@@ -12,6 +12,11 @@ import { ProjectTagsSheet } from '@/components/ProjectTagsSheet';
 import { ProjectCompletionSheet } from '@/components/ProjectCompletionSheet';
 
 const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', FINAL_PROJECT: 'Proyecto Final' };
+const SUBTYPE_LABELS: Record<string,string> = { 
+  INVESTIGACION: 'Investigación', 
+  EXTENSION: 'Extensión', 
+  VINCULACION: 'Vinculación' 
+};
 
 export default function ProjectsTable() {
 	const [page, setPage] = React.useState(0);
@@ -110,7 +115,7 @@ export default function ProjectsTable() {
 					{row.subtypes && row.subtypes.length > 0
 						? row.subtypes.map(subtype => (
 							<span key={subtype} className="inline-block px-2 py-1 text-xs bg-muted rounded">
-								{subtype}
+								{SUBTYPE_LABELS[subtype] || subtype}
 							</span>
 						))
 						: <span className="text-muted-foreground text-xs">—</span>

@@ -22,13 +22,17 @@ const mapTypeToString = (type: string): string => {
 }
 
 const mapSubTypeToString = (subtype: string): string => {
-  switch (subtype) {
+  // Convert Spanish subtype names to English enum-like keys
+  switch (subtype.toUpperCase()) {
+    case "VINCULACIÓN":
     case "VINCULACION":
-      return "Vinculación"
+      return "VINCULACION"
+    case "INVESTIGACIÓN":
     case "INVESTIGACION":
-      return "Investigación"
+      return "INVESTIGACION"
+    case "EXTENSIÓN":
     case "EXTENSION":
-      return "Extensión"
+      return "EXTENSION"
     default:
       return ""
   }
