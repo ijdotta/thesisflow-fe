@@ -11,7 +11,12 @@ import { ProjectViewSheet } from '@/components/ProjectViewSheet';
 import { ProjectTagsSheet } from '@/components/ProjectTagsSheet';
 import { ProjectCompletionSheet } from '@/components/ProjectCompletionSheet';
 
-const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', PROJECT: 'Proyecto Final' };
+const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', FINAL_PROJECT: 'Proyecto Final' };
+const SUBTYPE_LABELS: Record<string,string> = { 
+  INVESTIGACION: 'Investigación', 
+  EXTENSION: 'Extensión', 
+  VINCULACION: 'Vinculación' 
+};
 
 export default function ProjectsTable() {
 	const [page, setPage] = React.useState(0);
@@ -87,7 +92,7 @@ export default function ProjectsTable() {
 			className: "whitespace-nowrap",
 			filter: { type: 'select', placeholder: 'Todos', options: [
 				{ value: 'THESIS', label: TYPE_LABELS.THESIS },
-				{ value: 'PROJECT', label: TYPE_LABELS.PROJECT },
+				{ value: 'FINAL_PROJECT', label: TYPE_LABELS.FINAL_PROJECT },
 			] }
 		},
 		{
@@ -106,30 +111,47 @@ export default function ProjectsTable() {
 			id: "subtypes",
 			header: "Subtipos",
 			accessor: (row) => (
-				<div className="whitespace-normal text-xs text-muted-foreground">
-					{row.subtypes && row.subtypes.length > 0 ? row.subtypes.join(', ') : '—'}
+				<div className="flex flex-wrap gap-1">
+					{row.subtypes && row.subtypes.length > 0
+						? row.subtypes.map(subtype => (
+							<span key={subtype} className="inline-block px-2 py-1 text-xs bg-muted rounded">
+								{SUBTYPE_LABELS[subtype] || subtype}
+							</span>
+						))
+						: <span className="text-muted-foreground text-xs">—</span>
+					}
 				</div>
 			),
-			className: "max-w-[220px] whitespace-normal",
+			className: "max-w-[280px]",
 		},
 		{
-			id: "directors",
-			header: "Directores",
-			accessor: (row) => (
-				<div className="whitespace-normal text-sm leading-snug">
-					{row.directors.length === 0
-						? <span className="text-muted-foreground">—</span>
-						: row.directors
-							.map(s => `${s.lastname}, ${s.name}`)
-							.sort()
-							.map((name) => (
-								<div key={name}>{name}</div>
-							))}
-				</div>
-			),
+			id: "people",
+			header: "Directores / Co-directores / Colaboradores",
+			accessor: (row) => {
+				const allPeople = [
+					...row.directors.map(p => ({ ...p, role: 'Director' })),
+					...row.codirectors.map(p => ({ ...p, role: 'Co-director' })),
+					...row.collaborators.map(p => ({ ...p, role: 'Colaborador' }))
+				];
+				
+				return (
+					<div className="whitespace-normal text-sm leading-snug space-y-1">
+						{allPeople.length === 0 ? (
+							<span className="text-muted-foreground">—</span>
+						) : (
+							allPeople.map((person) => (
+								<div key={`${person.publicId}-${person.role}`} className="flex gap-2">
+									<span className="text-xs bg-muted px-1.5 py-0.5 rounded whitespace-nowrap">{person.role}</span>
+									<span>{person.lastname}, {person.name}</span>
+								</div>
+							))
+						)}
+					</div>
+				);
+			},
 			sortField: "directors",
-			className: "max-w-[240px] whitespace-normal",
-			filter: { type: 'text', placeholder: 'Filtrar director' }
+			className: "max-w-[320px] whitespace-normal",
+			filter: { type: 'text', placeholder: 'Filtrar persona' }
 		},
 		{
 			id: "students",

@@ -13,22 +13,26 @@ const mapParticipantToPerson = (participant: Participant): Person => {
 const mapTypeToString = (type: string): string => {
   switch (type) {
     case "FINAL_PROJECT":
-      return "Proyecto Final"
+      return "FINAL_PROJECT"
     case "THESIS":
-      return "Tesis"
+      return "THESIS"
     default:
       return "Desconocido"
   }
 }
 
 const mapSubTypeToString = (subtype: string): string => {
-  switch (subtype) {
+  // Convert Spanish subtype names to English enum-like keys
+  switch (subtype.toUpperCase()) {
+    case "VINCULACIÓN":
     case "VINCULACION":
-      return "Vinculación"
+      return "VINCULACION"
+    case "INVESTIGACIÓN":
     case "INVESTIGACION":
-      return "Investigación"
+      return "INVESTIGACION"
+    case "EXTENSIÓN":
     case "EXTENSION":
-      return "Extensión"
+      return "EXTENSION"
     default:
       return ""
   }
@@ -36,7 +40,7 @@ const mapSubTypeToString = (subtype: string): string => {
 
 const mapSubtypes = (subtypes: string[]): string[] => {
   const filtered = subtypes.map(mapSubTypeToString).filter(s => s !== "")
-  return filtered.length > 0 ? filtered : ["Ninguno"]
+  return filtered
 }
 
 const mapProjectResponseToProject = (projectResponse: ProjectResponse): Project => {
