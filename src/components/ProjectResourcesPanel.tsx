@@ -243,14 +243,20 @@ export function ProjectResourcesPanel({ projectId, resources = [], canEdit = fal
         <Button
           variant="outline"
           size="sm"
-          onClick={handleCancel}
+          onClick={() => {
+            console.log('Cancelar clicked');
+            handleCancel();
+          }}
           disabled={isSaving}
         >
           Cancelar
         </Button>
         <Button
           size="sm"
-          onClick={handleSave}
+          onClick={() => {
+            console.log('Guardar clicked, about to call handleSave');
+            handleSave();
+          }}
           disabled={isSaving}
         >
           {isSaving && <Loader className="h-4 w-4 mr-1 animate-spin" />}
