@@ -15,15 +15,11 @@ interface Props {
 }
 
 export function ProjectResourcesPanel({ projectId, resources = [], canEdit = false }: Props) {
-  const [formItems, setFormItems] = React.useState<ProjectResourceRequest[]>(resources);
+  const [formItems, setFormItems] = React.useState<ProjectResourceRequest[]>(() => resources);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isEditing, setIsEditing] = React.useState(false);
   const { push } = useOptionalToast();
   const queryClient = useQueryClient();
-
-  React.useEffect(() => {
-    setFormItems(resources);
-  }, [resources]);
 
   function addNewResource() {
     setFormItems([...formItems, { url: '', title: '', description: '' }]);
