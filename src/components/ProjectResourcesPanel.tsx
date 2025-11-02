@@ -135,9 +135,20 @@ export function ProjectResourcesPanel({ projectId, resources = [], canEdit = fal
       ) : (
         // Edit mode
         <div className="space-y-4 border rounded-md p-4 bg-muted/30">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addResource}
+            className="w-full"
+            disabled={isSaving}
+          >
+            <Plus className="h-4 w-4 mr-1" /> Agregar recurso
+          </Button>
+
           <div className="space-y-3">
             {items.length === 0 && (
-              <div className="text-xs text-muted-foreground text-center py-4">Sin recursos. Agrega uno debajo.</div>
+              <div className="text-xs text-muted-foreground text-center py-4">Sin recursos. Agrega uno arriba.</div>
             )}
             {items.map((resource, idx) => (
               <div key={idx} className="space-y-3 border rounded p-3 bg-white">
@@ -199,17 +210,6 @@ export function ProjectResourcesPanel({ projectId, resources = [], canEdit = fal
               </div>
             ))}
           </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addResource}
-            className="w-full"
-            disabled={isSaving}
-          >
-            <Plus className="h-4 w-4 mr-1" /> Agregar recurso
-          </Button>
 
           <Separator />
 
