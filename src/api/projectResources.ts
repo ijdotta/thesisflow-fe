@@ -5,7 +5,7 @@ export async function updateProjectResources(
   projectId: string,
   resources: ProjectResourceRequest[]
 ): Promise<ProjectResponse> {
-  const response = await fetch(`/api/projects/${projectId}/resources`, {
+  const response = await fetch(`/projects/${projectId}/resources`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
