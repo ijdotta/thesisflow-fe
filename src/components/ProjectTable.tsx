@@ -144,6 +144,7 @@ export default function ProjectsTable() {
 					</div>
 				);
 			},
+			sortField: "directors",
 			className: "max-w-[320px] whitespace-normal",
 			filter: { type: 'text', placeholder: 'Filtrar persona' }
 		},
