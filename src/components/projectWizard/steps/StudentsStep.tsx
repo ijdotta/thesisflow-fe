@@ -92,26 +92,38 @@ export function StudentsStep({ draft, onPatch }: Props) {
       }
 
       let personId = newStudentPerson.publicId;
+      let isNewPerson = false;
 
       // If person is not persisted yet, create it
       if (!personId || personId.startsWith('manual-')) {
         const created = await createPerson({ name: newStudentPerson.name, lastname: newStudentPerson.lastname });
         personId = ensureId(created);
+        isNewPerson = true;
       }
 
-      const student = await createStudent({
-        personPublicId: personId,
-        studentId: newStudentData.studentId || undefined,
-        email: newStudentPerson.email || undefined
-      });
-      const sid = ensureId(student);
+      // Check if student already exists for this person
+      const existingStudent = students.find(s => s.publicId && personId && s.publicId.includes(personId));
+      
+      let studentId: string;
+      if (existingStudent && newStudentData.studentId === existingStudent.studentId) {
+        // Student already exists with same legajo, just add to draft
+        studentId = existingStudent.publicId;
+      } else {
+        // Create new student record
+        const student = await createStudent({
+          personPublicId: personId,
+          studentId: newStudentData.studentId || undefined,
+          email: newStudentPerson.email || undefined
+        });
+        studentId = ensureId(student);
 
-      if (newStudentData.careers.length > 0) {
-        await setStudentCareers(sid, newStudentData.careers);
+        if (newStudentData.careers.length > 0) {
+          await setStudentCareers(studentId, newStudentData.careers);
+        }
       }
 
       addStudent({
-        publicId: sid,
+        publicId: studentId,
         name: newStudentPerson.name,
         lastname: newStudentPerson.lastname,
         studentId: newStudentData.studentId,
@@ -120,7 +132,9 @@ export function StudentsStep({ draft, onPatch }: Props) {
       });
 
       // Invalidate students query to refetch with new student
-      await queryClient.invalidateQueries({ queryKey: ['all-students'] });
+      if (isNewPerson || (!existingStudent || newStudentData.studentId !== existingStudent.studentId)) {
+        await queryClient.invalidateQueries({ queryKey: ['all-students'] });
+      }
 
       setNewStudentPerson(null);
       setNewStudentData({ studentId: '', careers: [] });
@@ -145,47 +159,28 @@ export function StudentsStep({ draft, onPatch }: Props) {
     <div className="space-y-6 p-4">
       <h4 className="font-medium">Alumnos *</h4>
 
-      {studentIds.length === 0 ? (
-        <button
-          type="button"
-          onClick={() => setShowNewStudent(true)}
-          className="text-sm text-primary hover:underline"
-        >
-          + Agregar alumno
-        </button>
-      ) : (
-        <>
-          <SearchableMultiSelect
-            items={studentItems}
-            selectedIds={studentIds}
-            onSelect={(id) => {
-              const s = students.find(x => x.publicId === id);
-              if (s)
-                addStudent({
-                  publicId: s.publicId,
-                  name: s.name,
-                  lastname: s.lastname,
-                  studentId: s.studentId,
-                  email: s.email,
-                  careers: s.careers
-                });
-            }}
-            onRemove={(id) => {
-              const idx = draft.students.findIndex(s => s.publicId === id);
-              if (idx >= 0) removeStudent(idx);
-            }}
-            onAddNew={() => setShowNewStudent(true)}
-            placeholder="Seleccionar alumno"
-          />
-          <button
-            type="button"
-            onClick={() => setShowNewStudent(true)}
-            className="text-sm text-primary hover:underline"
-          >
-            + Agregar otro alumno
-          </button>
-        </>
-      )}
+      <SearchableMultiSelect
+        items={studentItems}
+        selectedIds={studentIds}
+        onSelect={(id) => {
+          const s = students.find(x => x.publicId === id);
+          if (s)
+            addStudent({
+              publicId: s.publicId,
+              name: s.name,
+              lastname: s.lastname,
+              studentId: s.studentId,
+              email: s.email,
+              careers: s.careers
+            });
+        }}
+        onRemove={(id) => {
+          const idx = draft.students.findIndex(s => s.publicId === id);
+          if (idx >= 0) removeStudent(idx);
+        }}
+        onAddNew={() => setShowNewStudent(true)}
+        placeholder="Seleccionar alumno"
+      />
 
       {showNewStudent && (
         <div className="border rounded-md p-4 space-y-4 bg-muted/30">
