@@ -24,20 +24,10 @@ export function PersonSelector({
   const people = peopleData?.items ?? [];
 
   const [selectedPersonId, setSelectedPersonId] = React.useState<string>('');
-  const [searchQuery, setSearchQuery] = React.useState('');
   const [showManual, setShowManual] = React.useState(false);
   const [manualData, setManualData] = React.useState({ name: '', lastname: '', email: '', studentId: '' });
   const [creating, setCreating] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-
-  const filteredPeople = people.filter(p => {
-    const searchText = searchQuery.toLowerCase();
-    return (
-      p.display?.toLowerCase().includes(searchText) ||
-      p.name?.toLowerCase().includes(searchText) ||
-      p.lastname?.toLowerCase().includes(searchText)
-    );
-  });
 
   function handleSelectPerson() {
     if (!selectedPersonId) {
@@ -95,27 +85,11 @@ export function PersonSelector({
                 <SelectValue placeholder="Seleccionar persona..." />
               </SelectTrigger>
               <SelectContent className="max-h-60 overflow-y-auto">
-                <div className="sticky top-0 bg-white p-2 border-b">
-                  <input
-                    type="text"
-                    placeholder="Buscar..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-primary"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-                {filteredPeople.length > 0 ? (
-                  filteredPeople.map(p => (
-                    <SelectItem key={p.publicId} value={p.publicId}>
-                      {p.display}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <div className="p-2 text-sm text-muted-foreground text-center">
-                    {searchQuery ? 'Sin resultados' : 'Sin opciones'}
-                  </div>
-                )}
+                {people.map(p => (
+                  <SelectItem key={p.publicId} value={p.publicId}>
+                    {p.display}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
