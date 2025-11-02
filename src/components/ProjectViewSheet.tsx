@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { useOptionalToast } from '@/components/ui/toast';
 import { Separator } from '@/components/ui/separator';
+import { ProjectResourcesPanel } from '@/components/ProjectResourcesPanel';
 
 const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', PROJECT: 'Proyecto Final' };
 
@@ -125,6 +126,15 @@ export function ProjectViewSheet({ publicId, open, onOpenChange, initial }: Prop
                   </Tooltip>
                 )) : <span className="text-xs text-muted-foreground">(Sin etiquetas)</span>}
               </div>
+            </section>
+
+            <Separator />
+            <section className="space-y-3">
+              <ProjectResourcesPanel 
+                projectId={project.publicId} 
+                resources={project.resources}
+                canEdit={false}
+              />
             </section>
           </div>
         )}

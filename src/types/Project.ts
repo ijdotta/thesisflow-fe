@@ -1,5 +1,6 @@
 import type {ApplicationDomain, Tag} from "@/types/ProjectResponse.ts";
 import type {Person} from "@/types/Person.ts";
+import type {ProjectResource} from "@/types/ProjectResource.ts";
 
 export interface Career {
   publicId: string;
@@ -21,4 +22,5 @@ export interface Project {
   directors: Person[],
   codirectors: Person[],
   collaborators: Person[],
+  resources?: ProjectResource[],
 }
