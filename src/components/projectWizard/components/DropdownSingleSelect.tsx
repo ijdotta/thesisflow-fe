@@ -29,8 +29,14 @@ export function DropdownSingleSelect({
   disabled = false,
   showRemove = true,
 }: DropdownSingleSelectProps) {
+  const [searchQuery, setSearchQuery] = React.useState('');
   const selectedItem = selectedId ? items.find(i => i.publicId === selectedId) : undefined;
   const availableItems = selectedId ? items : items;
+  
+  const filteredItems = availableItems.filter(item => {
+    const displayText = (item.display || item.name).toLowerCase();
+    return displayText.includes(searchQuery.toLowerCase());
+  });
 
   return (
     <div className="space-y-2">
@@ -39,11 +45,27 @@ export function DropdownSingleSelect({
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent className="max-h-60 overflow-y-auto">
-          {availableItems.map(item => (
-            <SelectItem key={item.publicId} value={item.publicId}>
-              {item.display || item.name}
-            </SelectItem>
-          ))}
+          <div className="sticky top-0 bg-white p-2 border-b">
+            <input
+              type="text"
+              placeholder="Buscar..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+          {filteredItems.length > 0 ? (
+            filteredItems.map(item => (
+              <SelectItem key={item.publicId} value={item.publicId}>
+                {item.display || item.name}
+              </SelectItem>
+            ))
+          ) : (
+            <div className="p-2 text-sm text-muted-foreground text-center">
+              {searchQuery ? 'Sin resultados' : 'Sin opciones'}
+            </div>
+          )}
         </SelectContent>
       </Select>
       {selectedItem && showRemove && (
