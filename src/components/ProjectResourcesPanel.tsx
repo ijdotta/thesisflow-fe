@@ -50,8 +50,6 @@ export function ProjectResourcesPanel({ projectId, resources = [], canEdit = fal
   }
 
   async function handleSave() {
-    console.log('handleSave called with formItems:', formItems);
-    
     // Allow saving empty resources list (to delete all)
     // But validate any items that exist
     for (let i = 0; i < formItems.length; i++) {
@@ -85,15 +83,11 @@ export function ProjectResourcesPanel({ projectId, resources = [], canEdit = fal
 
     setIsSaving(true);
     try {
-      console.log('Calling updateProjectResources with:', { projectId, formItems });
-      const result = await updateProjectResources(projectId, formItems);
-      console.log('API Response:', result);
-      
+      await updateProjectResources(projectId, formItems);
       await queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       setIsEditing(false);
       push({ variant: 'success', title: 'Éxito', message: 'Recursos guardados correctamente' });
     } catch (error) {
-      console.error('Error saving resources:', error);
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
       push({ variant: 'error', title: 'Error al guardar', message: errorMsg });
     } finally {
@@ -243,20 +237,14 @@ export function ProjectResourcesPanel({ projectId, resources = [], canEdit = fal
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
-            console.log('Cancelar clicked');
-            handleCancel();
-          }}
+          onClick={handleCancel}
           disabled={isSaving}
         >
           Cancelar
         </Button>
         <Button
           size="sm"
-          onClick={() => {
-            console.log('Guardar clicked, about to call handleSave');
-            handleSave();
-          }}
+          onClick={handleSave}
           disabled={isSaving}
         >
           {isSaving && <Loader className="h-4 w-4 mr-1 animate-spin" />}
