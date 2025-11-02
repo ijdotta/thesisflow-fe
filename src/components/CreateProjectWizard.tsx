@@ -1,8 +1,6 @@
 import * as React from 'react';
 import {Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetFooter} from '@/components/ui/sheet';
 import {Button} from '@/components/ui/button';
-import { useSearchApplicationDomains } from '@/hooks/useSearchApplicationDomains';
-import { useDebounce } from '@/hooks/useDebounce';
 
 // New modular imports
 import { emptyDraft, type ProjectDraft } from '@/components/projectWizard/types';
@@ -18,12 +16,6 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [draft, setDraft] = React.useState<ProjectDraft>({...emptyDraft});
-
-  // Domain search (basic info step)
-  const [domainQuery, setDomainQuery] = React.useState('');
-  const dDomain = useDebounce(domainQuery, 300);
-  const { data: domainResults } = useSearchApplicationDomains(dDomain);
-  const domainItems = domainResults?.items ?? [];
 
   function patchDraft(patch: Partial<ProjectDraft>) { setDraft(d => ({ ...d, ...patch })); }
   function reset() { setDraft({...emptyDraft}); setStep(0); setError(null); }
@@ -61,7 +53,7 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
 
   function renderStep() {
     switch (step) {
-      case 0: return <BasicInfoStep draft={draft} onPatch={patchDraft} domainQuery={domainQuery} setDomainQuery={setDomainQuery} domainItems={domainItems} />;
+      case 0: return <BasicInfoStep draft={draft} onPatch={patchDraft} />;
       case 1: return <PeopleStep draft={draft} onPatch={patchDraft} />;
       case 2: return <StudentsStep draft={draft} onPatch={patchDraft} />;
       case 3: return <SummaryStep draft={draft} />;
@@ -74,12 +66,12 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
       <SheetTrigger asChild>
         <Button variant="outline">Nuevo Proyecto</Button>
       </SheetTrigger>
-      <SheetContent className="sm:max-w-[600px]">
+      <SheetContent className="sm:max-w-[600px] flex flex-col">
         <SheetHeader>
           <SheetTitle>Crear nuevo proyecto</SheetTitle>
         </SheetHeader>
         {error && <div className="text-sm text-red-600 px-4 py-2 rounded-md bg-red-100 border">{error}</div>}
-        <div className="space-y-4">{renderStep()}</div>
+        <div className="space-y-4 overflow-y-auto flex-1">{renderStep()}</div>
         <SheetFooter>
           <div className="flex justify-end gap-2">
             {step > 0 && <Button variant="outline" onClick={() => setStep(s => s - 1)}>Anterior</Button>}

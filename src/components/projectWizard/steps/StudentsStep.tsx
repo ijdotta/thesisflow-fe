@@ -1,34 +1,42 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import type { ProjectDraft, StudentDraft } from '../types';
-import { useSearchStudents } from '@/hooks/useSearchStudents';
-import { parsePersonInput } from '../parsePerson';
+import { useAllStudents } from '@/hooks/useAllStudents';
 import { createPerson } from '@/api/people';
 import { createStudent, setStudentCareers } from '@/api/students';
 import { useCareers } from '@/hooks/useCareers';
+import { SearchableMultiSelect } from '../components/SearchableMultiSelect';
+import { PersonSelector } from '../components/PersonSelector';
 
 interface Props {
   draft: ProjectDraft;
   onPatch: (patch: Partial<ProjectDraft>) => void;
 }
 
-function ensureId(p: { publicId?: string; id?: string }): string { const id = p.publicId || p.id; if(!id) throw new Error('Entidad sin ID'); return id; }
+function ensureId(p: { publicId?: string; id?: string }): string {
+  const id = p.publicId || p.id;
+  if (!id) throw new Error('Entidad sin ID');
+  return id;
+}
 
 export function StudentsStep({ draft, onPatch }: Props) {
-  const [studentQuery, setStudentQuery] = useState('');
-  const { data: studentResults } = useSearchStudents(studentQuery);
-  const studentItems = studentResults?.items ?? [];
+  const queryClient = useQueryClient();
+  const { data: studentsData } = useAllStudents();
   const { data: careersData } = useCareers();
+  const students = studentsData?.items ?? [];
   const careers = careersData?.items || [];
 
-  // Inline creation
   const [showNewStudent, setShowNewStudent] = useState(false);
-  const [newStudent, setNewStudent] = useState({ name: '', lastname: '', studentId: '', email: '', careers: [] as string[] });
+  const [newStudentPerson, setNewStudentPerson] = useState<{ name: string; lastname: string; email: string; publicId?: string } | null>(null);
+  const [newStudentData, setNewStudentData] = useState({ studentId: '', careers: [] as string[] });
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
-  function patchStudents(mutator: (prev: StudentDraft[]) => StudentDraft[]) { onPatch({ students: mutator(draft.students) }); }
+  function patchStudents(mutator: (prev: StudentDraft[]) => StudentDraft[]) {
+    onPatch({ students: mutator(draft.students) });
+  }
 
   function addStudent(item: Partial<StudentDraft>) {
     const normalized: StudentDraft = {
@@ -42,17 +50,12 @@ export function StudentsStep({ draft, onPatch }: Props) {
     patchStudents(prev => [...prev, normalized]);
   }
 
-  function updateStudent(index: number, patch: Partial<StudentDraft>) { patchStudents(prev => prev.map((s,i)=> i===index ? { ...s, ...patch } : s)); }
-  function removeStudent(index: number) { patchStudents(prev => prev.filter((_,i)=> i!==index)); }
-  function addManual(raw: string) { const parsed = parsePersonInput(raw); if (!parsed) return; addStudent(parsed); }
+  function updateStudent(index: number, patch: Partial<StudentDraft>) {
+    patchStudents(prev => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
+  }
 
-  function toggleCareerForNew(careerPublicId: string) {
-    setNewStudent(prev => ({
-      ...prev,
-      careers: prev.careers.includes(careerPublicId)
-        ? prev.careers.filter(c => c !== careerPublicId)
-        : [...prev.careers, careerPublicId]
-    }));
+  function removeStudent(index: number) {
+    patchStudents(prev => prev.filter((_, i) => i !== index));
   }
 
   function toggleCareerForStudent(index: number, careerPublicId: string) {
@@ -64,54 +67,231 @@ export function StudentsStep({ draft, onPatch }: Props) {
     updateStudent(index, { careers: updatedCareers });
   }
 
+  function toggleCareerForNew(careerPublicId: string) {
+    setNewStudentData(prev => ({
+      ...prev,
+      careers: prev.careers.includes(careerPublicId)
+        ? prev.careers.filter(c => c !== careerPublicId)
+        : [...prev.careers, careerPublicId]
+    }));
+  }
+
   async function handleCreateStudent() {
     try {
-      setCreateError(null); setCreating(true);
-      if (!newStudent.name || !newStudent.lastname) { setCreateError('Nombre y apellido requeridos'); return; }
-      if (!newStudent.studentId) { setCreateError('Legajo requerido'); return; }
-      if (!newStudent.email) { setCreateError('Email requerido'); return; }
+      setCreateError(null);
+      setCreating(true);
 
-      const person = await createPerson({ name: newStudent.name, lastname: newStudent.lastname });
-      const personId = ensureId(person);
-      const student = await createStudent({ personPublicId: personId, studentId: newStudent.studentId || undefined, email: newStudent.email || undefined });
-      const sid = ensureId(student);
-
-      // Set careers if selected
-      if (newStudent.careers.length > 0) {
-        await setStudentCareers(sid, newStudent.careers);
+      if (!newStudentPerson) {
+        setCreateError('Selecciona o crea una persona');
+        return;
       }
 
-      addStudent({ publicId: sid, name: person.name, lastname: person.lastname, studentId: newStudent.studentId, email: newStudent.email, careers: newStudent.careers });
-      setNewStudent({ name:'', lastname:'', studentId:'', email:'', careers:[] });
+      if (!newStudentData.studentId) {
+        setCreateError('Legajo requerido');
+        return;
+      }
+
+      let personId = newStudentPerson.publicId;
+      let isNewPerson = false;
+
+      // If person is not persisted yet, create it
+      if (!personId || personId.startsWith('manual-')) {
+        const created = await createPerson({ name: newStudentPerson.name, lastname: newStudentPerson.lastname });
+        personId = ensureId(created);
+        isNewPerson = true;
+      }
+
+      // Check if student already exists for this person
+      const existingStudent = students.find(s => s.publicId && personId && s.publicId.includes(personId));
+      
+      let studentId: string;
+      if (existingStudent && newStudentData.studentId === existingStudent.studentId) {
+        // Student already exists with same legajo, just add to draft
+        studentId = existingStudent.publicId;
+      } else {
+        // Create new student record
+        const student = await createStudent({
+          personPublicId: personId,
+          studentId: newStudentData.studentId || undefined,
+          email: newStudentPerson.email || undefined
+        });
+        studentId = ensureId(student);
+
+        if (newStudentData.careers.length > 0) {
+          await setStudentCareers(studentId, newStudentData.careers);
+        }
+      }
+
+      addStudent({
+        publicId: studentId,
+        name: newStudentPerson.name,
+        lastname: newStudentPerson.lastname,
+        studentId: newStudentData.studentId,
+        email: newStudentPerson.email,
+        careers: newStudentData.careers
+      });
+
+      // Invalidate students query to refetch with new student
+      if (isNewPerson || (!existingStudent || newStudentData.studentId !== existingStudent.studentId)) {
+        await queryClient.invalidateQueries({ queryKey: ['all-students'] });
+      }
+
+      setNewStudentPerson(null);
+      setNewStudentData({ studentId: '', careers: [] });
       setShowNewStudent(false);
-    } catch (e) { const msg = e instanceof Error ? e.message : String(e); setCreateError(msg || 'Error creando alumno'); } finally { setCreating(false); }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setCreateError(msg || 'Error creando alumno');
+    } finally {
+      setCreating(false);
+    }
   }
+
+  const studentItems = students.map(s => ({
+    publicId: s.publicId,
+    name: s.name,
+    display: s.display
+  }));
+
+  const studentIds = draft.students.map(s => s.publicId);
 
   return (
     <div className="space-y-6 p-4">
       <h4 className="font-medium">Alumnos *</h4>
-      <div className="flex gap-2 mb-2">
-        <Input value={studentQuery} onChange={e => setStudentQuery(e.target.value)} placeholder="Apellido, Nombre o búsqueda" />
-        <Button type="button" variant="outline" disabled={!studentQuery.trim()} onClick={() => { addManual(studentQuery); setStudentQuery(''); }}>Añadir manual</Button>
-      </div>
-      {!!studentItems.length && (
-        <div className="border rounded-md max-h-40 overflow-auto divide-y text-sm mb-3">
-          {studentItems.map(s => (
-            <button key={s.publicId} onClick={() => { addStudent({ publicId: s.publicId, name: s.name, lastname: s.lastname, studentId: s.studentId, email: s.email, careers: s.careers }); setStudentQuery(''); }} className="w-full text-left px-2 py-1 hover:bg-accent">{s.display}</button>
-          ))}
+
+      <SearchableMultiSelect
+        items={studentItems}
+        selectedIds={studentIds}
+        onSelect={(id) => {
+          const s = students.find(x => x.publicId === id);
+          if (s)
+            addStudent({
+              publicId: s.publicId,
+              name: s.name,
+              lastname: s.lastname,
+              studentId: s.studentId,
+              email: s.email,
+              careers: s.careers
+            });
+        }}
+        onRemove={(id) => {
+          const idx = draft.students.findIndex(s => s.publicId === id);
+          if (idx >= 0) removeStudent(idx);
+        }}
+        onAddNew={() => setShowNewStudent(true)}
+        placeholder="Seleccionar alumno"
+      />
+
+      {showNewStudent && (
+        <div className="border rounded-md p-4 space-y-4 bg-muted/30">
+          {!newStudentPerson ? (
+            <PersonSelector
+              title="Seleccionar o crear persona para alumno"
+              onPersonSelected={(person) =>
+                setNewStudentPerson({
+                  name: person.name,
+                  lastname: person.lastname,
+                  email: person.email || '',
+                  publicId: person.publicId
+                })
+              }
+              onCancel={() => setShowNewStudent(false)}
+              showEmail={true}
+            />
+          ) : (
+            <>
+              <div className="text-sm bg-accent p-2 rounded">
+                <strong>Persona:</strong> {newStudentPerson.lastname}, {newStudentPerson.name}
+                <button
+                  type="button"
+                  onClick={() => setNewStudentPerson(null)}
+                  className="ml-3 text-primary hover:underline text-xs"
+                >
+                  Cambiar
+                </button>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Legajo *</label>
+                <Input
+                  placeholder="Legajo"
+                  value={newStudentData.studentId}
+                  onChange={(e) =>
+                    setNewStudentData(d => ({ ...d, studentId: e.target.value }))
+                  }
+                  className="h-8"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Carreras</label>
+                <div className="flex flex-wrap gap-2">
+                  {careers.map(career => {
+                    const isSelected = newStudentData.careers.includes(career.publicId);
+                    return (
+                      <button
+                        key={career.publicId}
+                        type="button"
+                        onClick={() => toggleCareerForNew(career.publicId)}
+                        className={`px-2 py-1 rounded border text-xs transition-colors ${
+                          isSelected ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted hover:bg-muted/70'
+                        }`}
+                      >
+                        {career.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  onClick={handleCreateStudent}
+                  disabled={creating}
+                  className="h-8"
+                >
+                  {creating ? 'Creando...' : 'Guardar Alumno'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowNewStudent(false);
+                    setNewStudentPerson(null);
+                    setNewStudentData({ studentId: '', careers: [] });
+                  }}
+                  className="h-8"
+                >
+                  Cancelar
+                </Button>
+              </div>
+              {createError && <div className="text-xs text-red-600 bg-red-50 p-2 rounded">{createError}</div>}
+            </>
+          )}
         </div>
       )}
+
       <div className="space-y-3">
         {draft.students.map((s, i) => (
           <div key={s.publicId || i} className="border rounded-md p-3 space-y-3">
             <div className="flex gap-2 flex-wrap">
-              <Input className="h-8 flex-1 min-w-[140px]" placeholder="Nombre *" value={s.name} onChange={e => updateStudent(i, { name: e.target.value })} />
-              <Input className="h-8 flex-1 min-w-[140px]" placeholder="Apellido *" value={s.lastname} onChange={e => updateStudent(i, { lastname: e.target.value })} />
-              <Input className="h-8 w-40" placeholder="Legajo" value={s.studentId || ''} onChange={e => updateStudent(i, { studentId: e.target.value })} />
-              <Button variant="ghost" size="sm" onClick={() => removeStudent(i)} className="h-8">Quitar</Button>
+              <Input
+                className="h-8 flex-1 min-w-[140px]"
+                placeholder="Nombre *"
+                value={s.name}
+                onChange={(e) => updateStudent(i, { name: e.target.value })}
+              />
+              <Input
+                className="h-8 flex-1 min-w-[140px]"
+                placeholder="Apellido *"
+                value={s.lastname}
+                onChange={(e) => updateStudent(i, { lastname: e.target.value })}
+              />
+              <Input className="h-8 w-40" placeholder="Legajo" value={s.studentId || ''} onChange={(e) => updateStudent(i, { studentId: e.target.value })} />
+              <Button variant="ghost" size="sm" onClick={() => removeStudent(i)} className="h-8">
+                Quitar
+              </Button>
             </div>
             <div className="space-y-2">
-              <Input className="h-8" placeholder="Email *" value={s.email} onChange={e => updateStudent(i, { email: e.target.value })} />
+              <Input className="h-8" placeholder="Email" value={s.email} onChange={(e) => updateStudent(i, { email: e.target.value })} />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">Carreras del alumno</label>
@@ -123,7 +303,9 @@ export function StudentsStep({ draft, onPatch }: Props) {
                       key={career.publicId}
                       type="button"
                       onClick={() => toggleCareerForStudent(i, career.publicId)}
-                      className={`px-2 py-1 rounded border text-xs transition-colors ${isSelected ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted hover:bg-muted/70'}`}
+                      className={`px-2 py-1 rounded border text-xs transition-colors ${
+                        isSelected ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted hover:bg-muted/70'
+                      }`}
                     >
                       {career.name}
                     </button>
@@ -135,41 +317,6 @@ export function StudentsStep({ draft, onPatch }: Props) {
           </div>
         ))}
       </div>
-      <div className="flex items-center gap-2 mb-2">
-        <Button type="button" variant="ghost" size="sm" onClick={() => setShowNewStudent(s => !s)}>{showNewStudent? 'Cancelar':'Nuevo Alumno'}</Button>
-      </div>
-      {showNewStudent && (
-        <div className="border rounded-md p-3 space-y-3 bg-muted/30 mb-4">
-          <div className="flex flex-wrap gap-2">
-            <Input placeholder="Nombre *" value={newStudent.name} onChange={e=>setNewStudent(d=>({...d,name:e.target.value}))} className="h-8 w-40" />
-            <Input placeholder="Apellido *" value={newStudent.lastname} onChange={e=>setNewStudent(d=>({...d,lastname:e.target.value}))} className="h-8 w-40" />
-            <Input placeholder="Legajo *" value={newStudent.studentId} onChange={e=>setNewStudent(d=>({...d,studentId:e.target.value}))} className="h-8 w-32" />
-            <Input placeholder="Email *" value={newStudent.email} onChange={e=>setNewStudent(d=>({...d,email:e.target.value}))} className="h-8 w-52" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground">Carreras</label>
-            <div className="flex flex-wrap gap-2">
-              {careers.map(career => {
-                const isSelected = newStudent.careers.includes(career.publicId);
-                return (
-                  <button
-                    key={career.publicId}
-                    type="button"
-                    onClick={() => toggleCareerForNew(career.publicId)}
-                    className={`px-2 py-1 rounded border text-xs transition-colors ${isSelected ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted hover:bg-muted/70'}`}
-                  >
-                    {career.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <div className="flex gap-2 items-center">
-            <Button disabled={creating} onClick={handleCreateStudent} className="h-8">{creating? 'Creando...' : 'Guardar Alumno'}</Button>
-            {createError && <span className="text-xs text-red-600">{createError}</span>}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
