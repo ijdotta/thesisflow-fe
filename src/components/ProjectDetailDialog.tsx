@@ -1,7 +1,9 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 import type { ProjectResponse } from '@/types/ProjectResponse'
 import { getRoleDisplayName } from '@/utils/roleMapper'
+import { ProjectResourcesPanel } from '@/components/ProjectResourcesPanel'
 
 interface ProjectDetailDialogProps {
   project: ProjectResponse | null
@@ -94,6 +96,20 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
                 )}
               </div>
             </div>
+
+            {/* Resources */}
+            {project.resources && project.resources.length > 0 && (
+              <>
+                <Separator />
+                <div className="space-y-2">
+                  <ProjectResourcesPanel 
+                    projectId={project.publicId} 
+                    resources={project.resources}
+                    canEdit={false}
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
       </SheetContent>
