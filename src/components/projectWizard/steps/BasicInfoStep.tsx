@@ -5,8 +5,8 @@ import { SUBTYPE_OPTIONS } from '../types';
 import * as React from 'react';
 import { useCareers } from '@/hooks/useCareers';
 import { useAllApplicationDomains } from '@/hooks/useAllApplicationDomains';
-import { DropdownMultiSelect } from '../components/DropdownMultiSelect';
-import { DropdownSingleSelect } from '../components/DropdownSingleSelect';
+import { SearchableMultiSelect } from '../components/SearchableMultiSelect';
+import { SearchableSelect } from '../components/SearchableSelect';
 
 interface Props {
   draft: ProjectDraft;
@@ -73,16 +73,14 @@ export function BasicInfoStep({ draft, onPatch }: Props) {
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium">Carrera *</label>
-        <DropdownSingleSelect
+        <SearchableSelect
           items={careerItems}
           selectedId={draft.career?.publicId}
           onSelect={(id) => {
             const c = careers.find(x => x.publicId === id);
             if (c) onPatch({ career: { publicId: c.publicId, name: c.name } });
           }}
-          onRemove={() => onPatch({ career: null })}
           placeholder="Seleccione carrera"
-          showRemove={!!draft.career}
         />
       </div>
       <div className="space-y-2">
@@ -99,7 +97,7 @@ export function BasicInfoStep({ draft, onPatch }: Props) {
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium">Dominio de aplicación</label>
-        <DropdownMultiSelect
+        <SearchableMultiSelect
           items={domainItems}
           selectedIds={domainIds}
           onSelect={(id) => {

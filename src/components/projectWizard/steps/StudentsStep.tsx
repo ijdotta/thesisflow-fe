@@ -7,7 +7,7 @@ import { useAllStudents } from '@/hooks/useAllStudents';
 import { createPerson } from '@/api/people';
 import { createStudent, setStudentCareers } from '@/api/students';
 import { useCareers } from '@/hooks/useCareers';
-import { DropdownMultiSelect } from '../components/DropdownMultiSelect';
+import { SearchableMultiSelect } from '../components/SearchableMultiSelect';
 import { PersonSelector } from '../components/PersonSelector';
 
 interface Props {
@@ -155,7 +155,7 @@ export function StudentsStep({ draft, onPatch }: Props) {
         </button>
       ) : (
         <>
-          <DropdownMultiSelect
+          <SearchableMultiSelect
             items={studentItems}
             selectedIds={studentIds}
             onSelect={(id) => {

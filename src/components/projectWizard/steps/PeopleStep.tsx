@@ -7,7 +7,7 @@ import { createPerson } from '@/api/people';
 import { createProfessor } from '@/api/professors';
 import { useAllProfessors } from '@/hooks/useAllProfessors';
 import { useAllPeople } from '@/hooks/useAllPeople';
-import { DropdownMultiSelect } from '../components/DropdownMultiSelect';
+import { SearchableMultiSelect } from '../components/SearchableMultiSelect';
 import { PersonSelector } from '../components/PersonSelector';
 
 interface Props {
@@ -118,7 +118,7 @@ export function PeopleStep({ draft, onPatch }: Props) {
       {/* Directors */}
       <div className="space-y-2">
         <h4 className="font-medium">Directores *</h4>
-        <DropdownMultiSelect
+        <SearchableMultiSelect
           items={professorItems}
           selectedIds={directorIds}
           onSelect={(id) => {
@@ -148,7 +148,7 @@ export function PeopleStep({ draft, onPatch }: Props) {
       {/* Co-directors */}
       <div className="space-y-2">
         <h4 className="font-medium">Co-directores</h4>
-        <DropdownMultiSelect
+        <SearchableMultiSelect
           items={professorItems}
           selectedIds={codirectorIds}
           onSelect={(id) => {
@@ -178,39 +178,20 @@ export function PeopleStep({ draft, onPatch }: Props) {
       {/* Collaborators */}
       <div className="space-y-2">
         <h4 className="font-medium">Colaboradores</h4>
-        {collaboratorIds.length === 0 ? (
-          <button
-            type="button"
-            onClick={() => setShowNewCollaborator(true)}
-            className="text-sm text-primary hover:underline"
-          >
-            + Agregar colaborador
-          </button>
-        ) : (
-          <>
-            <DropdownMultiSelect
-              items={peopleItems}
-              selectedIds={collaboratorIds}
-              onSelect={(id) => {
-                const p = people.find(x => x.publicId === id);
-                if (p) addTo('collaborators', { publicId: p.publicId, name: p.name, lastname: p.lastname, email: p.email || '' });
-              }}
-              onRemove={(id) => {
-                const idx = draft.collaborators.findIndex(c => c.publicId === id);
-                if (idx >= 0) removeFrom('collaborators', idx);
-              }}
-              onAddNew={() => setShowNewCollaborator(true)}
-              placeholder="Seleccionar colaborador"
-            />
-            <button
-              type="button"
-              onClick={() => setShowNewCollaborator(true)}
-              className="text-sm text-primary hover:underline"
-            >
-              + Agregar otro colaborador
-            </button>
-          </>
-        )}
+        <SearchableMultiSelect
+          items={peopleItems}
+          selectedIds={collaboratorIds}
+          onSelect={(id) => {
+            const p = people.find(x => x.publicId === id);
+            if (p) addTo('collaborators', { publicId: p.publicId, name: p.name, lastname: p.lastname, email: p.email || '' });
+          }}
+          onRemove={(id) => {
+            const idx = draft.collaborators.findIndex(c => c.publicId === id);
+            if (idx >= 0) removeFrom('collaborators', idx);
+          }}
+          onAddNew={() => setShowNewCollaborator(true)}
+          placeholder="Seleccionar colaborador"
+        />
         {showNewCollaborator && (
           <>
             <PersonSelector

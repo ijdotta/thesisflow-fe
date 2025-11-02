@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAllPeople } from '@/hooks/useAllPeople';
 import type { PersonBase } from '../types';
+import { SearchableSelect } from './SearchableSelect';
 
 interface PersonSelectorProps {
   onPersonSelected: (person: PersonBase) => void;
@@ -80,18 +80,16 @@ export function PersonSelector({
         <div className="space-y-3">
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Buscar persona existente</label>
-            <Select value={selectedPersonId} onValueChange={setSelectedPersonId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar persona..." />
-              </SelectTrigger>
-              <SelectContent className="max-h-60 overflow-y-auto">
-                {people.map(p => (
-                  <SelectItem key={p.publicId} value={p.publicId}>
-                    {p.display}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              items={people.map(p => ({
+                publicId: p.publicId,
+                name: p.name,
+                display: p.display
+              }))}
+              selectedId={selectedPersonId}
+              onSelect={setSelectedPersonId}
+              placeholder="Seleccionar persona..."
+            />
           </div>
           {showEmail && (
             <div>
