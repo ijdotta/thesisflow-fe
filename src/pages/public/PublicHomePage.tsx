@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { BarChart3, Folder, Users } from 'lucide-react'
+import { BarChart3, Folder } from 'lucide-react'
 
 export function PublicHomePage() {
   return (
@@ -16,35 +16,35 @@ export function PublicHomePage() {
       </section>
 
       {/* Features */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card className="hover:shadow-lg transition-shadow">
+      <div className="grid md:grid-cols-2 gap-6 items-stretch">
+        <Card className="hover:shadow-lg transition-shadow h-full">
           <CardHeader>
             <div className="flex items-center gap-3">
               <Folder className="h-8 w-8 text-blue-600" />
               <CardTitle>Explorar Proyectos</CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="flex flex-col gap-4 flex-1">
             <p className="text-muted-foreground">
               Navega por una biblioteca completa de proyectos académicos. Busca por título, etiquetas o dominio de aplicación.
             </p>
             <p className="text-sm text-muted-foreground">
               Filtra por carrera, profesor o rango de años para encontrar exactamente lo que buscas.
             </p>
-            <Button asChild className="w-full">
+            <Button asChild className="w-full mt-auto">
               <Link to="/projects">Ver Proyectos</Link>
             </Button>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-shadow h-full">
           <CardHeader>
             <div className="flex items-center gap-3">
               <BarChart3 className="h-8 w-8 text-emerald-600" />
               <CardTitle>Análisis y Estadísticas</CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="flex flex-col gap-4 flex-1">
             <p className="text-muted-foreground">
               Visualiza tendencias en investigación académica a través de gráficos interactivos.
             </p>
@@ -54,7 +54,7 @@ export function PublicHomePage() {
               <li>• Red de colaboración entre profesores</li>
               <li>• Estadísticas por carrera y año</li>
             </ul>
-            <Button asChild className="w-full" variant="default">
+            <Button asChild className="w-full mt-auto" variant="default">
               <Link to="/analytics">Ver Análisis</Link>
             </Button>
           </CardContent>
