@@ -52,8 +52,6 @@ const REQUIRED_TABLES = [
   'professor',
   'student',
   'student_career',
-  'auth_user',
-  'professor_login_token',
   'application_domain',
   'tag',
   'project',
