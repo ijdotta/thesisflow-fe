@@ -41,11 +41,6 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
       reset();
     } catch (e:any) {
       setError(e?.message || 'Error creando proyecto');
-      // Close wizard after showing error briefly
-      setTimeout(() => {
-        setOpen(false);
-        reset();
-      }, 2000);
     } finally {
       setSaving(false);
     }
@@ -70,7 +65,17 @@ export default function CreateProjectWizard({onCreated}: { onCreated?: () => voi
         <SheetHeader>
           <SheetTitle>Crear nuevo proyecto</SheetTitle>
         </SheetHeader>
-        {error && <div className="text-sm text-red-600 px-4 py-2 rounded-md bg-red-100 border">{error}</div>}
+        {error && (
+          <div className="text-sm text-red-600 px-4 py-2 rounded-md bg-red-100 border flex items-center justify-between">
+            <span>{error}</span>
+            <button
+              onClick={() => setError(null)}
+              className="text-red-600 hover:text-red-700 font-semibold"
+            >
+              ✕
+            </button>
+          </div>
+        )}
         <div className="space-y-4 overflow-y-auto flex-1">{renderStep()}</div>
         <SheetFooter>
           <div className="flex justify-end gap-2">
