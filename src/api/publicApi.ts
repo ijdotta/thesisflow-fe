@@ -52,6 +52,7 @@ export interface BrowseProjectsResponse {
 export interface AnalyticsFilters {
   careerIds?: string[]
   professorIds?: string[]
+  projectTypeIds?: string[]
   fromYear?: number
   toYear?: number
 }
@@ -60,6 +61,7 @@ export interface FilterMetadata {
   careers: { id: string; name: string }[]
   professors: { id: string; name: string }[]
   yearRange: { minYear: number; maxYear: number }
+  projectTypes: { id: string; name: string }[]
 }
 
 export interface ThesisTimelineData {
@@ -149,6 +151,9 @@ function buildQueryParams(filters?: AnalyticsFilters & Record<string, any>): Rec
   if (filters?.professorIds?.length) {
     params.professorIds = filters.professorIds.join(',')
   }
+  if (filters?.projectTypeIds?.length) {
+    params.projectTypeIds = filters.projectTypeIds.join(',')
+  }
   if (filters?.fromYear) {
     params.fromYear = filters.fromYear
   }
@@ -158,7 +163,7 @@ function buildQueryParams(filters?: AnalyticsFilters & Record<string, any>): Rec
 
   // Pass through other params (like search, page, size)
   Object.keys(filters || {}).forEach((key) => {
-    if (!['careerIds', 'professorIds', 'fromYear', 'toYear'].includes(key)) {
+    if (!['careerIds', 'professorIds', 'projectTypeIds', 'fromYear', 'toYear'].includes(key)) {
       params[key] = filters![key]
     }
   })

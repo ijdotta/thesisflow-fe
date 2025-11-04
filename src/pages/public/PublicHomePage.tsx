@@ -1,9 +1,16 @@
+import { useQuery } from '@tanstack/react-query'
+import { publicAPI } from '@/api/publicApi'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BarChart3, Folder } from 'lucide-react'
 
 export function PublicHomePage() {
+  const { data: dashboardStats } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: () => publicAPI.getDashboardStats(),
+    staleTime: 5 * 60 * 1000,
+  })
   return (
     <div className="space-y-12">
       {/* Hero */}
@@ -64,18 +71,22 @@ export function PublicHomePage() {
       {/* Stats */}
       <section className="bg-blue-50 rounded-lg p-8 border border-blue-100">
         <h2 className="text-2xl font-bold mb-6 text-center">Estadísticas Generales</h2>
-        <div className="grid md:grid-cols-3 gap-6 text-center">
+        <div className="grid md:grid-cols-4 gap-6 text-center">
           <div>
-            <div className="text-3xl font-bold text-blue-600">—</div>
+            <div className="text-3xl font-bold text-blue-600">{dashboardStats?.overview.totalProjects || '—'}</div>
             <p className="text-muted-foreground">Proyectos Totales</p>
           </div>
           <div>
-            <div className="text-3xl font-bold text-blue-600">—</div>
+            <div className="text-3xl font-bold text-blue-600">{dashboardStats?.overview.uniqueProfessors || '—'}</div>
             <p className="text-muted-foreground">Profesores Involucrados</p>
           </div>
           <div>
-            <div className="text-3xl font-bold text-blue-600">—</div>
-            <p className="text-muted-foreground">Años de Datos</p>
+            <div className="text-3xl font-bold text-blue-600">{dashboardStats?.overview.projectsWithAccessibleUrl || '—'}</div>
+            <p className="text-muted-foreground">Proyectos Accesibles</p>
+          </div>
+          <div>
+            <div className="text-3xl font-bold text-blue-600">{dashboardStats?.overview.uniqueDomains || '—'}</div>
+            <p className="text-muted-foreground">Dominios Únicos</p>
           </div>
         </div>
       </section>

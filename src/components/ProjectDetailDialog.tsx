@@ -2,7 +2,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import type { ProjectResponse } from '@/types/ProjectResponse'
-import { getRoleDisplayName } from '@/utils/roleMapper'
+import { getRoleDisplayName, sortParticipants } from '@/utils/roleMapper'
 import { ProjectResourcesPanel } from '@/components/ProjectResourcesPanel'
 
 interface ProjectDetailDialogProps {
@@ -16,7 +16,7 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="max-w-2xl overflow-y-auto p-6">
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-4 sm:p-6">
         <SheetHeader className="mb-4">
           <SheetTitle className="line-clamp-2">{project.title}</SheetTitle>
         </SheetHeader>
@@ -67,7 +67,7 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
             <div className="space-y-2">
               <h3 className="font-semibold text-sm">Participantes</h3>
               <div className="space-y-2">
-                {project.participants.map((p, idx) => (
+                {sortParticipants(project.participants).map((p, idx) => (
                   <div key={idx} className="flex items-center justify-between p-2 bg-muted/30 rounded">
                     <span className="text-xs font-medium text-muted-foreground">
                       {getRoleDisplayName(p.role)}

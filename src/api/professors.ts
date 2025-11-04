@@ -18,6 +18,15 @@ export async function createProfessor(body: { personPublicId: string; email?: st
   return data;
 }
 
+export async function updateProfessor(publicId: string, body: { personPublicId: string; email?: string }): Promise<ApiPerson> {
+  const { data } = await api.put(`/professors/${publicId}`, body);
+  return data;
+}
+
+export async function deleteProfessor(publicId: string): Promise<void> {
+  await api.delete(`/professors/${publicId}`);
+}
+
 export interface FetchListParams { page: number; size: number; sort: { field: string; dir: 'asc'|'desc'}; filters?: Record<string,string>; }
 
 export async function getProfessors({ page, size, sort, filters = {} }: FetchListParams): Promise<GetProfessorsResponse> {
