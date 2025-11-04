@@ -184,6 +184,13 @@ export default function ProjectsTable() {
 			] }
 		},
 		{
+			id: "submissionDate",
+			header: "Fecha de Presentación",
+			accessor: (row) => new Date(row.initialSubmission).toLocaleDateString('es-ES'),
+			sortField: "initialSubmission",
+			className: "whitespace-nowrap text-sm",
+		},
+		{
 			id: "actions",
 			header: "Acciones",
 			accessor: (row) => (

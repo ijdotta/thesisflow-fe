@@ -3,20 +3,16 @@ import { DataTable, type Column, type Sort } from '@/components/DataTable';
 import { useProfessors } from '@/hooks/useProfessors';
 import type { FriendlyPerson } from '@/types/FriendlyEntities';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOptionalToast } from '@/components/ui/toast';
 import { useSearchPeople } from '@/hooks/useSearchPeople';
 import { createPerson } from '@/api/people';
-import { createProfessor } from '@/api/professors';
+import { createProfessor, updateProfessor, deleteProfessor } from '@/api/professors';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
-const columns: Column<FriendlyPerson>[] = [
-	{ id: 'lastname', header: 'Apellido', accessor: r => r.lastname, sortField: 'lastname', filter: { type: 'text', placeholder: 'Filtrar apellido' } },
-	{ id: 'name', header: 'Nombre', accessor: r => r.name, sortField: 'name', filter: { type: 'text', placeholder: 'Filtrar nombre' } },
-	{ id: 'email', header: 'Email', accessor: r => r.email || '—', sortField: 'email', filter: { type: 'text', placeholder: 'Buscar email' } },
-];
 
 export default function ProfessorsTable() {
 	const [page, setPage] = React.useState(0);
@@ -24,17 +20,53 @@ export default function ProfessorsTable() {
 	const [sort, setSort] = React.useState<Sort>({ field: 'lastname', dir: 'asc' });
 	const [filters, setFilters] = React.useState<Record<string, string>>({});
 	const [open, setOpen] = React.useState(false);
+	const [editingProfessor, setEditingProfessor] = React.useState<FriendlyPerson | null>(null);
+	const [deleteOpen, setDeleteOpen] = React.useState(false);
+	const [professorToDelete, setProfessorToDelete] = React.useState<FriendlyPerson | null>(null);
 
 	const queryClient = useQueryClient();
 	const { data, isLoading, error } = useProfessors({ page, size, sort, filters });
 	const list = data?.professors ?? [];
 	const total = data?.totalElements ?? 0;
 
+	const columns = React.useMemo<Column<FriendlyPerson>[]>(() => [
+		{ id: 'lastname', header: 'Apellido', accessor: r => r.lastname, sortField: 'lastname', filter: { type: 'text', placeholder: 'Filtrar apellido' } },
+		{ id: 'name', header: 'Nombre', accessor: r => r.name, sortField: 'name', filter: { type: 'text', placeholder: 'Filtrar nombre' } },
+		{ id: 'email', header: 'Email', accessor: r => r.email || '—', sortField: 'email', filter: { type: 'text', placeholder: 'Buscar email' } },
+		{
+			id: 'actions',
+			header: 'Acciones',
+			accessor: (row) => (
+				<div className="flex gap-2 justify-end">
+					<Button variant="outline" size="sm" onClick={() => setEditingProfessor(row)} title="Editar">
+						<Edit className="h-4 w-4" />
+					</Button>
+					<Button variant="destructive" size="sm" onClick={() => { setProfessorToDelete(row); setDeleteOpen(true); }} title="Eliminar">
+						<Trash2 className="h-4 w-4" />
+					</Button>
+				</div>
+			),
+			className: "whitespace-nowrap text-right",
+		},
+	], []);
+
+	async function handleDelete() {
+		if (!professorToDelete) return;
+		try {
+			await deleteProfessor(professorToDelete.publicId);
+			setDeleteOpen(false);
+			setProfessorToDelete(null);
+			queryClient.invalidateQueries({ queryKey: ['professors'] });
+		} catch (err: any) {
+			alert('Error: ' + (err?.message || 'Failed to delete professor'));
+		}
+	}
+
 	return (
 		<div className="space-y-4">
 			<div className="flex flex-wrap justify-between gap-2 items-center">
 				<h2 className="text-lg font-semibold">Profesores</h2>
-				<Button size="sm" onClick={() => setOpen(true)} className="gap-1"><Plus className="h-4 w-4" /> Nuevo</Button>
+				<Button size="sm" onClick={() => { setEditingProfessor(null); setOpen(true); }} className="gap-1"><Plus className="h-4 w-4" /> Nuevo</Button>
 			</div>
 			<DataTable<FriendlyPerson>
 				columns={columns}
@@ -52,10 +84,23 @@ export default function ProfessorsTable() {
 				onFiltersChange={setFilters}
 				filterDebounceMs={400}
 			/>
-			<CreateProfessorSheet open={open} onOpenChange={setOpen} onCreated={() => {
+			<CreateProfessorSheet open={open && !editingProfessor} onOpenChange={setOpen} onCreated={() => {
 				queryClient.invalidateQueries({ queryKey: ['professors'] });
 				queryClient.invalidateQueries({ queryKey: ['people'] });
 			}} />
+			{editingProfessor && (
+				<EditProfessorSheet open={true} professor={editingProfessor} onOpenChange={(o) => { if (!o) setEditingProfessor(null); }} onUpdated={() => {
+					setEditingProfessor(null);
+					queryClient.invalidateQueries({ queryKey: ['professors'] });
+				}} />
+			)}
+			<ConfirmDeleteDialog
+				open={deleteOpen}
+				onOpenChange={setDeleteOpen}
+				title="Eliminar Profesor"
+				description={`¿Está seguro de que desea eliminar a ${professorToDelete?.lastname}, ${professorToDelete?.name}?`}
+				onConfirm={handleDelete}
+			/>
 		</div>
 	);
 }
@@ -170,4 +215,71 @@ function CreateProfessorSheet({ open, onOpenChange, onCreated }: { open: boolean
 			</SheetContent>
 		</Sheet>
 	);
+}
+
+function EditProfessorSheet({ open, professor, onOpenChange, onUpdated }: { open: boolean; professor: FriendlyPerson; onOpenChange: (o: boolean) => void; onUpdated: () => void }) {
+const [email, setEmail] = React.useState(professor.email || '');
+const [loading, setLoading] = React.useState(false);
+const { push } = useOptionalToast();
+
+React.useEffect(() => { 
+if (open) setEmail(professor.email || '');
+}, [open, professor]);
+
+function validate(): boolean {
+if (!email.trim()) { push({ variant:'error', title:'Email requerido', message:'Debe ingresar un email'}); return false; }
+const domainOk = /@(?:cs\.uns\.edu\.ar|uns\.edu\.ar)$/i.test(email.trim());
+if (!domainOk) { push({ variant:'error', title:'Dominio inválido', message:'Email debe terminar en @cs.uns.edu.ar o @uns.edu.ar'}); return false; }
+return true;
+}
+
+async function handleSubmit(e: React.FormEvent) {
+e.preventDefault();
+if (!validate()) return;
+try {
+setLoading(true);
+await updateProfessor(professor.publicId, { personPublicId: professor.publicId, email: email.trim() });
+push({ variant:'success', title:'Profesor actualizado', message:'Los cambios fueron guardados'});
+onOpenChange(false); onUpdated();
+} catch (err:any) {
+push({ variant:'error', title:'Error', message: err?.message || 'No se pudo actualizar'});
+} finally { setLoading(false); }
+}
+
+return (
+<Sheet open={open} onOpenChange={onOpenChange}>
+<SheetContent className="sm:max-w-[620px] px-6 py-6 overflow-y-auto">
+<SheetHeader><SheetTitle>Editar Profesor</SheetTitle></SheetHeader>
+<form onSubmit={handleSubmit} className="mt-6 space-y-7">
+<section className="space-y-4">
+<h3 className="text-sm font-semibold tracking-tight">Datos personales</h3>
+<div className="grid sm:grid-cols-2 gap-4">
+<div className="space-y-1">
+<label className="text-xs font-medium">Nombre</label>
+<Input value={professor.name} disabled className="bg-muted" />
+</div>
+<div className="space-y-1">
+<label className="text-xs font-medium">Apellido</label>
+<Input value={professor.lastname} disabled className="bg-muted" />
+</div>
+</div>
+</section>
+
+<section className="space-y-3">
+<h3 className="text-sm font-semibold tracking-tight">Credenciales</h3>
+<div className="space-y-1">
+<label className="text-xs font-medium">Email institucional *</label>
+<Input value={email} onChange={e=> setEmail(e.target.value)} placeholder="usuario@cs.uns.edu.ar" required />
+<p className="text-[11px] text-muted-foreground">Debe terminar en <code>@cs.uns.edu.ar</code> o <code>@uns.edu.ar</code>.</p>
+</div>
+</section>
+
+<SheetFooter className="gap-2 pt-2">
+<Button type="submit" size="sm" disabled={loading} className="min-w-24">{loading? 'Guardando…':'Guardar'}</Button>
+<Button type="button" size="sm" variant="outline" onClick={()=> onOpenChange(false)}>Cancelar</Button>
+</SheetFooter>
+</form>
+</SheetContent>
+</Sheet>
+);
 }
