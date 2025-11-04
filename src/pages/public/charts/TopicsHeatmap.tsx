@@ -82,7 +82,7 @@ export function TopicsHeatmap() {
           type: 'heatmap',
           data: heatmapData,
           label: {
-            show: heatmapData.length <= 50, // Show labels only if not too many
+            show: heatmapData.length <= 50,
           },
           emphasis: {
             itemStyle: {
@@ -96,9 +96,12 @@ export function TopicsHeatmap() {
 
     setOption(option)
     
-    // Ensure the chart is rendered
-    getInstance()?.resize()
-  }, [data, setOption, getInstance])
+    // Force resize after setting option
+    const chart = getInstance()
+    if (chart) {
+      setTimeout(() => chart.resize(), 100)
+    }
+  }, [data?.data, setOption, getInstance])
 
   if (isLoading) {
     return (
