@@ -87,7 +87,7 @@ export function TimelineChart() {
           <CardTitle>Tesis por Profesor (Barras por Año)</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" height={window.innerWidth < 768 ? 300 : 400}>
           <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="year" />
@@ -97,8 +97,10 @@ export function TimelineChart() {
                 value as number,
                 professors.get(name as string) ?? (name as string),
               ]}
+              contentStyle={{ position: 'relative', zIndex: 1000 }}
+              wrapperStyle={{ outline: 'none', zIndex: 1000 }}
             />
-            <Legend />
+            <Legend wrapperStyle={{ paddingTop: '20px' }} />
             {Array.from(professors.entries())
               .sort((a, b) => a[1].localeCompare(b[1]))
               .map(([profId, profName], index) => (
