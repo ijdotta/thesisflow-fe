@@ -151,6 +151,9 @@ function buildQueryParams(filters?: AnalyticsFilters & Record<string, any>): Rec
   if (filters?.professorIds?.length) {
     params.professorIds = filters.professorIds.join(',')
   }
+  if (filters?.projectTypeIds?.length) {
+    params.projectTypeIds = filters.projectTypeIds.join(',')
+  }
   if (filters?.fromYear) {
     params.fromYear = filters.fromYear
   }
@@ -160,7 +163,7 @@ function buildQueryParams(filters?: AnalyticsFilters & Record<string, any>): Rec
 
   // Pass through other params (like search, page, size)
   Object.keys(filters || {}).forEach((key) => {
-    if (!['careerIds', 'professorIds', 'fromYear', 'toYear'].includes(key)) {
+    if (!['careerIds', 'professorIds', 'projectTypeIds', 'fromYear', 'toYear'].includes(key)) {
       params[key] = filters![key]
     }
   })

@@ -183,7 +183,7 @@ export function AnalyticsFilters() {
                   type="range"
                   min={filterOptions.yearRange.minYear}
                   max={filterOptions.yearRange.maxYear}
-                  value={filters.fromYear || filterOptions.yearRange.minYear}
+                  value={filters.fromYear?.toString() || filterOptions.yearRange.minYear.toString()}
                   onChange={(e) => {
                     const year = parseInt(e.target.value)
                     const toYear = filters.toYear || filterOptions.yearRange.maxYear
@@ -200,7 +200,7 @@ export function AnalyticsFilters() {
                   type="range"
                   min={filterOptions.yearRange.minYear}
                   max={filterOptions.yearRange.maxYear}
-                  value={filters.toYear || filterOptions.yearRange.maxYear}
+                  value={filters.toYear?.toString() || filterOptions.yearRange.maxYear.toString()}
                   onChange={(e) => {
                     const year = parseInt(e.target.value)
                     const fromYear = filters.fromYear || filterOptions.yearRange.minYear
