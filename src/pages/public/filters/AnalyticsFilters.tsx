@@ -16,6 +16,7 @@ export function AnalyticsFilters() {
   const [expandedSections, setExpandedSections] = useState({
     careers: true,
     professors: true,
+    projectTypes: true,
     years: true,
   })
 
@@ -41,6 +42,7 @@ export function AnalyticsFilters() {
 
   const selectedCareerCount = filters.careerIds?.length || 0
   const selectedProfessorCount = filters.professorIds?.length || 0
+  const selectedProjectTypeCount = filters.projectTypeIds?.length || 0
   const hasYearFilter = filters.fromYear !== undefined || filters.toYear !== undefined
 
   return (
@@ -48,7 +50,7 @@ export function AnalyticsFilters() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Filtros</CardTitle>
-          {(selectedCareerCount > 0 || selectedProfessorCount > 0 || hasYearFilter) && (
+          {(selectedCareerCount > 0 || selectedProfessorCount > 0 || selectedProjectTypeCount > 0 || hasYearFilter) && (
             <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs">
               Limpiar
             </Button>
@@ -121,6 +123,41 @@ export function AnalyticsFilters() {
                     className="rounded"
                   />
                   <span>{prof.name}</span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Project Types */}
+        <div>
+          <button
+            onClick={() => toggleSection('projectTypes')}
+            className="flex w-full items-center justify-between rounded-lg bg-slate-50 p-2 font-medium text-sm hover:bg-slate-100"
+          >
+            <span>
+              Tipo de Proyecto {selectedProjectTypeCount > 0 && <span className="ml-2 text-xs text-blue-600">({selectedProjectTypeCount})</span>}
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${expandedSections.projectTypes ? 'rotate-0' : '-rotate-90'}`}
+            />
+          </button>
+          {expandedSections.projectTypes && (
+            <div className="mt-2 space-y-2">
+              {filterOptions?.projectTypes?.map((type) => (
+                <label key={type.id} className="flex items-center space-x-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={filters.projectTypeIds?.includes(type.id) || false}
+                    onChange={(e) => {
+                      const newIds = e.target.checked
+                        ? [...(filters.projectTypeIds || []), type.id]
+                        : (filters.projectTypeIds || []).filter((id) => id !== type.id)
+                      updateFilter('projectTypeIds', newIds.length > 0 ? newIds : undefined)
+                    }}
+                    className="rounded"
+                  />
+                  <span>{type.name}</span>
                 </label>
               ))}
             </div>

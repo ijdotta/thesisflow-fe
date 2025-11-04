@@ -52,6 +52,7 @@ export interface BrowseProjectsResponse {
 export interface AnalyticsFilters {
   careerIds?: string[]
   professorIds?: string[]
+  projectTypeIds?: string[]
   fromYear?: number
   toYear?: number
 }
@@ -60,6 +61,7 @@ export interface FilterMetadata {
   careers: { id: string; name: string }[]
   professors: { id: string; name: string }[]
   yearRange: { minYear: number; maxYear: number }
+  projectTypes: { id: string; name: string }[]
 }
 
 export interface ThesisTimelineData {
