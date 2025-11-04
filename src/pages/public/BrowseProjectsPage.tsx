@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { ProjectDetailDialog } from '@/components/ProjectDetailDialog'
-import { getRoleDisplayName } from '@/utils/roleMapper'
+import { getRoleDisplayName, sortParticipants } from '@/utils/roleMapper'
 import type { ProjectResponse } from '@/types/ProjectResponse'
 
 export function BrowseProjectsPage() {
@@ -116,7 +116,7 @@ export function BrowseProjectsPage() {
                   <div className="space-y-1">
                     <p className="text-xs font-medium text-muted-foreground">Participantes</p>
                     <div className="space-y-1 text-xs">
-                      {project.participants.slice(0, 3).map((p, idx) => (
+                      {sortParticipants(project.participants).slice(0, 3).map((p, idx) => (
                         <div key={idx} className="flex items-center justify-between">
                           <span className="text-muted-foreground">{getRoleDisplayName(p.role)}</span>
                           <span className="font-medium">
