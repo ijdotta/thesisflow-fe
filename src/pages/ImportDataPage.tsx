@@ -311,45 +311,45 @@ export function ImportDataPage() {
             ) : (
               <div className="space-y-4">
                 {filteredRows.map((row) => (
-                  <div key={row.result.lineNumber} className={`rounded-lg border p-6 ${getStatusColor(row.result.status)}`}>
-                    <div className="flex items-start gap-4">
+                  <div key={row.result.lineNumber} className={`rounded-lg border p-4 sm:p-6 overflow-hidden ${getStatusColor(row.result.status)}`}>
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                       {/* Status Icon */}
-                      <div className="flex-shrink-0 pt-1">{getStatusIcon(row.result.status)}</div>
+                      <div className="flex-shrink-0 pt-0.5">{getStatusIcon(row.result.status)}</div>
 
                       {/* Content */}
                       <div className="min-w-0 flex-1">
-                        <div className="mb-2 flex flex-wrap items-center gap-2">
-                          <h3 className="truncate text-lg font-semibold text-gray-900">{row.result.title}</h3>
-                          <span className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${getStatusBadge(row.result.status)}`}>
+                        <div className="mb-2 flex flex-wrap gap-2 items-start">
+                          <h3 className="line-clamp-2 text-lg font-semibold text-gray-900 break-words">{row.result.title}</h3>
+                          <span className={`flex-shrink-0 rounded-full px-3 py-1 text-xs font-medium ${getStatusBadge(row.result.status)}`}>
                             {getStatusText(row.result.status)} - Línea {row.result.lineNumber}
                           </span>
                         </div>
 
                         {/* Message */}
-                        <p className="mb-3 text-sm text-gray-600">{row.result.message}</p>
+                        <p className="mb-3 text-sm text-gray-600 break-words">{row.result.message}</p>
 
                         {/* Project Details */}
                         {row.result.project && (
-                          <div className="space-y-2 rounded bg-white/70 p-3 text-sm">
-                            <div className="grid gap-4 md:grid-cols-2">
-                              <div>
+                          <div className="space-y-2 rounded bg-white/70 p-3 text-sm overflow-hidden">
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <div className="min-w-0">
                                 <p className="font-medium text-gray-700">Tipo</p>
-                                <p className="text-gray-600">{row.result.project.type}</p>
+                                <p className="break-words text-gray-600">{row.result.project.type}</p>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <p className="font-medium text-gray-700">Carrera</p>
-                                <p className="text-gray-600">{row.result.project.career.name}</p>
+                                <p className="break-words text-gray-600">{row.result.project.career.name}</p>
                               </div>
                               {row.result.project.applicationDomainDTO && (
-                                <div>
+                                <div className="min-w-0">
                                   <p className="font-medium text-gray-700">Dominio</p>
-                                  <p className="text-gray-600">{row.result.project.applicationDomainDTO.name}</p>
+                                  <p className="break-words text-gray-600">{row.result.project.applicationDomainDTO.name}</p>
                                 </div>
                               )}
                               {row.result.project.tags.length > 0 && (
-                                <div>
+                                <div className="min-w-0">
                                   <p className="font-medium text-gray-700">Etiquetas</p>
-                                  <p className="truncate text-gray-600">
+                                  <p className="break-words text-gray-600">
                                     {row.result.project.tags.map((t) => t.name).join(', ')}
                                   </p>
                                 </div>
@@ -358,11 +358,11 @@ export function ImportDataPage() {
 
                             {/* Participants */}
                             {row.result.project.participants.length > 0 && (
-                              <div>
+                              <div className="min-w-0">
                                 <p className="mb-2 font-medium text-gray-700">Participantes</p>
                                 <div className="space-y-1">
                                   {row.result.project.participants.map((p, idx) => (
-                                    <p key={idx} className="text-gray-600">
+                                    <p key={idx} className="break-words text-gray-600">
                                       <span className="font-medium">{p.role}:</span> {p.personDTO.name} {p.personDTO.lastname}
                                     </p>
                                   ))}
@@ -376,7 +376,7 @@ export function ImportDataPage() {
                       {/* Delete Button */}
                       <button
                         onClick={() => handleDeleteRow(row.result.lineNumber)}
-                        className="flex-shrink-0 rounded bg-red-100 px-3 py-2 text-sm text-red-600 transition hover:bg-red-200"
+                        className="flex-shrink-0 mt-3 sm:mt-0 rounded bg-red-100 px-3 py-2 text-sm text-red-600 transition hover:bg-red-200"
                         title="Eliminar proyecto"
                       >
                         <Trash2 className="h-4 w-4" />

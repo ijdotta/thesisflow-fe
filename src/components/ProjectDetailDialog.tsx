@@ -85,7 +85,7 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
               <h3 className="font-semibold text-sm">Fechas</h3>
               <div className="space-y-1 text-sm">
                 <div>
-                  <span className="font-medium">Presentación:</span>{' '}
+                  <span className="font-medium">Consejo:</span>{' '}
                   {new Date(project.initialSubmission).toLocaleDateString('es-ES')}
                 </div>
                 {project.completion && (

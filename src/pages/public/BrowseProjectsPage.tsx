@@ -135,7 +135,7 @@ export function BrowseProjectsPage() {
                   {/* Dates */}
                   <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
                     <div>
-                      <span className="font-medium">Presentación:</span> {new Date(project.initialSubmission).toLocaleDateString('es-ES')}
+                      <span className="font-medium">Consejo:</span> {new Date(project.initialSubmission).toLocaleDateString('es-ES')}
                     </div>
                     {project.completion && (
                       <div>
