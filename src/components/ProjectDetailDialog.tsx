@@ -39,10 +39,10 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
             </div>
 
             {/* Application Domain - Top Level Badge */}
-            {project.applicationDomain && (
+            {project.applicationDomainDTO && (
               <div>
                 <Badge variant="secondary">
-                  {project.applicationDomain.name}
+                  {project.applicationDomainDTO.name}
                 </Badge>
               </div>
             )}
