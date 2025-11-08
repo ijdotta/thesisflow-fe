@@ -42,7 +42,7 @@ function AnalyticsDashboardContent() {
           </TabsContent>
 
           <TabsContent value="heatmap" className="mt-6">
-            <TopicsHeatmap />
+            {activeTab === 'heatmap' && <TopicsHeatmap />}
           </TabsContent>
 
           <TabsContent value="network" className="mt-6">
