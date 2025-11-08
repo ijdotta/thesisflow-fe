@@ -6,7 +6,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Utility: create a lowercase, hyphen-separated slug from a string (remove diacritics)
-export function slugify(value: string): string {
+export function slugify(value: string | undefined | null): string {
+  if (!value) return "";
   return value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "") // remove diacritics
