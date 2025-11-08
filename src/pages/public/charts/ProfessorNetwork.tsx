@@ -20,9 +20,21 @@ export function ProfessorNetwork() {
   useEffect(() => {
     if (!networkRef.current || !data) return
 
+    // Calculate collaboration count per node (number of edges)
+    const collaborationCount = new Map<string, number>()
+    data.nodes.forEach((node) => {
+      collaborationCount.set(node.id, 0)
+    })
+    data.edges.forEach((edge) => {
+      collaborationCount.set(edge.source, (collaborationCount.get(edge.source) || 0) + 1)
+      collaborationCount.set(edge.target, (collaborationCount.get(edge.target) || 0) + 1)
+    })
+
     // Create nodes
     const projectCounts = data.nodes.map((n) => n.projectCount)
     const maxProjectCount = projectCounts.length ? Math.max(...projectCounts) : 0
+    const collaborations = Array.from(collaborationCount.values())
+    const maxCollaborations = collaborations.length ? Math.max(...collaborations) : 0
     const minNodeSize = 80
     const maxNodeSize = 300
 
@@ -33,12 +45,17 @@ export function ProfessorNetwork() {
           minNodeSize +
           (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * (maxNodeSize - minNodeSize) : 0)
 
+        // Mass based on number of collaborations (edges)
+        const nodeCollaborations = collaborationCount.get(node.id) || 0
+        const mass = 1 + (maxCollaborations > 0 ? (nodeCollaborations / maxCollaborations) * 2 : 0)
+
         return {
           id: node.id,
           label: `${node.name}\n${node.projectCount}`,
-          title: `${node.name}\n${node.projectCount} proyectos`, // tooltip
+          title: `${node.name}\n${node.projectCount} proyectos\n${nodeCollaborations} colaboraciones`, // tooltip
           size: nodeSize,
           value: node.projectCount,
+          mass: mass,
           color: {
             background: '#3b82f6',
             border: '#1e40af',
@@ -124,9 +141,9 @@ export function ProfessorNetwork() {
       physics: {
         enabled: true,
         barnesHut: {
-          gravitationalConstant: -40000,
+          gravitationalConstant: -30000,
           centralGravity: 0.3,
-          springLength: 250,
+          springLength: 200,
           springConstant: 0.04,
         },
         maxVelocity: 50,
