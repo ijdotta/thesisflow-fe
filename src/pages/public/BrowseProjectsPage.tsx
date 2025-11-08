@@ -68,8 +68,8 @@ export function BrowseProjectsPage() {
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="text-lg line-clamp-2">{project.title}</CardTitle>
-                      <Badge variant={project.type === 'THESIS' ? 'default' : 'secondary'}>
-                        {project.type === 'THESIS' ? 'Tesis' : 'TF'}
+                      <Badge variant={project.type === 'THESIS' || project.type === 'FINAL_PROJECT' ? 'default' : 'outline'}>
+                        {project.type === 'THESIS' ? 'Tesis' : project.type === 'FINAL_PROJECT' ? 'Proyecto Final' : project.type}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">

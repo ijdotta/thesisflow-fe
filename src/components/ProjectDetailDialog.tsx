@@ -26,8 +26,8 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
             {/* Header Info */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Badge variant={project.type === 'THESIS' ? 'default' : 'secondary'}>
-                  {project.type === 'THESIS' ? 'Tesis' : 'TF'}
+                <Badge variant={project.type === 'THESIS' || project.type === 'FINAL_PROJECT' ? 'default' : 'outline'}>
+                  {project.type === 'THESIS' ? 'Tesis' : project.type === 'FINAL_PROJECT' ? 'Proyecto Final' : project.type}
                 </Badge>
                 <span className="text-sm text-muted-foreground">{project.career.name}</span>
                 {project.initialSubmission && (
