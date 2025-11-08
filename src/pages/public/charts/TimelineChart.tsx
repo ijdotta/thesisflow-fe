@@ -86,12 +86,12 @@ export function TimelineChart() {
         <CardHeader>
           <CardTitle>Tesis por Profesor (Barras por Año)</CardTitle>
       </CardHeader>
-      <CardContent className="overflow-x-auto">
+      <CardContent>
         <ResponsiveContainer width="100%" height={window.innerWidth < 768 ? 300 : 400}>
-          <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: window.innerWidth < 640 ? 80 : 20 }}>
+          <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="year" angle={window.innerWidth < 640 ? -45 : 0} textAnchor={window.innerWidth < 640 ? "end" : "center"} height={window.innerWidth < 640 ? 80 : 30} />
-            <YAxis allowDecimals={false} width={window.innerWidth < 640 ? 40 : 60} />
+            <XAxis dataKey="year" />
+            <YAxis allowDecimals={false} />
             <Tooltip
               formatter={(value, name) => [
                 value as number,
@@ -100,14 +100,7 @@ export function TimelineChart() {
               contentStyle={{ position: 'relative', zIndex: 1000 }}
               wrapperStyle={{ outline: 'none', zIndex: 1000 }}
             />
-            <Legend 
-              wrapperStyle={{ paddingTop: '20px', overflow: 'visible' }}
-              height={window.innerWidth < 768 ? 60 : 40}
-              layout={window.innerWidth < 768 ? 'vertical' : 'horizontal'}
-              align={window.innerWidth < 768 ? 'right' : 'center'}
-              verticalAlign={window.innerWidth < 768 ? 'bottom' : 'bottom'}
-              wrapperClassName="flex flex-wrap"
-            />
+            <Legend wrapperStyle={{ paddingTop: '20px' }} />
             {Array.from(professors.entries())
               .sort((a, b) => a[1].localeCompare(b[1]))
               .map(([profId, profName], index) => (
