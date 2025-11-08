@@ -86,10 +86,10 @@ export function BrowseProjectsPage() {
 
                 <CardContent className="space-y-3">
                   {/* Application Domain - Top Level Badge */}
-                  {project.applicationDomainDTO && (
+                  {project.applicationDomain && (
                     <div>
                       <Badge variant="secondary">
-                        {project.applicationDomainDTO.name}
+                        {project.applicationDomain.name}
                       </Badge>
                     </div>
                   )}
