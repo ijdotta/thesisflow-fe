@@ -23,19 +23,19 @@ export function ProfessorNetwork() {
     // Create nodes
     const projectCounts = data.nodes.map((n) => n.projectCount)
     const maxProjectCount = projectCounts.length ? Math.max(...projectCounts) : 0
-    const baseNodeSize = 60
-    const variableNodeSize = 140
+    const minNodeSize = 80
+    const maxNodeSize = 300
 
     const nodes = new DataSet(
       data.nodes.map((node) => {
-        const multilineName = node.name.split(' ').join('\n')
+        // Scale node size proportionally to project count
         const nodeSize =
-          baseNodeSize +
-          (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * variableNodeSize : 0)
+          minNodeSize +
+          (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * (maxNodeSize - minNodeSize) : 0)
 
         return {
           id: node.id,
-          label: `${multilineName}\n${node.projectCount}`,
+          label: `${node.name}\n${node.projectCount}`,
           title: `${node.name}\n${node.projectCount} proyectos`, // tooltip
           size: nodeSize,
           value: node.projectCount,
@@ -53,10 +53,10 @@ export function ProfessorNetwork() {
           },
           font: {
             color: '#ffffff',
-            size: 18 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 6 : 0),
+            size: 14 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 8 : 0),
             bold: {
               color: '#ffffff',
-              size: 20,
+              size: 16 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 8 : 0),
             },
           },
         }
@@ -107,26 +107,26 @@ export function ProfessorNetwork() {
         borderWidth: 2,
         font: {
           color: '#ffffff',
-          size: 18,
+          size: 16,
           align: 'center',
         },
         scaling: {
-          min: baseNodeSize,
-          max: baseNodeSize + variableNodeSize,
+          min: minNodeSize,
+          max: maxNodeSize,
           label: {
             enabled: true,
-            min: 16,
-            max: 28,
-            drawThreshold: 10,
+            min: 14,
+            max: 22,
+            drawThreshold: 5,
           },
         },
       },
       physics: {
         enabled: true,
         barnesHut: {
-          gravitationalConstant: -30000,
+          gravitationalConstant: -40000,
           centralGravity: 0.3,
-          springLength: 200,
+          springLength: 250,
           springConstant: 0.04,
         },
         maxVelocity: 50,
