@@ -20,21 +20,21 @@ export function ProfessorNetwork() {
   useEffect(() => {
     if (!networkRef.current || !data) return
 
-    // Calculate collaboration count per node (number of edges)
-    const collaborationCount = new Map<string, number>()
+    // Calculate total edge weight per node
+    const edgeWeightSum = new Map<string, number>()
     data.nodes.forEach((node) => {
-      collaborationCount.set(node.id, 0)
+      edgeWeightSum.set(node.id, 0)
     })
     data.edges.forEach((edge) => {
-      collaborationCount.set(edge.source, (collaborationCount.get(edge.source) || 0) + 1)
-      collaborationCount.set(edge.target, (collaborationCount.get(edge.target) || 0) + 1)
+      edgeWeightSum.set(edge.source, (edgeWeightSum.get(edge.source) || 0) + edge.weight)
+      edgeWeightSum.set(edge.target, (edgeWeightSum.get(edge.target) || 0) + edge.weight)
     })
 
     // Create nodes
     const projectCounts = data.nodes.map((n) => n.projectCount)
     const maxProjectCount = projectCounts.length ? Math.max(...projectCounts) : 0
-    const collaborations = Array.from(collaborationCount.values())
-    const maxCollaborations = collaborations.length ? Math.max(...collaborations) : 0
+    const weights = Array.from(edgeWeightSum.values())
+    const maxWeight = weights.length ? Math.max(...weights) : 0
     const minNodeSize = 80
     const maxNodeSize = 300
 
@@ -45,14 +45,14 @@ export function ProfessorNetwork() {
           minNodeSize +
           (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * (maxNodeSize - minNodeSize) : 0)
 
-        // Mass based on number of collaborations (edges)
-        const nodeCollaborations = collaborationCount.get(node.id) || 0
-        const mass = 1 + (maxCollaborations > 0 ? (nodeCollaborations / maxCollaborations) * 2 : 0)
+        // Mass based on total edge weight
+        const nodeTotalWeight = edgeWeightSum.get(node.id) || 0
+        const mass = 1 + (maxWeight > 0 ? (nodeTotalWeight / maxWeight) * 3 : 0)
 
         return {
           id: node.id,
           label: `${node.name}\n${node.projectCount}`,
-          title: `${node.name}\n${node.projectCount} proyectos\n${nodeCollaborations} colaboraciones`, // tooltip
+          title: `${node.name}\n${node.projectCount} proyectos\n${nodeTotalWeight} colaboraciones`, // tooltip
           size: nodeSize,
           value: node.projectCount,
           mass: mass,
