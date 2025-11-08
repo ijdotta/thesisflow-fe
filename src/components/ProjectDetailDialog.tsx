@@ -38,7 +38,16 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
               </div>
             </div>
 
-            {/* Tags */}
+            {/* Application Domain - Top Level Badge */}
+            {project.applicationDomain && (
+              <div>
+                <Badge variant="secondary">
+                  {project.applicationDomain.name}
+                </Badge>
+              </div>
+            )}
+
+            {/* Tags - Lower Relevance */}
             {project.tags?.length > 0 && (
               <div className="space-y-2">
                 <h3 className="font-semibold text-sm">Etiquetas</h3>
@@ -49,17 +58,6 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
                     </Badge>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Domain */}
-            {project.applicationDomain && (
-              <div className="space-y-2">
-                <h3 className="font-semibold text-sm">Dominio</h3>
-                <p className="text-sm">{project.applicationDomain.name}</p>
-                {project.applicationDomain.description && (
-                  <p className="text-xs text-muted-foreground">{project.applicationDomain.description}</p>
-                )}
               </div>
             )}
 

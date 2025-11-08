@@ -331,6 +331,15 @@ export function ImportDataPage() {
                         {/* Project Details */}
                         {row.result.project && (
                           <div className="space-y-2 rounded bg-white/70 p-3 text-sm overflow-hidden">
+                            {/* Application Domain Badge */}
+                            {row.result.project.applicationDomainDTO && (
+                              <div className="flex flex-wrap gap-2">
+                                <span className="inline-block bg-gray-200 text-gray-800 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                                  {row.result.project.applicationDomainDTO.name}
+                                </span>
+                              </div>
+                            )}
+
                             <div className="grid gap-3 sm:grid-cols-2">
                               <div className="min-w-0">
                                 <p className="font-medium text-gray-700">Tipo</p>
@@ -340,18 +349,16 @@ export function ImportDataPage() {
                                 <p className="font-medium text-gray-700">Carrera</p>
                                 <p className="break-words text-gray-600">{row.result.project.career.name}</p>
                               </div>
-                              {row.result.project.applicationDomainDTO && (
-                                <div className="min-w-0">
-                                  <p className="font-medium text-gray-700">Dominio</p>
-                                  <p className="break-words text-gray-600">{row.result.project.applicationDomainDTO.name}</p>
-                                </div>
-                              )}
                               {row.result.project.tags.length > 0 && (
-                                <div className="min-w-0">
-                                  <p className="font-medium text-gray-700">Etiquetas</p>
-                                  <p className="break-words text-gray-600">
-                                    {row.result.project.tags.map((t) => t.name).join(', ')}
-                                  </p>
+                                <div className="min-w-0 sm:col-span-2">
+                                  <p className="font-medium text-gray-700 mb-1">Etiquetas</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {row.result.project.tags.map((t) => (
+                                      <span key={t.publicId} className="inline-block bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs border border-gray-300">
+                                        {t.name}
+                                      </span>
+                                    ))}
+                                  </div>
                                 </div>
                               )}
                             </div>

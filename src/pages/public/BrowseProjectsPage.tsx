@@ -85,7 +85,16 @@ export function BrowseProjectsPage() {
                 </CardHeader>
 
                 <CardContent className="space-y-3">
-                  {/* Tags */}
+                  {/* Application Domain - Top Level Badge */}
+                  {project.applicationDomainDTO && (
+                    <div>
+                      <Badge variant="secondary">
+                        {project.applicationDomainDTO.name}
+                      </Badge>
+                    </div>
+                  )}
+
+                  {/* Tags - Lower Relevance */}
                   {project.tags?.length > 0 && (
                     <div className="space-y-1">
                       <p className="text-xs font-medium text-muted-foreground">Etiquetas</p>
@@ -101,14 +110,6 @@ export function BrowseProjectsPage() {
                           </Badge>
                         )}
                       </div>
-                    </div>
-                  )}
-
-                  {/* Domain */}
-                  {project.applicationDomainDTO && (
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-muted-foreground">Dominio</p>
-                      <p className="text-sm">{project.applicationDomainDTO.name}</p>
                     </div>
                   )}
 
