@@ -48,28 +48,28 @@ export function AnalyticsFilters() {
   return (
     <Card className="sticky top-4">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Filtros</CardTitle>
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-base lg:text-lg">Filtros</CardTitle>
           {(selectedCareerCount > 0 || selectedProfessorCount > 0 || selectedProjectTypeCount > 0 || hasYearFilter) && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs">
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs h-auto px-2 py-1">
               Limpiar
             </Button>
           )}
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {/* Careers */}
         <div>
           <button
             onClick={() => toggleSection('careers')}
-            className="flex w-full items-center justify-between rounded-lg bg-slate-50 p-2 font-medium text-sm hover:bg-slate-100"
+            className="flex w-full items-center justify-between rounded-lg bg-slate-50 p-2 font-medium text-sm hover:bg-slate-100 gap-2"
           >
-            <span>
-              Carreras {selectedCareerCount > 0 && <span className="ml-2 text-xs text-blue-600">({selectedCareerCount})</span>}
+            <span className="truncate">
+              Carreras {selectedCareerCount > 0 && <span className="ml-1 text-xs text-blue-600">({selectedCareerCount})</span>}
             </span>
             <ChevronDown
-              className={`h-4 w-4 transition-transform ${expandedSections.careers ? 'rotate-0' : '-rotate-90'}`}
+              className={`h-4 w-4 flex-shrink-0 transition-transform ${expandedSections.careers ? 'rotate-0' : '-rotate-90'}`}
             />
           </button>
           {expandedSections.careers && (
@@ -87,7 +87,7 @@ export function AnalyticsFilters() {
                     }}
                     className="rounded"
                   />
-                  <span>{career.name}</span>
+                  <span className="truncate">{career.name}</span>
                 </label>
               ))}
             </div>
@@ -98,17 +98,17 @@ export function AnalyticsFilters() {
         <div>
           <button
             onClick={() => toggleSection('professors')}
-            className="flex w-full items-center justify-between rounded-lg bg-slate-50 p-2 font-medium text-sm hover:bg-slate-100"
+            className="flex w-full items-center justify-between rounded-lg bg-slate-50 p-2 font-medium text-sm hover:bg-slate-100 gap-2"
           >
-            <span>
-              Profesores {selectedProfessorCount > 0 && <span className="ml-2 text-xs text-blue-600">({selectedProfessorCount})</span>}
+            <span className="truncate">
+              Profesores {selectedProfessorCount > 0 && <span className="ml-1 text-xs text-blue-600">({selectedProfessorCount})</span>}
             </span>
             <ChevronDown
-              className={`h-4 w-4 transition-transform ${expandedSections.professors ? 'rotate-0' : '-rotate-90'}`}
+              className={`h-4 w-4 flex-shrink-0 transition-transform ${expandedSections.professors ? 'rotate-0' : '-rotate-90'}`}
             />
           </button>
           {expandedSections.professors && (
-            <div className="mt-2 space-y-2 max-h-64 overflow-y-auto">
+            <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
               {filterOptions?.professors?.map((prof) => (
                 <label key={prof.id} className="flex items-center space-x-2 text-sm cursor-pointer">
                   <input
@@ -122,7 +122,7 @@ export function AnalyticsFilters() {
                     }}
                     className="rounded"
                   />
-                  <span>{prof.name}</span>
+                  <span className="truncate">{prof.name}</span>
                 </label>
               ))}
             </div>
@@ -133,13 +133,13 @@ export function AnalyticsFilters() {
         <div>
           <button
             onClick={() => toggleSection('projectTypes')}
-            className="flex w-full items-center justify-between rounded-lg bg-slate-50 p-2 font-medium text-sm hover:bg-slate-100"
+            className="flex w-full items-center justify-between rounded-lg bg-slate-50 p-2 font-medium text-sm hover:bg-slate-100 gap-2"
           >
-            <span>
-              Tipo de Proyecto {selectedProjectTypeCount > 0 && <span className="ml-2 text-xs text-blue-600">({selectedProjectTypeCount})</span>}
+            <span className="truncate">
+              Tipo de Proyecto {selectedProjectTypeCount > 0 && <span className="ml-1 text-xs text-blue-600">({selectedProjectTypeCount})</span>}
             </span>
             <ChevronDown
-              className={`h-4 w-4 transition-transform ${expandedSections.projectTypes ? 'rotate-0' : '-rotate-90'}`}
+              className={`h-4 w-4 flex-shrink-0 transition-transform ${expandedSections.projectTypes ? 'rotate-0' : '-rotate-90'}`}
             />
           </button>
           {expandedSections.projectTypes && (
@@ -157,7 +157,7 @@ export function AnalyticsFilters() {
                     }}
                     className="rounded"
                   />
-                  <span>{type.name}</span>
+                  <span className="truncate">{type.name}</span>
                 </label>
               ))}
             </div>
@@ -168,11 +168,11 @@ export function AnalyticsFilters() {
         <div>
           <button
             onClick={() => toggleSection('years')}
-            className="flex w-full items-center justify-between rounded-lg bg-slate-50 p-2 font-medium text-sm hover:bg-slate-100"
+            className="flex w-full items-center justify-between rounded-lg bg-slate-50 p-2 font-medium text-sm hover:bg-slate-100 gap-2"
           >
-            <span>Rango de Años {hasYearFilter && <span className="ml-2 text-xs text-blue-600">(activo)</span>}</span>
+            <span className="truncate">Rango de Años {hasYearFilter && <span className="ml-1 text-xs text-blue-600">(activo)</span>}</span>
             <ChevronDown
-              className={`h-4 w-4 transition-transform ${expandedSections.years ? 'rotate-0' : '-rotate-90'}`}
+              className={`h-4 w-4 flex-shrink-0 transition-transform ${expandedSections.years ? 'rotate-0' : '-rotate-90'}`}
             />
           </button>
           {expandedSections.years && filterOptions?.yearRange && (
