@@ -30,9 +30,6 @@ export function TopicsHeatmap() {
     ])
 
     const maxCount = Math.max(...data.data.map((d) => d.count))
-    
-    // Calculate dynamic height based on number of topics
-    const minHeight = Math.max(400, topics.length * 25 + 100)
 
     const option = {
       tooltip: {

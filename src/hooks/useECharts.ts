@@ -7,10 +7,14 @@ export function useECharts(containerRef: React.RefObject<HTMLDivElement>) {
   useEffect(() => {
     if (!containerRef.current) return
 
-    // Initialize or get existing instance
-    if (!chartInstanceRef.current) {
-      chartInstanceRef.current = echarts.init(containerRef.current)
+    // Dispose existing instance if any
+    if (chartInstanceRef.current) {
+      chartInstanceRef.current.dispose()
+      chartInstanceRef.current = null
     }
+
+    // Initialize fresh instance
+    chartInstanceRef.current = echarts.init(containerRef.current, null, { renderer: 'canvas' })
 
     // Resize on window resize
     const handleResize = () => {
@@ -21,11 +25,16 @@ export function useECharts(containerRef: React.RefObject<HTMLDivElement>) {
 
     return () => {
       window.removeEventListener('resize', handleResize)
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.dispose()
+        chartInstanceRef.current = null
+      }
     }
   }, [containerRef])
 
   const setOption = (option: echarts.EChartsOption) => {
-    chartInstanceRef.current?.setOption(option)
+    if (!chartInstanceRef.current) return
+    chartInstanceRef.current.setOption(option, true)
   }
 
   const getInstance = () => chartInstanceRef.current

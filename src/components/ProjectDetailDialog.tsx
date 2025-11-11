@@ -26,8 +26,8 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
             {/* Header Info */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Badge variant={project.type === 'THESIS' ? 'default' : 'secondary'}>
-                  {project.type === 'THESIS' ? 'Tesis' : 'TF'}
+                <Badge variant={project.type === 'THESIS' || project.type === 'FINAL_PROJECT' ? 'default' : 'outline'}>
+                  {project.type === 'THESIS' ? 'Tesis' : project.type === 'FINAL_PROJECT' ? 'Proyecto Final' : project.type}
                 </Badge>
                 <span className="text-sm text-muted-foreground">{project.career.name}</span>
                 {project.initialSubmission && (
@@ -38,7 +38,16 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
               </div>
             </div>
 
-            {/* Tags */}
+            {/* Application Domain - Top Level Badge */}
+            {project.applicationDomainDTO && (
+              <div>
+                <Badge variant="secondary">
+                  {project.applicationDomainDTO.name}
+                </Badge>
+              </div>
+            )}
+
+            {/* Tags - Lower Relevance */}
             {project.tags?.length > 0 && (
               <div className="space-y-2">
                 <h3 className="font-semibold text-sm">Etiquetas</h3>
@@ -49,17 +58,6 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
                     </Badge>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Domain */}
-            {project.applicationDomain && (
-              <div className="space-y-2">
-                <h3 className="font-semibold text-sm">Dominio</h3>
-                <p className="text-sm">{project.applicationDomain.name}</p>
-                {project.applicationDomain.description && (
-                  <p className="text-xs text-muted-foreground">{project.applicationDomain.description}</p>
-                )}
               </div>
             )}
 
@@ -85,7 +83,7 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
               <h3 className="font-semibold text-sm">Fechas</h3>
               <div className="space-y-1 text-sm">
                 <div>
-                  <span className="font-medium">Presentación:</span>{' '}
+                  <span className="font-medium">Consejo:</span>{' '}
                   {new Date(project.initialSubmission).toLocaleDateString('es-ES')}
                 </div>
                 {project.completion && (

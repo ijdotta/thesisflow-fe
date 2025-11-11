@@ -20,25 +20,42 @@ export function ProfessorNetwork() {
   useEffect(() => {
     if (!networkRef.current || !data) return
 
+    // Calculate total edge weight per node
+    const edgeWeightSum = new Map<string, number>()
+    data.nodes.forEach((node) => {
+      edgeWeightSum.set(node.id, 0)
+    })
+    data.edges.forEach((edge) => {
+      edgeWeightSum.set(edge.source, (edgeWeightSum.get(edge.source) || 0) + edge.weight)
+      edgeWeightSum.set(edge.target, (edgeWeightSum.get(edge.target) || 0) + edge.weight)
+    })
+
     // Create nodes
     const projectCounts = data.nodes.map((n) => n.projectCount)
     const maxProjectCount = projectCounts.length ? Math.max(...projectCounts) : 0
-    const baseNodeSize = 60
-    const variableNodeSize = 140
+    const weights = Array.from(edgeWeightSum.values())
+    const maxWeight = weights.length ? Math.max(...weights) : 0
+    const minNodeSize = 80
+    const maxNodeSize = 300
 
     const nodes = new DataSet(
       data.nodes.map((node) => {
-        const multilineName = node.name.split(' ').join('\n')
+        // Scale node size proportionally to project count
         const nodeSize =
-          baseNodeSize +
-          (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * variableNodeSize : 0)
+          minNodeSize +
+          (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * (maxNodeSize - minNodeSize) : 0)
+
+        // Mass based on total edge weight
+        const nodeTotalWeight = edgeWeightSum.get(node.id) || 0
+        const mass = 1 + (maxWeight > 0 ? (nodeTotalWeight / maxWeight) * 3 : 0)
 
         return {
           id: node.id,
-          label: `${multilineName}\n${node.projectCount}`,
-          title: `${node.name}\n${node.projectCount} proyectos`, // tooltip
+          label: `${node.name}\n${node.projectCount}`,
+          title: `${node.name}\n${node.projectCount} proyectos\n${nodeTotalWeight} colaboraciones`, // tooltip
           size: nodeSize,
           value: node.projectCount,
+          mass: mass,
           color: {
             background: '#3b82f6',
             border: '#1e40af',
@@ -53,10 +70,10 @@ export function ProfessorNetwork() {
           },
           font: {
             color: '#ffffff',
-            size: 18 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 6 : 0),
+            size: 14 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 8 : 0),
             bold: {
               color: '#ffffff',
-              size: 20,
+              size: 16 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 8 : 0),
             },
           },
         }
@@ -107,17 +124,17 @@ export function ProfessorNetwork() {
         borderWidth: 2,
         font: {
           color: '#ffffff',
-          size: 18,
+          size: 16,
           align: 'center',
         },
         scaling: {
-          min: baseNodeSize,
-          max: baseNodeSize + variableNodeSize,
+          min: minNodeSize,
+          max: maxNodeSize,
           label: {
             enabled: true,
-            min: 16,
-            max: 28,
-            drawThreshold: 10,
+            min: 14,
+            max: 22,
+            drawThreshold: 5,
           },
         },
       },

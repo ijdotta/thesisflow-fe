@@ -68,8 +68,8 @@ export function BrowseProjectsPage() {
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="text-lg line-clamp-2">{project.title}</CardTitle>
-                      <Badge variant={project.type === 'THESIS' ? 'default' : 'secondary'}>
-                        {project.type === 'THESIS' ? 'Tesis' : 'TF'}
+                      <Badge variant={project.type === 'THESIS' || project.type === 'FINAL_PROJECT' ? 'default' : 'outline'}>
+                        {project.type === 'THESIS' ? 'Tesis' : project.type === 'FINAL_PROJECT' ? 'Proyecto Final' : project.type}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -85,7 +85,16 @@ export function BrowseProjectsPage() {
                 </CardHeader>
 
                 <CardContent className="space-y-3">
-                  {/* Tags */}
+                  {/* Application Domain - Top Level Badge */}
+                  {project.applicationDomainDTO && (
+                    <div>
+                      <Badge variant="secondary">
+                        {project.applicationDomainDTO.name}
+                      </Badge>
+                    </div>
+                  )}
+
+                  {/* Tags - Lower Relevance */}
                   {project.tags?.length > 0 && (
                     <div className="space-y-1">
                       <p className="text-xs font-medium text-muted-foreground">Etiquetas</p>
@@ -101,14 +110,6 @@ export function BrowseProjectsPage() {
                           </Badge>
                         )}
                       </div>
-                    </div>
-                  )}
-
-                  {/* Domain */}
-                  {project.applicationDomainDTO && (
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-muted-foreground">Dominio</p>
-                      <p className="text-sm">{project.applicationDomainDTO.name}</p>
                     </div>
                   )}
 
@@ -135,7 +136,7 @@ export function BrowseProjectsPage() {
                   {/* Dates */}
                   <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
                     <div>
-                      <span className="font-medium">Presentación:</span> {new Date(project.initialSubmission).toLocaleDateString('es-ES')}
+                      <span className="font-medium">Consejo:</span> {new Date(project.initialSubmission).toLocaleDateString('es-ES')}
                     </div>
                     {project.completion && (
                       <div>
