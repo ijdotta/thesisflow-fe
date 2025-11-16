@@ -2,18 +2,15 @@ import * as React from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import type { Project } from '@/types/Project';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { deleteProject, setProjectParticipants, setProjectApplicationDomain } from '@/api/projects';
 import { useOptionalToast } from '@/components/ui/toast';
 import { useSearchStudents } from '@/hooks/useSearchStudents';
 import { useAllApplicationDomains } from '@/hooks/useAllApplicationDomains';
-import { useDebounce } from '@/hooks/useDebounce';
 import { ProjectResourcesSheet } from '@/components/ProjectResourcesSheet';
 import { SearchableMultiSelect } from '@/components/projectWizard/components/SearchableMultiSelect';
-import { X, FileText } from 'lucide-react';
+import { FileText } from 'lucide-react';
 
 interface Props {
   project: Project | null;
@@ -28,13 +25,11 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [resourcesOpen, setResourcesOpen] = React.useState(false);
   const [selectedStudents, setSelectedStudents] = React.useState<Array<{ publicId: string; name: string; lastname: string }>>([]);
-  const [studentQuery, setStudentQuery] = React.useState('');
   const [selectedDomainId, setSelectedDomainId] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
   const titleRef = React.useRef<HTMLHeadingElement | null>(null);
 
-  const debouncedQuery = useDebounce(studentQuery, 300);
-  const { data: studentsData } = useSearchStudents(debouncedQuery);
+  const { data: studentsData } = useSearchStudents('');
   const { data: domainsData } = useAllApplicationDomains();
   const studentResults = studentsData?.items ?? [];
   const domains = (domainsData?.items ?? []).sort((a, b) => a.name.localeCompare(b.name));
@@ -59,13 +54,6 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
       onDeleted();
     } catch (err:any) {
       push({ variant:'error', title:'Error', message: err?.message || 'No se pudo eliminar'});
-    }
-  }
-
-  function addStudent(student: { publicId: string; name: string; lastname: string }) {
-    if (!selectedStudents.some(s => s.publicId === student.publicId)) {
-      setSelectedStudents([...selectedStudents, student]);
-      setStudentQuery('');
     }
   }
 
@@ -177,48 +165,20 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
             <section className="space-y-3 border-t pt-6">
               <h3 className="text-sm font-semibold tracking-tight">Gestionar Estudiantes</h3>
               <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Buscar estudiante</label>
-                <Input
-                  value={studentQuery}
-                  onChange={e => setStudentQuery(e.target.value)}
-                  placeholder="Buscar por nombre o apellido"
+                <label className="text-xs text-muted-foreground">Estudiantes</label>
+                <SearchableMultiSelect
+                  items={studentResults.map(s => ({ publicId: s.publicId, name: s.name, display: s.display }))}
+                  selectedIds={selectedStudents.map(s => s.publicId)}
+                  onSelect={(id) => {
+                    const student = studentResults.find(s => s.publicId === id);
+                    if (student && !selectedStudents.some(s => s.publicId === id)) {
+                      setSelectedStudents([...selectedStudents, { publicId: student.publicId, name: student.name, lastname: student.lastname }]);
+                    }
+                  }}
+                  onRemove={(id) => removeStudent(id)}
+                  placeholder="Buscar y seleccionar estudiantes"
+                  hideAddButton={true}
                 />
-                {!!studentResults.length && studentQuery && (
-                  <div className="max-h-40 overflow-auto border rounded-md divide-y text-sm bg-background">
-                    {studentResults.map(student => (
-                      <button
-                        key={student.publicId}
-                        type="button"
-                        onClick={() => addStudent({ publicId: student.publicId, name: student.name, lastname: student.lastname })}
-                        className="w-full text-left px-2 py-1 hover:bg-accent"
-                        disabled={selectedStudents.some(s => s.publicId === student.publicId)}
-                      >
-                        {student.display}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Estudiantes seleccionados</label>
-                <div className="flex flex-wrap gap-2">
-                  {selectedStudents.map(student => (
-                    <Badge key={student.publicId} variant="secondary" className="gap-1">
-                      {student.lastname}, {student.name}
-                      <button
-                        type="button"
-                        onClick={() => removeStudent(student.publicId)}
-                        className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                  {selectedStudents.length === 0 && (
-                    <span className="text-xs text-muted-foreground">Sin estudiantes</span>
-                  )}
-                </div>
               </div>
 
               <Button
