@@ -95,8 +95,20 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
     if (!project) return;
     try {
       await setProjectApplicationDomain(project.publicId, domainPublicId);
+      
+      // Find the domain object to update project state
+      let newDomain = null;
+      if (domainPublicId) {
+        const found = domains.find(d => d.publicId === domainPublicId);
+        if (found) {
+          newDomain = { publicId: found.publicId, name: found.name };
+        }
+      }
+      
+      // Update project reference to reflect change immediately
+      Object.assign(project, { applicationDomain: newDomain });
+      
       push({ variant:'success', title:'Actualizado', message:'Dominio actualizado correctamente'});
-      onDeleted(); // Trigger refresh
     } catch (err:any) {
       push({ variant:'error', title:'Error', message: err?.message || 'No se pudo actualizar el dominio'});
     }
