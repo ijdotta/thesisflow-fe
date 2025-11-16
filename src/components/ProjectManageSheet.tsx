@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import type { Project } from '@/types/Project';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { deleteProject, setProjectParticipants, setProjectApplicationDomain } from '@/api/projects';
 import { useOptionalToast } from '@/components/ui/toast';
-import { useSearchStudents } from '@/hooks/useSearchStudents';
+import { getStudents } from '@/api/students';
 import { useAllApplicationDomains } from '@/hooks/useAllApplicationDomains';
 import { ProjectResourcesSheet } from '@/components/ProjectResourcesSheet';
 import { SearchableMultiSelect } from '@/components/projectWizard/components/SearchableMultiSelect';
@@ -29,9 +29,20 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
   const [saving, setSaving] = React.useState(false);
   const titleRef = React.useRef<HTMLHeadingElement | null>(null);
 
-  const { data: studentsData } = useSearchStudents('');
+  // Fetch all students
+  const { data: studentsPage } = useQuery({
+    queryKey: ['students', 'all'],
+    queryFn: () => getStudents({ page: 0, size: 1000, sort: { field: 'name', dir: 'asc' } }),
+    staleTime: 5 * 60 * 1000,
+  });
+
   const { data: domainsData } = useAllApplicationDomains();
-  const studentResults = studentsData?.items ?? [];
+  const studentResults = (studentsPage?.content ?? []).map(s => ({ 
+    publicId: s.publicId, 
+    name: s.name, 
+    lastname: s.lastname,
+    display: `${s.lastname}, ${s.name}`
+  }));
   const domains = (domainsData?.items ?? []).sort((a, b) => a.name.localeCompare(b.name));
 
   React.useEffect(()=> { if (open && titleRef.current) { titleRef.current.focus(); } }, [open]);
