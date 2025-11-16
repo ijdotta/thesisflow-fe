@@ -115,8 +115,9 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
       // Update local state to trigger re-render and show selection
       setSelectedDomainId(domainPublicId);
       
-      // Invalidate projects query to refresh from backend
-      await queryClient.invalidateQueries({ queryKey: ['projects'] });
+      // Invalidate both projects list and individual project query to refresh from backend
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project', project.publicId] });
       
       push({ variant:'success', title:'Actualizado', message:'Dominio actualizado correctamente'});
     } catch (err:any) {
