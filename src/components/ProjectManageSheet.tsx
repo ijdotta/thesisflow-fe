@@ -27,6 +27,7 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
   const [resourcesOpen, setResourcesOpen] = React.useState(false);
   const [selectedStudents, setSelectedStudents] = React.useState<Array<{ publicId: string; name: string; lastname: string }>>([]);
   const [studentQuery, setStudentQuery] = React.useState('');
+  const [selectedDomainId, setSelectedDomainId] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
   const titleRef = React.useRef<HTMLHeadingElement | null>(null);
 
@@ -38,10 +39,11 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
 
   React.useEffect(()=> { if (open && titleRef.current) { titleRef.current.focus(); } }, [open]);
 
-  // Initialize selected students from project
+  // Initialize selected students and domain from project
   React.useEffect(() => {
     if (project) {
       setSelectedStudents(project.students.map(s => ({ publicId: s.publicId, name: s.name, lastname: s.lastname })));
+      setSelectedDomainId(project.applicationDomain?.publicId ?? null);
     }
   }, [project]);
 
@@ -108,6 +110,9 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
       // Update project reference to reflect change immediately
       Object.assign(project, { applicationDomain: newDomain });
       
+      // Update local state to trigger re-render and show selection
+      setSelectedDomainId(domainPublicId);
+      
       push({ variant:'success', title:'Actualizado', message:'Dominio actualizado correctamente'});
     } catch (err:any) {
       push({ variant:'error', title:'Error', message: err?.message || 'No se pudo actualizar el dominio'});
@@ -143,10 +148,10 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
                 <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Dominio</label>
                 <SearchableMultiSelect
                   items={domains.map(d => ({ publicId: d.publicId, name: d.name, display: d.display }))}
-                  selectedIds={project.applicationDomain ? [project.applicationDomain.publicId] : []}
+                  selectedIds={selectedDomainId ? [selectedDomainId] : []}
                   onSelect={(id) => handleSaveDomain(id)}
                   onRemove={(id) => {
-                    if (project.applicationDomain?.publicId === id) {
+                    if (selectedDomainId === id) {
                       handleSaveDomain(null);
                     }
                   }}
