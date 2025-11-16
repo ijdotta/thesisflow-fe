@@ -103,34 +103,6 @@ export function PeopleStep({ draft, onPatch }: Props) {
           placeholder="Seleccionar colaborador"
         />
       </div>
-
-      {/* Students */}
-      <div className="space-y-2">
-        <h4 className="font-medium">Alumnos</h4>
-        <div className="text-sm text-gray-600">
-          {draft.students.length === 0 ? (
-            <span>No hay alumnos agregados</span>
-          ) : (
-            <div className="space-y-1">
-              {draft.students.map((student, idx) => (
-                <div key={idx} className="flex justify-between items-center bg-gray-50 p-2 rounded text-xs">
-                  <span>{student.name} {student.lastname}</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const next = draft.students.filter((_, i) => i !== idx);
-                      onPatch({ students: next });
-                    }}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
