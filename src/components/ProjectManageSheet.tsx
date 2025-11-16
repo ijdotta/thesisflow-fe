@@ -46,10 +46,15 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
     display: `${s.lastname}, ${s.name}`
   }));
   
+  const selectedStudentsWithDisplay = selectedStudents.map(s => ({
+    ...s,
+    display: `${s.lastname}, ${s.name}`
+  }));
+  
   const studentResults = Array.from(
     new Map(
       [
-        ...selectedStudents,
+        ...selectedStudentsWithDisplay,
         ...allStudents
       ].map(s => [s.publicId, s])
     ).values()
