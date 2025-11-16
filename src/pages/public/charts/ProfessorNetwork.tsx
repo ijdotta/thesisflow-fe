@@ -35,7 +35,7 @@ export function ProfessorNetwork() {
     const maxProjectCount = projectCounts.length ? Math.max(...projectCounts) : 0
     const weights = Array.from(edgeWeightSum.values())
     const maxWeight = weights.length ? Math.max(...weights) : 0
-    const minNodeSize = 80
+    const minNodeSize = 30
     const maxNodeSize = 300
 
     const nodes = new DataSet(
