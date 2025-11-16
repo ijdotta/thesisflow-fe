@@ -98,7 +98,7 @@ export function TopicsHeatmap() {
     if (chart) {
       setTimeout(() => chart.resize(), 100)
     }
-  }, [data?.data, setOption, getInstance])
+  }, [data?.data, setOption, getInstance, filters])
 
   if (isLoading) {
     return (
