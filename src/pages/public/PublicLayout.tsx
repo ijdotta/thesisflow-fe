@@ -102,7 +102,9 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
           <div className="grid md:grid-cols-3 gap-8 mb-6">
             {/* Logo */}
             <div className="flex flex-col items-center justify-center md:items-start">
-              <img src="/dcic-logo.png" alt="DCIC-UNS Logo" className="h-12 mb-2" />
+              <a href="https://cs.uns.edu.ar" target="_blank" rel="noopener noreferrer">
+                <img src="/dcic-logo.png" alt="DCIC-UNS Logo" className="h-12 mb-2" />
+              </a>
             </div>
 
             {/* Credits */}
