@@ -35,16 +35,11 @@ export function ProfessorNetwork() {
     const maxProjectCount = projectCounts.length ? Math.max(...projectCounts) : 0
     const weights = Array.from(edgeWeightSum.values())
     const maxWeight = weights.length ? Math.max(...weights) : 0
-    const minNodeSize = 80
-    const maxNodeSize = 300
+    const minNodeSize = 20
+    const maxNodeSize = 80
 
     const nodes = new DataSet(
       data.nodes.map((node) => {
-        // Scale node size proportionally to project count
-        const nodeSize =
-          minNodeSize +
-          (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * (maxNodeSize - minNodeSize) : 0)
-
         // Mass based on total edge weight
         const nodeTotalWeight = edgeWeightSum.get(node.id) || 0
         const mass = 1 + (maxWeight > 0 ? (nodeTotalWeight / maxWeight) * 3 : 0)
@@ -53,9 +48,14 @@ export function ProfessorNetwork() {
           id: node.id,
           label: `${node.name}\n${node.projectCount}`,
           title: `${node.name}\n${node.projectCount} proyectos\n${nodeTotalWeight} colaboraciones`, // tooltip
-          size: nodeSize,
           value: node.projectCount,
           mass: mass,
+          margin: {
+            top: 35,
+            right: 10,
+            bottom: 10,
+            left: 10,
+          },
           color: {
             background: '#3b82f6',
             border: '#1e40af',
@@ -69,12 +69,13 @@ export function ProfessorNetwork() {
             },
           },
           font: {
-            color: '#ffffff',
-            size: 14 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 8 : 0),
+            color: '#000000',
+            size: 14,
             bold: {
-              color: '#ffffff',
-              size: 16 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 8 : 0),
+              color: '#000000',
+              size: 16,
             },
+            multi: true,
           },
         }
       })
@@ -90,17 +91,11 @@ export function ProfessorNetwork() {
         title: `${edge.collaborations} colaboraciones`,
         label: `${edge.weight}`, // Add weight label
         font: {
-          size: 13,
-          color: '#ffffff',
+          size: 32,
+          color: '#000000',
           face: 'Inter, system-ui, sans-serif',
-          strokeColor: '#ffffff',
+          strokeColor: '#000000',
           strokeWidth: 1,
-          background: {
-            enabled: true,
-            color: 'rgba(15, 23, 42, 0.85)',
-            padding: 6,
-            cornerRadius: 4,
-          },
         },
         color: {
           color: 'rgba(148, 163, 184, 0.7)',
@@ -120,10 +115,10 @@ export function ProfessorNetwork() {
 
     const options = {
       nodes: {
-        shape: 'circle',
+        shape: 'dot',
         borderWidth: 2,
         font: {
-          color: '#ffffff',
+          color: '#000000',
           size: 16,
           align: 'center',
         },

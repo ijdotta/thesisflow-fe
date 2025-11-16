@@ -1,7 +1,7 @@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ProjectDraft } from '../types';
-import { SUBTYPE_OPTIONS } from '../types';
+import { SUBTYPE_OPTIONS, SUBTYPE_LABELS } from '../types';
 import * as React from 'react';
 import { useCareers } from '@/hooks/useCareers';
 import { useAllApplicationDomains } from '@/hooks/useAllApplicationDomains';
@@ -89,7 +89,7 @@ export function BasicInfoStep({ draft, onPatch }: Props) {
           {SUBTYPE_OPTIONS.map(opt => {
             const active = draft.subtypes.includes(opt);
             return (
-              <button key={opt} type="button" onClick={() => toggleSubtype(opt)} className={`px-3 py-1 rounded-md border text-xs ${active ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted hover:bg-muted/70'}`}>{opt}</button>
+              <button key={opt} type="button" onClick={() => toggleSubtype(opt)} className={`px-3 py-1 rounded-md border text-xs ${active ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted hover:bg-muted/70'}`}>{SUBTYPE_LABELS[opt]}</button>
             );
           })}
           {draft.subtypes.length === 0 && <span className="text-xs text-muted-foreground">(ninguno)</span>}

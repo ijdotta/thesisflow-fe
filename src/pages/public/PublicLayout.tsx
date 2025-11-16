@@ -102,7 +102,9 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
           <div className="grid md:grid-cols-3 gap-8 mb-6">
             {/* Logo */}
             <div className="flex flex-col items-center justify-center md:items-start">
-              <img src="/dcic-logo.png" alt="DCIC-UNS Logo" className="h-12 mb-2" />
+              <a href="https://cs.uns.edu.ar" target="_blank" rel="noopener noreferrer">
+                <img src="/dcic-logo.png" alt="DCIC-UNS Logo" className="h-12 mb-2" />
+              </a>
             </div>
 
             {/* Credits */}
@@ -151,7 +153,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
           {/* Copyright */}
           <div className="border-t border-slate-200 pt-6 text-center text-sm text-muted-foreground">
-            <p>© 2024 ThesisFlow - Acceso Público</p>
+            <p>© {new Date().getFullYear()} ThesisFlow - Acceso Público</p>
             <p className="text-xs mt-2">Trabajo Final de Carrera - DCIC, Universidad Nacional del Sur</p>
           </div>
         </div>

@@ -22,7 +22,7 @@ export function AppSidebar({ items = [], utilItems = [] }: AppSidebarProps) {
 
   const handleLogout = () => {
     logout()
-    navigate('/login')
+    navigate('/')
   }
 
   return (
