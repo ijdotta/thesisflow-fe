@@ -8,10 +8,11 @@ import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { deleteProject, setProjectParticipants, setProjectApplicationDomain } from '@/api/projects';
 import { useOptionalToast } from '@/components/ui/toast';
 import { useSearchStudents } from '@/hooks/useSearchStudents';
-import { useSearchApplicationDomains } from '@/hooks/useSearchApplicationDomains';
+import { useAllApplicationDomains } from '@/hooks/useAllApplicationDomains';
 import { useDebounce } from '@/hooks/useDebounce';
 import { ProjectResourcesSheet } from '@/components/ProjectResourcesSheet';
-import { X, FileText, Check } from 'lucide-react';
+import { SearchableMultiSelect } from '@/components/projectWizard/components/SearchableMultiSelect';
+import { X, FileText } from 'lucide-react';
 
 interface Props {
   project: Project | null;
@@ -26,19 +27,14 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
   const [resourcesOpen, setResourcesOpen] = React.useState(false);
   const [selectedStudents, setSelectedStudents] = React.useState<Array<{ publicId: string; name: string; lastname: string }>>([]);
   const [studentQuery, setStudentQuery] = React.useState('');
-  const [editingDomain, setEditingDomain] = React.useState(false);
-  const [selectedDomain, setSelectedDomain] = React.useState<{ publicId: string; name: string } | null>(null);
-  const [domainQuery, setDomainQuery] = React.useState('');
   const [saving, setSaving] = React.useState(false);
-  const [savingDomain, setSavingDomain] = React.useState(false);
   const titleRef = React.useRef<HTMLHeadingElement | null>(null);
 
   const debouncedQuery = useDebounce(studentQuery, 300);
-  const debouncedDomainQuery = useDebounce(domainQuery, 300);
   const { data: studentsData } = useSearchStudents(debouncedQuery);
-  const { data: domainsData } = useSearchApplicationDomains(debouncedDomainQuery);
+  const { data: domainsData } = useAllApplicationDomains();
   const studentResults = studentsData?.items ?? [];
-  const domainResults = domainsData?.items ?? [];
+  const domains = (domainsData?.items ?? []).sort((a, b) => a.name.localeCompare(b.name));
 
   React.useEffect(()=> { if (open && titleRef.current) { titleRef.current.focus(); } }, [open]);
 
@@ -46,9 +42,6 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
   React.useEffect(() => {
     if (project) {
       setSelectedStudents(project.students.map(s => ({ publicId: s.publicId, name: s.name, lastname: s.lastname })));
-      setSelectedDomain(project.applicationDomain ? { publicId: project.applicationDomain.publicId, name: project.applicationDomain.name } : null);
-      setEditingDomain(false);
-      setDomainQuery('');
     }
   }, [project]);
 
@@ -98,18 +91,14 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
     }
   }
 
-  async function handleSaveDomain() {
-    if (!project || !selectedDomain) return;
-    setSavingDomain(true);
+  async function handleSaveDomain(domainPublicId: string | null) {
+    if (!project) return;
     try {
-      await setProjectApplicationDomain(project.publicId, selectedDomain.publicId);
+      await setProjectApplicationDomain(project.publicId, domainPublicId);
       push({ variant:'success', title:'Actualizado', message:'Dominio actualizado correctamente'});
-      setEditingDomain(false);
       onDeleted(); // Trigger refresh
     } catch (err:any) {
       push({ variant:'error', title:'Error', message: err?.message || 'No se pudo actualizar el dominio'});
-    } finally {
-      setSavingDomain(false);
     }
   }
 
@@ -139,68 +128,19 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
                 <div>{project.career?.name || '-'}</div>
               </div>
               <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Dominio</span>
-                  {!editingDomain && (
-                    <button
-                      onClick={() => setEditingDomain(true)}
-                      className="text-xs text-blue-600 hover:underline font-medium"
-                    >
-                      Editar
-                    </button>
-                  )}
-                </div>
-                {!editingDomain ? (
-                  <div className="text-sm">{selectedDomain?.name || '-'}</div>
-                ) : (
-                  <div className="space-y-2">
-                    <Input
-                      value={domainQuery}
-                      onChange={(e) => setDomainQuery(e.target.value)}
-                      placeholder="Buscar dominio"
-                      className="h-8 text-xs"
-                    />
-                    {!!domainResults.length && domainQuery && (
-                      <div className="max-h-32 overflow-auto border rounded-md divide-y text-xs bg-background">
-                        {domainResults.map((domain: any) => (
-                          <button
-                            key={domain.publicId}
-                            type="button"
-                            onClick={() => setSelectedDomain({ publicId: domain.publicId, name: domain.name })}
-                            className={`w-full text-left px-2 py-1 hover:bg-accent ${
-                              selectedDomain?.publicId === domain.publicId ? 'bg-accent font-medium' : ''
-                            }`}
-                          >
-                            {domain.name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        size="sm"
-                        onClick={handleSaveDomain}
-                        disabled={savingDomain || !selectedDomain}
-                        className="flex-1 h-7 text-xs"
-                      >
-                        <Check className="h-3 w-3 mr-1" />
-                        Guardar
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditingDomain(false);
-                          setDomainQuery('');
-                          setSelectedDomain(project.applicationDomain ? { publicId: project.applicationDomain.publicId, name: project.applicationDomain.name } : null);
-                        }}
-                        className="flex-1 h-7 text-xs"
-                      >
-                        Cancelar
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Dominio</label>
+                <SearchableMultiSelect
+                  items={domains.map(d => ({ publicId: d.publicId, name: d.name, display: d.display }))}
+                  selectedIds={project.applicationDomain ? [project.applicationDomain.publicId] : []}
+                  onSelect={(id) => handleSaveDomain(id)}
+                  onRemove={(id) => {
+                    if (project.applicationDomain?.publicId === id) {
+                      handleSaveDomain(null);
+                    }
+                  }}
+                  placeholder="Seleccione dominio"
+                  hideAddButton={true}
+                />
               </div>
             </section>
 
