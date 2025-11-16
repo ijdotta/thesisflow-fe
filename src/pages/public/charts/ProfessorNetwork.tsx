@@ -75,6 +75,7 @@ export function ProfessorNetwork() {
               color: '#ffffff',
               size: 16 + (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * 8 : 0),
             },
+            multi: true,
           },
         }
       })
@@ -136,6 +137,12 @@ export function ProfessorNetwork() {
             max: 22,
             drawThreshold: 5,
           },
+        },
+        margin: {
+          top: 30,
+          right: 10,
+          bottom: 10,
+          left: 10,
         },
       },
       physics: {
