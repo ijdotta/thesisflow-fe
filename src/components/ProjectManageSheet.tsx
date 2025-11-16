@@ -1,17 +1,16 @@
 import * as React from 'react';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import type { Project } from '@/types/Project';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { deleteProject, setProjectParticipants, setProjectApplicationDomain } from '@/api/projects';
 import { useOptionalToast } from '@/components/ui/toast';
-import { useSearchStudents } from '@/hooks/useSearchStudents';
-import { useSearchApplicationDomains } from '@/hooks/useSearchApplicationDomains';
-import { useDebounce } from '@/hooks/useDebounce';
+import { getStudents } from '@/api/students';
+import { useAllApplicationDomains } from '@/hooks/useAllApplicationDomains';
 import { ProjectResourcesSheet } from '@/components/ProjectResourcesSheet';
-import { X, FileText, Check } from 'lucide-react';
+import { SearchableMultiSelect } from '@/components/projectWizard/components/SearchableMultiSelect';
+import { FileText } from 'lucide-react';
 
 interface Props {
   project: Project | null;
@@ -21,34 +20,82 @@ interface Props {
 }
 
 export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: Props) {
+  const queryClient = useQueryClient();
   const { push } = useOptionalToast();
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [resourcesOpen, setResourcesOpen] = React.useState(false);
   const [selectedStudents, setSelectedStudents] = React.useState<Array<{ publicId: string; name: string; lastname: string }>>([]);
-  const [studentQuery, setStudentQuery] = React.useState('');
-  const [editingDomain, setEditingDomain] = React.useState(false);
-  const [selectedDomain, setSelectedDomain] = React.useState<{ publicId: string; name: string } | null>(null);
-  const [domainQuery, setDomainQuery] = React.useState('');
+  const [selectedDirectors, setSelectedDirectors] = React.useState<Array<{ publicId: string; name: string; lastname: string }>>([]);
+  const [selectedCoDirectors, setSelectedCoDirectors] = React.useState<Array<{ publicId: string; name: string; lastname: string }>>([]);
+  const [selectedCollaborators, setSelectedCollaborators] = React.useState<Array<{ publicId: string; name: string; lastname: string }>>([]);
+  const [selectedDomainId, setSelectedDomainId] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
-  const [savingDomain, setSavingDomain] = React.useState(false);
   const titleRef = React.useRef<HTMLHeadingElement | null>(null);
 
-  const debouncedQuery = useDebounce(studentQuery, 300);
-  const debouncedDomainQuery = useDebounce(domainQuery, 300);
-  const { data: studentsData } = useSearchStudents(debouncedQuery);
-  const { data: domainsData } = useSearchApplicationDomains(debouncedDomainQuery);
-  const studentResults = studentsData?.items ?? [];
-  const domainResults = domainsData?.items ?? [];
+  // Fetch all students
+  const { data: studentsPage } = useQuery({
+    queryKey: ['students', 'all'],
+    queryFn: () => getStudents({ page: 0, size: 1000, sort: { field: 'name', dir: 'asc' } }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: domainsData } = useAllApplicationDomains();
+  
+  // Combine fetched students with currently selected students to ensure they're always shown
+  const allStudents = (studentsPage?.content ?? []).map(s => ({ 
+    publicId: s.publicId, 
+    name: s.name, 
+    lastname: s.lastname,
+    display: `${s.lastname}, ${s.name}`
+  }));
+  
+  const selectedStudentsWithDisplay = selectedStudents.map(s => ({
+    ...s,
+    display: `${s.lastname}, ${s.name}`
+  }));
+  
+  const studentResults = Array.from(
+    new Map(
+      [
+        ...selectedStudentsWithDisplay,
+        ...allStudents
+      ].map(s => [s.publicId, s])
+    ).values()
+  );
+
+  // Helper function to create person list results
+  const createPersonResults = (selected: typeof selectedStudents, fetched: typeof allStudents) => {
+    const selectedWithDisplay = selected.map(s => ({
+      ...s,
+      display: `${s.lastname}, ${s.name}`
+    }));
+    
+    return Array.from(
+      new Map(
+        [
+          ...selectedWithDisplay,
+          ...fetched
+        ].map(s => [s.publicId, s])
+      ).values()
+    );
+  };
+
+  const directorResults = createPersonResults(selectedDirectors, allStudents);
+  const coDirectorResults = createPersonResults(selectedCoDirectors, allStudents);
+  const collaboratorResults = createPersonResults(selectedCollaborators, allStudents);
+  
+  const domains = (domainsData?.items ?? []).sort((a, b) => a.name.localeCompare(b.name));
 
   React.useEffect(()=> { if (open && titleRef.current) { titleRef.current.focus(); } }, [open]);
 
-  // Initialize selected students from project
+  // Initialize selected students, directors, co-directors, collaborators and domain from project
   React.useEffect(() => {
     if (project) {
       setSelectedStudents(project.students.map(s => ({ publicId: s.publicId, name: s.name, lastname: s.lastname })));
-      setSelectedDomain(project.applicationDomain ? { publicId: project.applicationDomain.publicId, name: project.applicationDomain.name } : null);
-      setEditingDomain(false);
-      setDomainQuery('');
+      setSelectedDirectors(project.directors.map(s => ({ publicId: s.publicId, name: s.name, lastname: s.lastname })));
+      setSelectedCoDirectors(project.codirectors.map(s => ({ publicId: s.publicId, name: s.name, lastname: s.lastname })));
+      setSelectedCollaborators(project.collaborators.map(s => ({ publicId: s.publicId, name: s.name, lastname: s.lastname })));
+      setSelectedDomainId(project.applicationDomain?.publicId ?? null);
     }
   }, [project]);
 
@@ -65,32 +112,49 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
     }
   }
 
-  function addStudent(student: { publicId: string; name: string; lastname: string }) {
-    if (!selectedStudents.some(s => s.publicId === student.publicId)) {
-      setSelectedStudents([...selectedStudents, student]);
-      setStudentQuery('');
-    }
-  }
-
   function removeStudent(publicId: string) {
     setSelectedStudents(selectedStudents.filter(s => s.publicId !== publicId));
   }
 
-  async function handleSaveStudents() {
+  function removeDirector(publicId: string) {
+    setSelectedDirectors(selectedDirectors.filter(s => s.publicId !== publicId));
+  }
+
+  function removeCoDirector(publicId: string) {
+    setSelectedCoDirectors(selectedCoDirectors.filter(s => s.publicId !== publicId));
+  }
+
+  function removeCollaborator(publicId: string) {
+    setSelectedCollaborators(selectedCollaborators.filter(s => s.publicId !== publicId));
+  }
+
+  async function handleSaveParticipants() {
     if (!project) return;
     setSaving(true);
     try {
-      // Rebuild all participants with updated students
+      // Send all participants - setParticipants now replaces all existing ones
       const participants = [
-        ...project.directors.map(d => ({ personId: d.publicId, role: 'DIRECTOR' as const })),
-        ...project.codirectors.map(d => ({ personId: d.publicId, role: 'CO_DIRECTOR' as const })),
-        ...project.collaborators.map(c => ({ personId: c.publicId, role: 'COLLABORATOR' as const })),
+        ...selectedDirectors.map(d => ({ personId: d.publicId, role: 'DIRECTOR' as const })),
+        ...selectedCoDirectors.map(d => ({ personId: d.publicId, role: 'CO_DIRECTOR' as const })),
+        ...selectedCollaborators.map(c => ({ personId: c.publicId, role: 'COLLABORATOR' as const })),
         ...selectedStudents.map(s => ({ personId: s.publicId, role: 'STUDENT' as const })),
       ];
 
       await setProjectParticipants(project.publicId, participants);
-      push({ variant:'success', title:'Actualizado', message:'Estudiantes actualizados correctamente'});
-      onDeleted(); // Trigger refresh
+      
+      // Update project reference with all participants
+      Object.assign(project, { 
+        students: selectedStudents,
+        directors: selectedDirectors,
+        codirectors: selectedCoDirectors,
+        collaborators: selectedCollaborators
+      });
+      
+      // Invalidate both projects list and individual project query to refresh from backend
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project', project.publicId] });
+      
+      push({ variant:'success', title:'Actualizado', message:'Participantes actualizados correctamente'});
     } catch (err:any) {
       push({ variant:'error', title:'Error', message: err?.message || 'No se pudo actualizar'});
     } finally {
@@ -98,18 +162,33 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
     }
   }
 
-  async function handleSaveDomain() {
-    if (!project || !selectedDomain) return;
-    setSavingDomain(true);
+  async function handleSaveDomain(domainPublicId: string | null) {
+    if (!project) return;
     try {
-      await setProjectApplicationDomain(project.publicId, selectedDomain.publicId);
+      await setProjectApplicationDomain(project.publicId, domainPublicId);
+      
+      // Find the domain object to update project state
+      let newDomain = null;
+      if (domainPublicId) {
+        const found = domains.find(d => d.publicId === domainPublicId);
+        if (found) {
+          newDomain = { publicId: found.publicId, name: found.name };
+        }
+      }
+      
+      // Update project reference to reflect change immediately
+      Object.assign(project, { applicationDomain: newDomain });
+      
+      // Update local state to trigger re-render and show selection
+      setSelectedDomainId(domainPublicId);
+      
+      // Invalidate both projects list and individual project query to refresh from backend
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project', project.publicId] });
+      
       push({ variant:'success', title:'Actualizado', message:'Dominio actualizado correctamente'});
-      setEditingDomain(false);
-      onDeleted(); // Trigger refresh
     } catch (err:any) {
       push({ variant:'error', title:'Error', message: err?.message || 'No se pudo actualizar el dominio'});
-    } finally {
-      setSavingDomain(false);
     }
   }
 
@@ -139,125 +218,100 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
                 <div>{project.career?.name || '-'}</div>
               </div>
               <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Dominio</span>
-                  {!editingDomain && (
-                    <button
-                      onClick={() => setEditingDomain(true)}
-                      className="text-xs text-blue-600 hover:underline font-medium"
-                    >
-                      Editar
-                    </button>
-                  )}
-                </div>
-                {!editingDomain ? (
-                  <div className="text-sm">{selectedDomain?.name || '-'}</div>
-                ) : (
-                  <div className="space-y-2">
-                    <Input
-                      value={domainQuery}
-                      onChange={(e) => setDomainQuery(e.target.value)}
-                      placeholder="Buscar dominio"
-                      className="h-8 text-xs"
-                    />
-                    {!!domainResults.length && domainQuery && (
-                      <div className="max-h-32 overflow-auto border rounded-md divide-y text-xs bg-background">
-                        {domainResults.map((domain: any) => (
-                          <button
-                            key={domain.publicId}
-                            type="button"
-                            onClick={() => setSelectedDomain({ publicId: domain.publicId, name: domain.name })}
-                            className={`w-full text-left px-2 py-1 hover:bg-accent ${
-                              selectedDomain?.publicId === domain.publicId ? 'bg-accent font-medium' : ''
-                            }`}
-                          >
-                            {domain.name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        size="sm"
-                        onClick={handleSaveDomain}
-                        disabled={savingDomain || !selectedDomain}
-                        className="flex-1 h-7 text-xs"
-                      >
-                        <Check className="h-3 w-3 mr-1" />
-                        Guardar
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditingDomain(false);
-                          setDomainQuery('');
-                          setSelectedDomain(project.applicationDomain ? { publicId: project.applicationDomain.publicId, name: project.applicationDomain.name } : null);
-                        }}
-                        className="flex-1 h-7 text-xs"
-                      >
-                        Cancelar
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Dominio</label>
+                <SearchableMultiSelect
+                  items={domains.map(d => ({ publicId: d.publicId, name: d.name, display: d.display }))}
+                  selectedIds={selectedDomainId ? [selectedDomainId] : []}
+                  onSelect={(id) => handleSaveDomain(id)}
+                  onRemove={(id) => {
+                    if (selectedDomainId === id) {
+                      handleSaveDomain(null);
+                    }
+                  }}
+                  placeholder="Seleccione dominio"
+                  hideAddButton={true}
+                />
               </div>
             </section>
 
             <section className="space-y-3 border-t pt-6">
-              <h3 className="text-sm font-semibold tracking-tight">Gestionar Estudiantes</h3>
+              <h3 className="text-sm font-semibold tracking-tight">Gestionar Participantes</h3>
+              
               <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Buscar estudiante</label>
-                <Input
-                  value={studentQuery}
-                  onChange={e => setStudentQuery(e.target.value)}
-                  placeholder="Buscar por nombre o apellido"
+                <label className="text-xs text-muted-foreground">Directores</label>
+                <SearchableMultiSelect
+                  items={directorResults.map(s => ({ publicId: s.publicId, name: s.name, display: s.display }))}
+                  selectedIds={selectedDirectors.map(s => s.publicId)}
+                  onSelect={(id) => {
+                    const director = directorResults.find(s => s.publicId === id);
+                    if (director && !selectedDirectors.some(s => s.publicId === id)) {
+                      setSelectedDirectors([...selectedDirectors, { publicId: director.publicId, name: director.name, lastname: director.lastname }]);
+                    }
+                  }}
+                  onRemove={(id) => removeDirector(id)}
+                  placeholder="Buscar y seleccionar directores"
+                  hideAddButton={true}
                 />
-                {!!studentResults.length && studentQuery && (
-                  <div className="max-h-40 overflow-auto border rounded-md divide-y text-sm bg-background">
-                    {studentResults.map(student => (
-                      <button
-                        key={student.publicId}
-                        type="button"
-                        onClick={() => addStudent({ publicId: student.publicId, name: student.name, lastname: student.lastname })}
-                        className="w-full text-left px-2 py-1 hover:bg-accent"
-                        disabled={selectedStudents.some(s => s.publicId === student.publicId)}
-                      >
-                        {student.display}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Estudiantes seleccionados</label>
-                <div className="flex flex-wrap gap-2">
-                  {selectedStudents.map(student => (
-                    <Badge key={student.publicId} variant="secondary" className="gap-1">
-                      {student.lastname}, {student.name}
-                      <button
-                        type="button"
-                        onClick={() => removeStudent(student.publicId)}
-                        className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                  {selectedStudents.length === 0 && (
-                    <span className="text-xs text-muted-foreground">Sin estudiantes</span>
-                  )}
-                </div>
+                <label className="text-xs text-muted-foreground">Co-Directores</label>
+                <SearchableMultiSelect
+                  items={coDirectorResults.map(s => ({ publicId: s.publicId, name: s.name, display: s.display }))}
+                  selectedIds={selectedCoDirectors.map(s => s.publicId)}
+                  onSelect={(id) => {
+                    const coDirector = coDirectorResults.find(s => s.publicId === id);
+                    if (coDirector && !selectedCoDirectors.some(s => s.publicId === id)) {
+                      setSelectedCoDirectors([...selectedCoDirectors, { publicId: coDirector.publicId, name: coDirector.name, lastname: coDirector.lastname }]);
+                    }
+                  }}
+                  onRemove={(id) => removeCoDirector(id)}
+                  placeholder="Buscar y seleccionar co-directores"
+                  hideAddButton={true}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Colaboradores</label>
+                <SearchableMultiSelect
+                  items={collaboratorResults.map(s => ({ publicId: s.publicId, name: s.name, display: s.display }))}
+                  selectedIds={selectedCollaborators.map(s => s.publicId)}
+                  onSelect={(id) => {
+                    const collaborator = collaboratorResults.find(s => s.publicId === id);
+                    if (collaborator && !selectedCollaborators.some(s => s.publicId === id)) {
+                      setSelectedCollaborators([...selectedCollaborators, { publicId: collaborator.publicId, name: collaborator.name, lastname: collaborator.lastname }]);
+                    }
+                  }}
+                  onRemove={(id) => removeCollaborator(id)}
+                  placeholder="Buscar y seleccionar colaboradores"
+                  hideAddButton={true}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Estudiantes</label>
+                <SearchableMultiSelect
+                  items={studentResults.map(s => ({ publicId: s.publicId, name: s.name, display: s.display }))}
+                  selectedIds={selectedStudents.map(s => s.publicId)}
+                  onSelect={(id) => {
+                    const student = studentResults.find(s => s.publicId === id);
+                    if (student && !selectedStudents.some(s => s.publicId === id)) {
+                      setSelectedStudents([...selectedStudents, { publicId: student.publicId, name: student.name, lastname: student.lastname }]);
+                    }
+                  }}
+                  onRemove={(id) => removeStudent(id)}
+                  placeholder="Buscar y seleccionar estudiantes"
+                  hideAddButton={true}
+                />
               </div>
 
               <Button
                 variant="default"
                 size="sm"
-                onClick={handleSaveStudents}
+                onClick={handleSaveParticipants}
                 disabled={saving}
               >
-                {saving ? 'Guardando...' : 'Guardar Estudiantes'}
+                {saving ? 'Guardando...' : 'Guardar Participantes'}
               </Button>
             </section>
 
