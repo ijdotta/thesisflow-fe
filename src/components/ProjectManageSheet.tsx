@@ -86,8 +86,15 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
       ];
 
       await setProjectParticipants(project.publicId, participants);
+      
+      // Update project reference with new students
+      Object.assign(project, { students: selectedStudents });
+      
+      // Invalidate both projects list and individual project query to refresh from backend
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project', project.publicId] });
+      
       push({ variant:'success', title:'Actualizado', message:'Estudiantes actualizados correctamente'});
-      onDeleted(); // Trigger refresh
     } catch (err:any) {
       push({ variant:'error', title:'Error', message: err?.message || 'No se pudo actualizar'});
     } finally {
