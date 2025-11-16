@@ -42,7 +42,7 @@ export async function getProject(publicId: string): Promise<GetProjectsResponse[
 }
 
 export async function setProjectTags(projectPublicId: string, tagPublicIds: string[]): Promise<void> {
-  await api.put(`/projects/${projectPublicId}/tags`, { tags: tagPublicIds });
+  await api.put(`/projects/${projectPublicId}/tags`, { tagIds: tagPublicIds });
 }
 
 export async function setProjectCompletionDate(projectPublicId: string, completionDate: string): Promise<void> {
