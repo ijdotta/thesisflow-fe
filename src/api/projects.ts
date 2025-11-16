@@ -27,7 +27,7 @@ export async function createProject(body: CreateProjectBody): Promise<{ publicId
   return data;
 }
 
-export async function setProjectApplicationDomain(projectPublicId: string, applicationDomainId: string): Promise<void> {
+export async function setProjectApplicationDomain(projectPublicId: string, applicationDomainId: string | null): Promise<void> {
   await api.put(`/projects/${projectPublicId}/application-domain`, { applicationDomainId });
 }
 

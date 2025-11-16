@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: Props) {
+  const queryClient = useQueryClient();
   const { push } = useOptionalToast();
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [resourcesOpen, setResourcesOpen] = React.useState(false);
@@ -112,6 +114,9 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
       
       // Update local state to trigger re-render and show selection
       setSelectedDomainId(domainPublicId);
+      
+      // Invalidate projects query to refresh from backend
+      await queryClient.invalidateQueries({ queryKey: ['projects'] });
       
       push({ variant:'success', title:'Actualizado', message:'Dominio actualizado correctamente'});
     } catch (err:any) {
