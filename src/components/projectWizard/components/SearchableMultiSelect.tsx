@@ -15,7 +15,7 @@ interface SearchableMultiSelectProps {
   selectedIds: string[];
   onSelect: (id: string) => void;
   onRemove: (id: string) => void;
-  onAddNew: () => void;
+  onAddNew?: () => void;
   placeholder?: string;
   disabled?: boolean;
   hideAddButton?: boolean;
@@ -29,7 +29,7 @@ export function SearchableMultiSelect({
   onAddNew,
   placeholder = 'Seleccionar...',
   disabled = false,
-  hideAddButton = false,
+  hideAddButton = !onAddNew,
 }: SearchableMultiSelectProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -82,7 +82,7 @@ export function SearchableMultiSelect({
             </span>
             <ChevronDown className="h-4 w-4 opacity-50" />
           </button>
-          {!hideAddButton && (
+          {!hideAddButton && onAddNew && (
             <Button type="button" variant="outline" size="sm" onClick={onAddNew} disabled={disabled}>
               <Plus className="h-4 w-4" />
             </Button>
