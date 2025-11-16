@@ -56,6 +56,15 @@ export function ProfessorNetwork() {
           size: nodeSize,
           value: node.projectCount,
           mass: mass,
+          widthConstraint: {
+            maximum: 200,
+          },
+          margin: {
+            top: 35,
+            right: 10,
+            bottom: 10,
+            left: 10,
+          },
           color: {
             background: '#3b82f6',
             border: '#1e40af',
@@ -137,12 +146,6 @@ export function ProfessorNetwork() {
             max: 22,
             drawThreshold: 5,
           },
-        },
-        margin: {
-          top: 30,
-          right: 10,
-          bottom: 10,
-          left: 10,
         },
       },
       physics: {
