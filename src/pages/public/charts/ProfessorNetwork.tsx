@@ -42,8 +42,7 @@ export function ProfessorNetwork() {
       data.nodes.map((node) => {
         // Scale node size proportionally to project count
         const nodeSize =
-          minNodeSize +
-          (maxProjectCount > 0 ? (node.projectCount / maxProjectCount) * (maxNodeSize - minNodeSize) : 0)
+          minNodeSize + node.projectCount * 10
 
         // Mass based on total edge weight
         const nodeTotalWeight = edgeWeightSum.get(node.id) || 0
