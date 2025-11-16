@@ -37,12 +37,24 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
   });
 
   const { data: domainsData } = useAllApplicationDomains();
-  const studentResults = (studentsPage?.content ?? []).map(s => ({ 
+  
+  // Combine fetched students with currently selected students to ensure they're always shown
+  const allStudents = (studentsPage?.content ?? []).map(s => ({ 
     publicId: s.publicId, 
     name: s.name, 
     lastname: s.lastname,
     display: `${s.lastname}, ${s.name}`
   }));
+  
+  const studentResults = Array.from(
+    new Map(
+      [
+        ...selectedStudents,
+        ...allStudents
+      ].map(s => [s.publicId, s])
+    ).values()
+  );
+  
   const domains = (domainsData?.items ?? []).sort((a, b) => a.name.localeCompare(b.name));
 
   React.useEffect(()=> { if (open && titleRef.current) { titleRef.current.focus(); } }, [open]);
