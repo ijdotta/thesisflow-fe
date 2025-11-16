@@ -28,7 +28,12 @@ export interface ProjectDraft {
   students: StudentDraft[];
 }
 
-export const SUBTYPE_OPTIONS = ['Investigación', 'Extensión', 'Vinculación'];
+export const SUBTYPE_OPTIONS = ['INVESTIGACION', 'EXTENSION', 'VINCULACION'];
+export const SUBTYPE_LABELS: Record<string, string> = {
+  INVESTIGACION: 'Investigación',
+  EXTENSION: 'Extensión',
+  VINCULACION: 'Vinculación',
+};
 
 export const emptyDraft: ProjectDraft = {
   title: '',
