@@ -25,6 +25,9 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [resourcesOpen, setResourcesOpen] = React.useState(false);
   const [selectedStudents, setSelectedStudents] = React.useState<Array<{ publicId: string; name: string; lastname: string }>>([]);
+  const [selectedDirectors, setSelectedDirectors] = React.useState<Array<{ publicId: string; name: string; lastname: string }>>([]);
+  const [selectedCoDirectors, setSelectedCoDirectors] = React.useState<Array<{ publicId: string; name: string; lastname: string }>>([]);
+  const [selectedCollaborators, setSelectedCollaborators] = React.useState<Array<{ publicId: string; name: string; lastname: string }>>([]);
   const [selectedDomainId, setSelectedDomainId] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
   const titleRef = React.useRef<HTMLHeadingElement | null>(null);
@@ -59,15 +62,39 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
       ].map(s => [s.publicId, s])
     ).values()
   );
+
+  // Helper function to create person list results
+  const createPersonResults = (selected: typeof selectedStudents, fetched: typeof allStudents) => {
+    const selectedWithDisplay = selected.map(s => ({
+      ...s,
+      display: `${s.lastname}, ${s.name}`
+    }));
+    
+    return Array.from(
+      new Map(
+        [
+          ...selectedWithDisplay,
+          ...fetched
+        ].map(s => [s.publicId, s])
+      ).values()
+    );
+  };
+
+  const directorResults = createPersonResults(selectedDirectors, allStudents);
+  const coDirectorResults = createPersonResults(selectedCoDirectors, allStudents);
+  const collaboratorResults = createPersonResults(selectedCollaborators, allStudents);
   
   const domains = (domainsData?.items ?? []).sort((a, b) => a.name.localeCompare(b.name));
 
   React.useEffect(()=> { if (open && titleRef.current) { titleRef.current.focus(); } }, [open]);
 
-  // Initialize selected students and domain from project
+  // Initialize selected students, directors, co-directors, collaborators and domain from project
   React.useEffect(() => {
     if (project) {
       setSelectedStudents(project.students.map(s => ({ publicId: s.publicId, name: s.name, lastname: s.lastname })));
+      setSelectedDirectors(project.directors.map(s => ({ publicId: s.publicId, name: s.name, lastname: s.lastname })));
+      setSelectedCoDirectors(project.codirectors.map(s => ({ publicId: s.publicId, name: s.name, lastname: s.lastname })));
+      setSelectedCollaborators(project.collaborators.map(s => ({ publicId: s.publicId, name: s.name, lastname: s.lastname })));
       setSelectedDomainId(project.applicationDomain?.publicId ?? null);
     }
   }, [project]);
@@ -89,28 +116,45 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
     setSelectedStudents(selectedStudents.filter(s => s.publicId !== publicId));
   }
 
-  async function handleSaveStudents() {
+  function removeDirector(publicId: string) {
+    setSelectedDirectors(selectedDirectors.filter(s => s.publicId !== publicId));
+  }
+
+  function removeCoDirector(publicId: string) {
+    setSelectedCoDirectors(selectedCoDirectors.filter(s => s.publicId !== publicId));
+  }
+
+  function removeCollaborator(publicId: string) {
+    setSelectedCollaborators(selectedCollaborators.filter(s => s.publicId !== publicId));
+  }
+
+  async function handleSaveParticipants() {
     if (!project) return;
     setSaving(true);
     try {
-      // Rebuild all participants - setParticipants now replaces all existing ones
+      // Send all participants - setParticipants now replaces all existing ones
       const participants = [
-        ...project.directors.map(d => ({ personId: d.publicId, role: 'DIRECTOR' as const })),
-        ...project.codirectors.map(d => ({ personId: d.publicId, role: 'CO_DIRECTOR' as const })),
-        ...project.collaborators.map(c => ({ personId: c.publicId, role: 'COLLABORATOR' as const })),
+        ...selectedDirectors.map(d => ({ personId: d.publicId, role: 'DIRECTOR' as const })),
+        ...selectedCoDirectors.map(d => ({ personId: d.publicId, role: 'CO_DIRECTOR' as const })),
+        ...selectedCollaborators.map(c => ({ personId: c.publicId, role: 'COLLABORATOR' as const })),
         ...selectedStudents.map(s => ({ personId: s.publicId, role: 'STUDENT' as const })),
       ];
 
       await setProjectParticipants(project.publicId, participants);
       
-      // Update project reference with new students
-      Object.assign(project, { students: selectedStudents });
+      // Update project reference with all participants
+      Object.assign(project, { 
+        students: selectedStudents,
+        directors: selectedDirectors,
+        codirectors: selectedCoDirectors,
+        collaborators: selectedCollaborators
+      });
       
       // Invalidate both projects list and individual project query to refresh from backend
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['project', project.publicId] });
       
-      push({ variant:'success', title:'Actualizado', message:'Estudiantes actualizados correctamente'});
+      push({ variant:'success', title:'Actualizado', message:'Participantes actualizados correctamente'});
     } catch (err:any) {
       push({ variant:'error', title:'Error', message: err?.message || 'No se pudo actualizar'});
     } finally {
@@ -191,7 +235,59 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
             </section>
 
             <section className="space-y-3 border-t pt-6">
-              <h3 className="text-sm font-semibold tracking-tight">Gestionar Estudiantes</h3>
+              <h3 className="text-sm font-semibold tracking-tight">Gestionar Participantes</h3>
+              
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Directores</label>
+                <SearchableMultiSelect
+                  items={directorResults.map(s => ({ publicId: s.publicId, name: s.name, display: s.display }))}
+                  selectedIds={selectedDirectors.map(s => s.publicId)}
+                  onSelect={(id) => {
+                    const director = directorResults.find(s => s.publicId === id);
+                    if (director && !selectedDirectors.some(s => s.publicId === id)) {
+                      setSelectedDirectors([...selectedDirectors, { publicId: director.publicId, name: director.name, lastname: director.lastname }]);
+                    }
+                  }}
+                  onRemove={(id) => removeDirector(id)}
+                  placeholder="Buscar y seleccionar directores"
+                  hideAddButton={true}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Co-Directores</label>
+                <SearchableMultiSelect
+                  items={coDirectorResults.map(s => ({ publicId: s.publicId, name: s.name, display: s.display }))}
+                  selectedIds={selectedCoDirectors.map(s => s.publicId)}
+                  onSelect={(id) => {
+                    const coDirector = coDirectorResults.find(s => s.publicId === id);
+                    if (coDirector && !selectedCoDirectors.some(s => s.publicId === id)) {
+                      setSelectedCoDirectors([...selectedCoDirectors, { publicId: coDirector.publicId, name: coDirector.name, lastname: coDirector.lastname }]);
+                    }
+                  }}
+                  onRemove={(id) => removeCoDirector(id)}
+                  placeholder="Buscar y seleccionar co-directores"
+                  hideAddButton={true}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Colaboradores</label>
+                <SearchableMultiSelect
+                  items={collaboratorResults.map(s => ({ publicId: s.publicId, name: s.name, display: s.display }))}
+                  selectedIds={selectedCollaborators.map(s => s.publicId)}
+                  onSelect={(id) => {
+                    const collaborator = collaboratorResults.find(s => s.publicId === id);
+                    if (collaborator && !selectedCollaborators.some(s => s.publicId === id)) {
+                      setSelectedCollaborators([...selectedCollaborators, { publicId: collaborator.publicId, name: collaborator.name, lastname: collaborator.lastname }]);
+                    }
+                  }}
+                  onRemove={(id) => removeCollaborator(id)}
+                  placeholder="Buscar y seleccionar colaboradores"
+                  hideAddButton={true}
+                />
+              </div>
+
               <div className="space-y-2">
                 <label className="text-xs text-muted-foreground">Estudiantes</label>
                 <SearchableMultiSelect
@@ -212,10 +308,10 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
               <Button
                 variant="default"
                 size="sm"
-                onClick={handleSaveStudents}
+                onClick={handleSaveParticipants}
                 disabled={saving}
               >
-                {saving ? 'Guardando...' : 'Guardar Estudiantes'}
+                {saving ? 'Guardando...' : 'Guardar Participantes'}
               </Button>
             </section>
 
