@@ -77,9 +77,11 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
     if (!project) return;
     setSaving(true);
     try {
-      // Only send students - don't rebuild all participants
-      // The API expects personId for STUDENT role (which resolves to student entity)
+      // Rebuild all participants - setParticipants now replaces all existing ones
       const participants = [
+        ...project.directors.map(d => ({ personId: d.publicId, role: 'DIRECTOR' as const })),
+        ...project.codirectors.map(d => ({ personId: d.publicId, role: 'CO_DIRECTOR' as const })),
+        ...project.collaborators.map(c => ({ personId: c.publicId, role: 'COLLABORATOR' as const })),
         ...selectedStudents.map(s => ({ personId: s.publicId, role: 'STUDENT' as const })),
       ];
 
