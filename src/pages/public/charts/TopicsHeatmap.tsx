@@ -68,20 +68,26 @@ export function TopicsHeatmap() {
           <ResponsiveHeatMap
             data={nivoData}
             margin={{ top: 40, right: 40, bottom: 100, left: 200 }}
-            minValue={0}
-            maxValue="auto"
+            colorBy="value"
+            colors={{ type: 'sequential', scheme: 'blues' }}
+            forceSquare={false}
             axisTop={{
               tickSize: 5,
               tickPadding: 5,
               tickRotation: -45,
+              legend: '',
+              legendOffset: 36,
             }}
             axisLeft={{
               tickSize: 5,
               tickPadding: 5,
               tickRotation: 0,
+              legend: '',
+              legendOffset: -72,
             }}
             cellOpacity={1}
-            cellBorderColor="white"
+            cellBorderColor={{ from: 'color', modifiers: [['darker', 0.4]] }}
+            labelTextColor={{ from: 'color', modifiers: [['darker', 1.8]] }}
             tooltip={(props) => (
               <div
                 style={{
@@ -99,6 +105,23 @@ export function TopicsHeatmap() {
                 Proyectos: {props.cell.value}
               </div>
             )}
+            legends={[
+              {
+                anchor: 'bottom-right',
+                translateX: 0,
+                translateY: 120,
+                length: 400,
+                thickness: 8,
+                direction: 'row',
+                tickPosition: 'after',
+                tickSize: 3,
+                tickSpacing: 4,
+                tickOverlap: false,
+                title: 'Cantidad →',
+                titleAlign: 'start',
+                titleOffset: 4,
+              },
+            ]}
           />
         </div>
       </CardContent>
