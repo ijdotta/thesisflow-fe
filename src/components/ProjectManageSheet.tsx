@@ -6,6 +6,7 @@ import type { Project } from '@/types/Project';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { deleteProject, setProjectParticipants, setProjectApplicationDomain } from '@/api/projects';
 import { useOptionalToast } from '@/components/ui/toast';
+import { useAuth } from '@/contexts/useAuth';
 import { getStudents } from '@/api/students';
 import { getProfessors } from '@/api/professors';
 import { getPeople } from '@/api/people';
@@ -28,6 +29,8 @@ interface Props {
 export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: Props) {
   const queryClient = useQueryClient();
   const { push } = useOptionalToast();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [resourcesOpen, setResourcesOpen] = React.useState(false);
   const [selectedStudents, setSelectedStudents] = React.useState<Array<{ publicId: string; name: string; lastname: string }>>([]);
@@ -270,6 +273,7 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
               </div>
             </section>
 
+            {isAdmin && (
             <section className="space-y-3 border-t pt-6">
               <h3 className="text-sm font-semibold tracking-tight">Gestionar Participantes</h3>
               
@@ -350,6 +354,7 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
                 {saving ? 'Guardando...' : 'Guardar Participantes'}
               </Button>
             </section>
+            )}
 
             <section className="border-t pt-6 space-y-3">
               <h3 className="text-sm font-semibold tracking-tight">Recursos</h3>
