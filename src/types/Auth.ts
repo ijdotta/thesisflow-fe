@@ -35,6 +35,7 @@ export interface AuthUser {
   userId: string
   role: UserRole
   professorId?: string
+  professorPersonId?: string
   token: string
   expiresAt: string
 }

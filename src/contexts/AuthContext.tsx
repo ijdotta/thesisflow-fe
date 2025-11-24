@@ -15,6 +15,7 @@ interface PersistPayload {
   role?: Role
   userId?: string
   professorId?: string
+  professorPersonId?: string
 }
 
 function decodeJwtPayload(token: string): Record<string, any> | null {
@@ -65,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const derivedRole = (payload.role || decoded?.role || decoded?.authorities?.[0]) as Role | undefined
     const derivedUserId = payload.userId || decoded?.userId || decoded?.sub || decoded?.id
     const derivedProfessorId = payload.professorId || decoded?.professorId
+    const derivedProfessorPersonId = payload.professorPersonId || decoded?.professorPersonId
     const expiresAt =
       payload.expiresAt || (decoded?.exp ? new Date(decoded.exp * 1000).toISOString() : null)
 
@@ -72,6 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       userId: derivedUserId ?? '',
       role: (derivedRole ?? 'PROFESSOR') as Role,
       professorId: derivedProfessorId,
+      professorPersonId: derivedProfessorPersonId,
       token: payload.token,
       expiresAt: expiresAt ?? new Date(Date.now() + 60 * 60 * 1000).toISOString(),
     }

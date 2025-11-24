@@ -38,20 +38,22 @@ export function useProjects({page, size, sort, filters = {}}: FetchProps) {
 
   const mergedFilters = useMemo(() => {
     const base = { ...filters }
-    // Always add professorId filter for professors, even if not explicitly set
+    // Always add professorId filter for professors (use person's publicId, not professor's publicId)
     if (user) {
-      console.log('[useProjects] user.role:', user.role, 'user.professorId:', user.professorId)
+      console.log('[useProjects] user.role:', user.role, 'user.professorPersonId:', (user as any).professorPersonId)
       if (user.role === 'PROFESSOR') {
-        if (user.professorId) {
-          base.professorId = user.professorId
-          console.log('[useProjects] Added professorId filter:', user.professorId)
+        // Use professorPersonId (the Person's publicId) for filtering
+        const personId = (user as any).professorPersonId
+        if (personId) {
+          base.professorId = personId
+          console.log('[useProjects] Added professorId filter (person):', personId)
         } else {
-          console.warn('[useProjects] Professor logged in but has no professorId - cannot filter projects')
+          console.warn('[useProjects] Professor logged in but has no professorPersonId - cannot filter projects')
         }
       }
     }
     return base
-  }, [filters, user?.role, user?.professorId])
+  }, [filters, user?.role, (user as any)?.professorPersonId])
 
   return useQuery({
     queryKey: ["projects", { page, size, sort, filters: mergedFilters }],
