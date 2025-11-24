@@ -23,8 +23,18 @@ export function useECharts(containerRef: React.RefObject<HTMLDivElement>) {
 
     window.addEventListener('resize', handleResize)
 
+    // Handle visibility changes (tab switching)
+    const handleVisibilityChange = () => {
+      if (!document.hidden && chartInstanceRef.current) {
+        setTimeout(() => chartInstanceRef.current?.resize(), 100)
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
     return () => {
       window.removeEventListener('resize', handleResize)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       if (chartInstanceRef.current) {
         chartInstanceRef.current.dispose()
         chartInstanceRef.current = null
