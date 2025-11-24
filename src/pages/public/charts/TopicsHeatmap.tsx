@@ -67,7 +67,7 @@ export function TopicsHeatmap() {
         <div style={{ width: '100%', height: '600px' }}>
           <ResponsiveHeatMap
             data={nivoData}
-            margin={{ top: 40, right: 40, bottom: 100, left: 200 }}
+            margin={{ top: 40, right: 40, bottom: 150, left: 200 }}
             colorBy="value"
             colors={{ type: 'sequential', scheme: 'blues' }}
             forceSquare={false}
@@ -107,19 +107,19 @@ export function TopicsHeatmap() {
             )}
             legends={[
               {
-                anchor: 'bottom-right',
+                anchor: 'bottom',
                 translateX: 0,
-                translateY: 120,
-                length: 400,
-                thickness: 8,
+                translateY: 80,
+                length: 500,
+                thickness: 12,
                 direction: 'row',
                 tickPosition: 'after',
-                tickSize: 3,
-                tickSpacing: 4,
+                tickSize: 4,
+                tickSpacing: 5,
                 tickOverlap: false,
-                title: 'Cantidad →',
-                titleAlign: 'start',
-                titleOffset: 4,
+                title: 'Número de Proyectos',
+                titleAlign: 'middle',
+                titleOffset: 12,
               },
             ]}
           />
