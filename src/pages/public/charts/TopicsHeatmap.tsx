@@ -68,7 +68,7 @@ export function TopicsHeatmap() {
           <ResponsiveHeatMap
             data={nivoData}
             margin={{ top: 40, right: 40, bottom: 100, left: 200 }}
-            colors="blues"
+            colors={{ scheme: 'blues' }}
             forceSquare={false}
             axisTop={{
               tickSize: 5,
