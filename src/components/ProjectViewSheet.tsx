@@ -101,15 +101,6 @@ export function ProjectViewSheet({ publicId, open, onOpenChange, initial }: Prop
 
             <Separator />
             <section className="space-y-3">
-              <ProjectResourcesPanel 
-                projectId={project.publicId} 
-                resources={project.resources}
-                canEdit={canEdit}
-              />
-            </section>
-
-            <Separator />
-            <section className="space-y-3">
               <h3 className="text-base font-semibold tracking-tight">Participantes</h3>
               <div className="grid md:grid-cols-2 gap-6">
                 <ParticipantGroup title="Directores" list={project.directors} />
@@ -136,6 +127,15 @@ export function ProjectViewSheet({ publicId, open, onOpenChange, initial }: Prop
                   </Tooltip>
                 )) : <span className="text-xs text-muted-foreground">(Sin etiquetas)</span>}
               </div>
+            </section>
+
+            <Separator />
+            <section className="space-y-3">
+              <ProjectResourcesPanel 
+                projectId={project.publicId} 
+                resources={project.resources}
+                canEdit={canEdit}
+              />
             </section>
           </div>
         )}
