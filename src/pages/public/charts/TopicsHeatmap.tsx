@@ -94,6 +94,8 @@ export function TopicsHeatmap() {
     setOption(option)
   }, [data?.data, setOption])
 
+  console.log("TopicsHeatmap render", { data, isLoading, isError })
+
   if (isLoading) {
     return (
       <Card>
