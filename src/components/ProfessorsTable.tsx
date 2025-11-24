@@ -112,13 +112,14 @@ function CreateProfessorSheet({ open, onOpenChange, onCreated }: { open: boolean
 	const [email, setEmail] = React.useState('');
 	const [selectedPerson, setSelectedPerson] = React.useState<{ publicId: string; display: string; name: string; lastname: string; email?: string } | null>(null);
 	const [loading, setLoading] = React.useState(false);
+	const [emailError, setEmailError] = React.useState<string>('');
 	const { push } = useOptionalToast();
 
 	const searchTerm = React.useMemo(() => [lastname, name].filter(Boolean).join(' ').trim(), [lastname, name]);
 	const { data: search } = useSearchPeople(searchTerm);
 	const people = search?.items || [];
 
-	React.useEffect(() => { if (!open) { setName(''); setLastname(''); setEmail(''); setSelectedPerson(null); } }, [open]);
+	React.useEffect(() => { if (!open) { setName(''); setLastname(''); setEmail(''); setSelectedPerson(null); setEmailError(''); } }, [open]);
 
 	function pickPerson(p: typeof people[number]) {
 		setSelectedPerson({ publicId: p.publicId, display: p.display, name: p.name, lastname: p.lastname, email: p.email });
@@ -127,10 +128,11 @@ function CreateProfessorSheet({ open, onOpenChange, onCreated }: { open: boolean
 	function clearSelection() { setSelectedPerson(null); if (!email) setEmail(''); }
 
 	function validate(): boolean {
+		setEmailError('');
 		if (!selectedPerson && (!name.trim() || !lastname.trim())) { push({ variant:'error', title:'Datos faltantes', message:'Nombre y apellido son obligatorios'}); return false; }
-		if (!email.trim()) { push({ variant:'error', title:'Email requerido', message:'Debe ingresar un email'}); return false; }
+		if (!email.trim()) { setEmailError('Email es obligatorio'); return false; }
 		const domainOk = /@(?:cs\.uns\.edu\.ar|uns\.edu\.ar)$/i.test(email.trim());
-		if (!domainOk) { push({ variant:'error', title:'Dominio inválido', message:'Email debe terminar en @cs.uns.edu.ar o @uns.edu.ar'}); return false; }
+		if (!domainOk) { setEmailError('Email debe terminar en @cs.uns.edu.ar o @uns.edu.ar'); return false; }
 		return true;
 	}
 
@@ -202,7 +204,8 @@ function CreateProfessorSheet({ open, onOpenChange, onCreated }: { open: boolean
 						<h3 className="text-sm font-semibold tracking-tight">Credenciales</h3>
 						<div className="space-y-1">
 							<label className="text-xs font-medium">Email institucional *</label>
-							<Input value={email} onChange={e=> setEmail(e.target.value)} placeholder="usuario@cs.uns.edu.ar" required />
+							<Input value={email} onChange={e=> setEmail(e.target.value)} placeholder="usuario@cs.uns.edu.ar" required className={emailError ? 'border-red-500' : ''} />
+							{emailError && <p className="text-xs text-red-500 font-medium">{emailError}</p>}
 							<p className="text-[11px] text-muted-foreground">Debe terminar en <code>@cs.uns.edu.ar</code> o <code>@uns.edu.ar</code>.</p>
 						</div>
 					</section>
@@ -220,16 +223,19 @@ function CreateProfessorSheet({ open, onOpenChange, onCreated }: { open: boolean
 function EditProfessorSheet({ open, professor, onOpenChange, onUpdated }: { open: boolean; professor: FriendlyPerson; onOpenChange: (o: boolean) => void; onUpdated: () => void }) {
 const [email, setEmail] = React.useState(professor.email || '');
 const [loading, setLoading] = React.useState(false);
+const [emailError, setEmailError] = React.useState<string>('');
 const { push } = useOptionalToast();
 
 React.useEffect(() => { 
 if (open) setEmail(professor.email || '');
+setEmailError('');
 }, [open, professor]);
 
 function validate(): boolean {
-if (!email.trim()) { push({ variant:'error', title:'Email requerido', message:'Debe ingresar un email'}); return false; }
+setEmailError('');
+if (!email.trim()) { setEmailError('Email es obligatorio'); return false; }
 const domainOk = /@(?:cs\.uns\.edu\.ar|uns\.edu\.ar)$/i.test(email.trim());
-if (!domainOk) { push({ variant:'error', title:'Dominio inválido', message:'Email debe terminar en @cs.uns.edu.ar o @uns.edu.ar'}); return false; }
+if (!domainOk) { setEmailError('Email debe terminar en @cs.uns.edu.ar o @uns.edu.ar'); return false; }
 return true;
 }
 
@@ -269,7 +275,8 @@ return (
 <h3 className="text-sm font-semibold tracking-tight">Credenciales</h3>
 <div className="space-y-1">
 <label className="text-xs font-medium">Email institucional *</label>
-<Input value={email} onChange={e=> setEmail(e.target.value)} placeholder="usuario@cs.uns.edu.ar" required />
+<Input value={email} onChange={e=> setEmail(e.target.value)} placeholder="usuario@cs.uns.edu.ar" required className={emailError ? 'border-red-500' : ''} />
+{emailError && <p className="text-xs text-red-500 font-medium">{emailError}</p>}
 <p className="text-[11px] text-muted-foreground">Debe terminar en <code>@cs.uns.edu.ar</code> o <code>@uns.edu.ar</code>.</p>
 </div>
 </section>
