@@ -3,6 +3,7 @@ import * as echarts from 'echarts'
 
 export function useECharts(containerRef: React.RefObject<HTMLDivElement>) {
   const chartInstanceRef = useRef<echarts.ECharts | null>(null)
+  const resizeObserverRef = useRef<ResizeObserver | null>(null)
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -13,28 +14,47 @@ export function useECharts(containerRef: React.RefObject<HTMLDivElement>) {
       chartInstanceRef.current = null
     }
 
-    // Initialize fresh instance
-    chartInstanceRef.current = echarts.init(containerRef.current, null, { renderer: 'canvas' })
+    // Initialize fresh instance with proper dimensions
+    const container = containerRef.current
+    chartInstanceRef.current = echarts.init(container, null, { 
+      renderer: 'canvas',
+      useDirtyRect: true
+    })
 
-    // Resize on window resize
-    const handleResize = () => {
-      chartInstanceRef.current?.resize()
+    // Ensure container is visible and has dimensions
+    const resizeChart = () => {
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.resize()
+      }
     }
 
+    // Resize on window resize
+    const handleResize = () => resizeChart()
     window.addEventListener('resize', handleResize)
 
     // Handle visibility changes (tab switching)
     const handleVisibilityChange = () => {
-      if (!document.hidden && chartInstanceRef.current) {
-        setTimeout(() => chartInstanceRef.current?.resize(), 100)
+      if (!document.hidden) {
+        setTimeout(() => resizeChart(), 50)
       }
     }
-
     document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    // Use ResizeObserver to detect container size changes
+    resizeObserverRef.current = new ResizeObserver(() => {
+      resizeChart()
+    })
+    resizeObserverRef.current.observe(container)
+
+    // Initial resize to ensure proper rendering
+    setTimeout(() => resizeChart(), 0)
 
     return () => {
       window.removeEventListener('resize', handleResize)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect()
+      }
       if (chartInstanceRef.current) {
         chartInstanceRef.current.dispose()
         chartInstanceRef.current = null

@@ -92,13 +92,7 @@ export function TopicsHeatmap() {
     }
 
     setOption(option)
-    
-    // Force resize after setting option
-    const chart = getInstance()
-    if (chart) {
-      setTimeout(() => chart.resize(), 100)
-    }
-  }, [data?.data])
+  }, [data?.data, setOption])
 
   if (isLoading) {
     return (
