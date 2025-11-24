@@ -48,18 +48,20 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch all professors for directors/co-directors
+  // Fetch all professors for directors/co-directors (only for admins)
   const { data: professorsPage } = useQuery({
     queryKey: ['professors', 'all'],
     queryFn: () => getProfessors({ page: 0, size: 1000, sort: { field: 'name', dir: 'asc' } }),
     staleTime: 5 * 60 * 1000,
+    enabled: isAdmin,
   });
 
-  // Fetch all people for collaborators
+  // Fetch all people for collaborators (only for admins)
   const { data: peoplePage } = useQuery({
     queryKey: ['people', 'all'],
     queryFn: () => getPeople({ page: 0, size: 1000, sort: { field: 'name', dir: 'asc' } }),
     staleTime: 5 * 60 * 1000,
+    enabled: isAdmin,
   });
 
   const { data: domainsData } = useAllApplicationDomains();
