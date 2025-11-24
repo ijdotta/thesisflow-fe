@@ -319,6 +319,19 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
               </Button>
             </section>
 
+            <section className="border-t pt-6 space-y-3">
+              <h3 className="text-sm font-semibold tracking-tight">Recursos</h3>
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={() => setResourcesOpen(true)}
+                disabled={!project}
+              >
+                <FileText className="h-4 w-4 mr-1" />
+                Gestionar Recursos
+              </Button>
+            </section>
+
             <section className="border-t pt-6 space-y-4">
               <h3 className="text-sm font-semibold tracking-tight text-destructive">Zona Peligrosa</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">Eliminar este proyecto es irreversible. Usa el botón de abajo para continuar.</p>
@@ -329,15 +342,6 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
           </div>
         )}
         <SheetFooter className="gap-2 mt-8 flex flex-wrap">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setResourcesOpen(true)}
-            disabled={!project}
-          >
-            <FileText className="h-4 w-4 mr-1" />
-            Recursos
-          </Button>
           <Button variant="outline" size="sm" onClick={()=> onOpenChange(false)}>Cerrar</Button>
         </SheetFooter>
         {project && (
