@@ -186,8 +186,8 @@ export default function ProjectsTable() {
 		{
 			id: "submissionDate",
 			header: "Fecha de Presentación",
-			accessor: (row) => new Date(row.initialSubmission).toLocaleDateString('es-ES'),
-			sortField: "initialSubmission",
+			accessor: (row) => row.completion ? new Date(row.completion).toLocaleDateString('es-ES') : '—',
+			sortField: "completion",
 			className: "whitespace-nowrap text-sm",
 		},
 		{
