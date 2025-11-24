@@ -4,23 +4,6 @@ import { useAnalyticsFilters } from '@/pages/public/AnalyticsContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ResponsiveHeatMap } from '@nivo/heatmap'
 
-// Function to determine if text should be white or black based on background color
-const getContrastingTextColor = (hexColor: string): string => {
-  // Remove # if present
-  const hex = hexColor.replace('#', '')
-  
-  // Convert to RGB
-  const r = parseInt(hex.slice(0, 2), 16)
-  const g = parseInt(hex.slice(2, 4), 16)
-  const b = parseInt(hex.slice(4, 6), 16)
-  
-  // Calculate relative luminance
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  
-  // Return white for dark backgrounds, black for light backgrounds
-  return luminance > 0.5 ? '#000000' : '#ffffff'
-}
-
 export function TopicsHeatmap() {
   const { filters } = useAnalyticsFilters()
 
@@ -86,7 +69,7 @@ export function TopicsHeatmap() {
             data={nivoData}
             margin={{ top: 40, right: 40, bottom: 100, left: 200 }}
             colorBy="value"
-            colors={{ type: 'sequential', scheme: 'blues'}}
+            colors={{ type: 'sequential', scheme: 'blues' }}
             forceSquare={false}
             axisTop={{
               tickSize: 5,
@@ -104,7 +87,7 @@ export function TopicsHeatmap() {
             }}
             cellOpacity={1}
             cellBorderColor={{ from: 'color', modifiers: [['darker', 0.4]] }}
-            labelTextColor={(props) => getContrastingTextColor(props.color)}
+            labelTextColor={{ from: 'color', modifiers: [['darker', 1.8]] }}
             tooltip={(props) => (
               <div
                 style={{
