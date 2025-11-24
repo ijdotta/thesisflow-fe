@@ -2,104 +2,23 @@ import { useQuery } from '@tanstack/react-query'
 import { publicAPI } from '@/api/publicApi'
 import { useAnalyticsFilters } from '@/pages/public/AnalyticsContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useECharts } from '@/hooks/useECharts'
-import { useEffect, useRef } from 'react'
+
+const getColor = (value: number, max: number): string => {
+  if (max === 0) return '#e5e7eb'
+  const ratio = value / max
+  const colors = ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
+  const index = Math.floor(ratio * (colors.length - 1))
+  return colors[index]
+}
 
 export function TopicsHeatmap() {
   const { filters } = useAnalyticsFilters()
-  const ref = useRef<HTMLDivElement>(null)
-  const { setOption, getInstance } = useECharts(ref)
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['topic-heatmap', filters],
     queryFn: () => publicAPI.getTopicHeatmap(filters),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   })
-
-  useEffect(() => {
-    if (!data?.data || data.data.length === 0) return
-
-    const topics = Array.from(new Set(data.data.map((d) => d.topic)))
-    const years = Array.from(new Set(data.data.map((d) => d.year))).sort((a, b) => a - b)
-
-    // Create matrix data for heatmap
-    const heatmapData = data.data.map((d) => [
-      years.indexOf(d.year),
-      topics.indexOf(d.topic),
-      d.count,
-    ])
-
-    const maxCount = Math.max(...data.data.map((d) => d.count))
-
-    const option = {
-      tooltip: {
-        position: 'top',
-        formatter: (params: any) => {
-          if (!params.componentSubType || params.componentSubType !== 'heatmap') return ''
-          const topic = topics[params.value[1]]
-          const year = years[params.value[0]]
-          const count = params.value[2]
-          return `${topic}<br/>${year}: ${count} proyectos`
-        },
-      },
-      grid: {
-        height: '85%',
-        top: 20,
-        left: 150,
-        bottom: 40,
-      },
-      xAxis: {
-        type: 'category',
-        data: years,
-        splitArea: {
-          show: true,
-        },
-      },
-      yAxis: {
-        type: 'category',
-        data: topics,
-        splitArea: {
-          show: true,
-        },
-      },
-      visualMap: {
-        min: 0,
-        max: maxCount,
-        calculable: true,
-        orient: 'vertical',
-        right: '2%',
-        bottom: '5%',
-        inRange: {
-          color: ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026'],
-        },
-      },
-      series: [
-        {
-          name: 'Proyectos',
-          type: 'heatmap',
-          data: heatmapData,
-          label: {
-            show: heatmapData.length <= 50,
-          },
-          emphasis: {
-            itemStyle: {
-              borderColor: '#333',
-              borderWidth: 1,
-            },
-          },
-        },
-      ],
-    }
-
-    setOption(option)
-    
-    // Force resize after setting option to ensure proper rendering on tab switch
-    const chart = getInstance()
-    if (chart) {
-      setTimeout(() => chart.resize(), 100)
-    }
-  }, [data?.data, setOption, getInstance])
-  console.log("TopicsHeatmap render", { data, isLoading, isError })
 
   if (isLoading) {
     return (
@@ -131,13 +50,55 @@ export function TopicsHeatmap() {
     )
   }
 
+  const topics = Array.from(new Set(data.data.map((d) => d.topic))).sort()
+  const years = Array.from(new Set(data.data.map((d) => d.year))).sort((a, b) => a - b)
+  const maxCount = Math.max(...data.data.map((d) => d.count))
+
+  const getCount = (topic: string, year: number): number => {
+    return data.data.find((d) => d.topic === topic && d.year === year)?.count || 0
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Popularidad de Temas (Mapa de Calor)</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div ref={ref} style={{ width: '100%', height: '600px', minHeight: '600px', border: '1px solid #e5e7eb' }} />
+      <CardContent className="overflow-x-auto">
+        <table className="w-full text-sm border-collapse">
+          <thead>
+            <tr>
+              <th className="p-2 text-left border border-gray-200 bg-gray-50 font-medium text-xs">Tema</th>
+              {years.map((year) => (
+                <th key={year} className="p-2 text-center border border-gray-200 bg-gray-50 font-medium text-xs min-w-12">
+                  {year}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {topics.map((topic) => (
+              <tr key={topic}>
+                <td className="p-2 border border-gray-200 bg-gray-50 text-xs font-medium max-w-xs truncate">
+                  {topic}
+                </td>
+                {years.map((year) => {
+                  const count = getCount(topic, year)
+                  const bgColor = count > 0 ? getColor(count, maxCount) : '#f3f4f6'
+                  return (
+                    <td
+                      key={`${topic}-${year}`}
+                      className="p-2 border border-gray-200 text-center text-xs font-semibold text-gray-900 cursor-pointer hover:opacity-80 transition-opacity"
+                      style={{ backgroundColor: bgColor }}
+                      title={`${topic} (${year}): ${count} proyecto${count !== 1 ? 's' : ''}`}
+                    >
+                      {count > 0 ? count : '-'}
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </CardContent>
     </Card>
   )
