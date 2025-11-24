@@ -69,7 +69,7 @@ export function TopicsHeatmap() {
             data={nivoData}
             margin={{ top: 40, right: 40, bottom: 150, left: 200 }}
             colorBy="value"
-            colors={{ type: 'sequential', scheme: 'blues' }}
+            colors={{ type: 'sequential', scheme: 'blues'}}
             forceSquare={false}
             axisTop={{
               tickSize: 5,
