@@ -1,3 +1,5 @@
+import type { ProjectResource } from '@/types/ProjectResource'
+
 export interface ApplicationDomain {
   publicId: string,
   name: string,
@@ -34,7 +36,7 @@ export interface ProjectResponse {
   career: { publicId: string; name: string; description?: string },
   tags: Tag[],
   participants: Participant[],
-  resources?: string, // JSON string of resources (stored as string in DB)
+  resources?: ProjectResource[], // Array of resources from backend
 }
 
 export interface GetProjectsResponse {

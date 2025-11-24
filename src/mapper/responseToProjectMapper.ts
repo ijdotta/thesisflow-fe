@@ -44,14 +44,8 @@ const mapSubtypes = (subtypes: string[]): string[] => {
   return filtered
 }
 
-const parseResources = (resourcesJson?: string): ProjectResource[] => {
-  if (!resourcesJson) return []
-  try {
-    const parsed = JSON.parse(resourcesJson)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
+const parseResources = (resources?: ProjectResource[]): ProjectResource[] => {
+  return resources ?? []
 }
 
 const mapProjectResponseToProject = (projectResponse: ProjectResponse): Project => {
