@@ -2,103 +2,16 @@ import { useQuery } from '@tanstack/react-query'
 import { publicAPI } from '@/api/publicApi'
 import { useAnalyticsFilters } from '@/pages/public/AnalyticsContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useECharts } from '@/hooks/useECharts'
-import { useEffect, useRef } from 'react'
+import { ResponsiveHeatMap } from '@nivo/heatmap'
 
 export function TopicsHeatmap() {
   const { filters } = useAnalyticsFilters()
-  const ref = useRef<HTMLDivElement>(null)
-  const { setOption, getInstance } = useECharts(ref)
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['topic-heatmap', filters],
     queryFn: () => publicAPI.getTopicHeatmap(filters),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   })
-
-  useEffect(() => {
-    if (!data?.data || data.data.length === 0) return
-
-    const topics = Array.from(new Set(data.data.map((d) => d.topic)))
-    const years = Array.from(new Set(data.data.map((d) => d.year))).sort((a, b) => a - b)
-
-    // Create matrix data for heatmap
-    const heatmapData = data.data.map((d) => [
-      years.indexOf(d.year),
-      topics.indexOf(d.topic),
-      d.count,
-    ])
-
-    const maxCount = Math.max(...data.data.map((d) => d.count))
-
-    const option = {
-      tooltip: {
-        position: 'top',
-        formatter: (params: any) => {
-          if (!params.componentSubType || params.componentSubType !== 'heatmap') return ''
-          const topic = topics[params.value[1]]
-          const year = years[params.value[0]]
-          const count = params.value[2]
-          return `${topic}<br/>${year}: ${count} proyectos`
-        },
-      },
-      grid: {
-        height: '85%',
-        top: 20,
-        left: 150,
-        bottom: 40,
-      },
-      xAxis: {
-        type: 'category',
-        data: years,
-        splitArea: {
-          show: true,
-        },
-      },
-      yAxis: {
-        type: 'category',
-        data: topics,
-        splitArea: {
-          show: true,
-        },
-      },
-      visualMap: {
-        min: 0,
-        max: maxCount,
-        calculable: true,
-        orient: 'vertical',
-        right: '2%',
-        bottom: '5%',
-        inRange: {
-          color: ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026'],
-        },
-      },
-      series: [
-        {
-          name: 'Proyectos',
-          type: 'heatmap',
-          data: heatmapData,
-          label: {
-            show: heatmapData.length <= 50,
-          },
-          emphasis: {
-            itemStyle: {
-              borderColor: '#333',
-              borderWidth: 1,
-            },
-          },
-        },
-      ],
-    }
-
-    setOption(option)
-    
-    // Force resize after setting option
-    const chart = getInstance()
-    if (chart) {
-      setTimeout(() => chart.resize(), 100)
-    }
-  }, [data?.data, setOption, getInstance, filters])
 
   if (isLoading) {
     return (
@@ -130,13 +43,87 @@ export function TopicsHeatmap() {
     )
   }
 
+  // Transform data for nivo heatmap
+  const years = Array.from(new Set(data.data.map((d) => d.year))).sort((a, b) => a - b)
+  const topics = Array.from(new Set(data.data.map((d) => d.topic))).sort()
+
+  const nivoData = topics.map((topic) => ({
+    id: topic,
+    data: years.map((year) => {
+      const item = data.data.find((d) => d.topic === topic && d.year === year)
+      return {
+        x: String(year),
+        y: item?.count ?? 0,
+      }
+    }),
+  }))
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Popularidad de Temas (Mapa de Calor)</CardTitle>
       </CardHeader>
       <CardContent>
-        <div ref={ref} style={{ width: '100%', height: '600px', minHeight: '600px', border: '1px solid #e5e7eb' }} />
+        <div style={{ width: '100%', height: '600px' }}>
+          <ResponsiveHeatMap
+            data={nivoData}
+            margin={{ top: 40, right: 40, bottom: 150, left: 200 }}
+            colorBy="value"
+            colors={{ type: 'sequential', scheme: 'blues'}}
+            forceSquare={false}
+            axisTop={{
+              tickSize: 5,
+              tickPadding: 5,
+              tickRotation: -45,
+              legend: '',
+              legendOffset: 36,
+            }}
+            axisLeft={{
+              tickSize: 5,
+              tickPadding: 5,
+              tickRotation: 0,
+              legend: '',
+              legendOffset: -72,
+            }}
+            cellOpacity={1}
+            cellBorderColor={{ from: 'color', modifiers: [['darker', 0.4]] }}
+            labelTextColor={{ from: 'color', modifiers: [['darker', 1.8]] }}
+            tooltip={(props) => (
+              <div
+                style={{
+                  padding: '8px 12px',
+                  background: '#222',
+                  color: '#fff',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                }}
+              >
+                <strong>{props.cell.serieId}</strong>
+                <br />
+                Año: {props.cell.xKey}
+                <br />
+                Proyectos: {props.cell.value}
+              </div>
+            )}
+            legends={[
+              {
+                anchor: 'bottom',
+                translateX: 0,
+                translateY: 80,
+                length: 500,
+                thickness: 12,
+                direction: 'row',
+                tickPosition: 'after',
+                tickSize: 4,
+                tickSpacing: 5,
+                tickOverlap: false,
+                title: 'Número de Proyectos',
+                titleAlign: 'middle',
+                titleOffset: 12,
+              },
+            ]}
+          />
+        </div>
       </CardContent>
     </Card>
   )

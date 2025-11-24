@@ -1,6 +1,7 @@
 import type {Participant, ProjectResponse} from "@/types/ProjectResponse.ts";
 import type {Project} from "@/types/Project.ts";
 import type {Person} from "@/types/Person.ts";
+import type { ProjectResource } from "@/types/ProjectResource";
 
 const mapParticipantToPerson = (participant: Participant): Person => {
   return {
@@ -41,6 +42,10 @@ const mapSubTypeToString = (subtype: string): string => {
 const mapSubtypes = (subtypes: string[]): string[] => {
   const filtered = subtypes.map(mapSubTypeToString).filter(s => s !== "")
   return filtered
+}
+
+const parseResources = (resources?: ProjectResource[]): ProjectResource[] => {
+  return resources ?? []
 }
 
 const mapProjectResponseToProject = (projectResponse: ProjectResponse): Project => {
@@ -84,6 +89,7 @@ const mapProjectResponseToProject = (projectResponse: ProjectResponse): Project 
     directors: directors,
     codirectors: codirectors,
     collaborators: collaborators,
+    resources: parseResources(projectResponse.resources),
   }
 }
 

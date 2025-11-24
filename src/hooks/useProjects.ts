@@ -37,16 +37,19 @@ export function useProjects({page, size, sort, filters = {}}: FetchProps) {
   const { user } = useAuth()
 
   const mergedFilters = useMemo(() => {
+    const base = { ...filters }
+    // Always add professorId filter for professors
     if (user?.role === 'PROFESSOR' && user.professorId) {
-      return { ...filters, professorId: user.professorId }
+      base.professorId = user.professorId
     }
-    return filters
-  }, [filters, user?.professorId, user?.role])
+    return base
+  }, [filters, user?.role, user?.professorId])
 
   return useQuery({
     queryKey: ["projects", { page, size, sort, filters: mergedFilters }],
     queryFn: () => getProjects({page, size, sort, filters: mergedFilters}),
     staleTime: 60_000,
     select: (response) => transform(response),
+    enabled: user !== null, // Only run query when user is loaded
   });
 }

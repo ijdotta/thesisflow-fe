@@ -86,12 +86,10 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
                   <span className="font-medium">Consejo:</span>{' '}
                   {new Date(project.initialSubmission).toLocaleDateString('es-ES')}
                 </div>
-                {project.completion && (
-                  <div>
-                    <span className="font-medium">Finalización:</span>{' '}
-                    {new Date(project.completion).toLocaleDateString('es-ES')}
-                  </div>
-                )}
+                <div>
+                  <span className="font-medium">Finalización:</span>{' '}
+                  {project.completion ? new Date(project.completion).toLocaleDateString('es-ES') : <span className="italic text-amber-600">pendiente</span>}
+                </div>
               </div>
             </div>
 

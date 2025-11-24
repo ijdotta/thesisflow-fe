@@ -6,11 +6,18 @@ import type { Project } from '@/types/Project';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { deleteProject, setProjectParticipants, setProjectApplicationDomain } from '@/api/projects';
 import { useOptionalToast } from '@/components/ui/toast';
+import { useAuth } from '@/contexts/useAuth';
 import { getStudents } from '@/api/students';
+import { getProfessors } from '@/api/professors';
+import { getPeople } from '@/api/people';
 import { useAllApplicationDomains } from '@/hooks/useAllApplicationDomains';
 import { ProjectResourcesSheet } from '@/components/ProjectResourcesSheet';
 import { SearchableMultiSelect } from '@/components/projectWizard/components/SearchableMultiSelect';
 import { FileText } from 'lucide-react';
+
+const getProjectTypeDisplayName = (type: string): string => {
+  return type === 'THESIS' ? 'Tesis' : 'Trabajo Final'
+}
 
 interface Props {
   project: Project | null;
@@ -22,6 +29,8 @@ interface Props {
 export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: Props) {
   const queryClient = useQueryClient();
   const { push } = useOptionalToast();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [resourcesOpen, setResourcesOpen] = React.useState(false);
   const [selectedStudents, setSelectedStudents] = React.useState<Array<{ publicId: string; name: string; lastname: string }>>([]);
@@ -39,14 +48,46 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
     staleTime: 5 * 60 * 1000,
   });
 
+  // Fetch all professors for directors/co-directors (only for admins)
+  const { data: professorsPage } = useQuery({
+    queryKey: ['professors', 'all'],
+    queryFn: () => getProfessors({ page: 0, size: 1000, sort: { field: 'name', dir: 'asc' } }),
+    staleTime: 5 * 60 * 1000,
+    enabled: isAdmin,
+  });
+
+  // Fetch all people for collaborators (only for admins)
+  const { data: peoplePage } = useQuery({
+    queryKey: ['people', 'all'],
+    queryFn: () => getPeople({ page: 0, size: 1000, sort: { field: 'name', dir: 'asc' } }),
+    staleTime: 5 * 60 * 1000,
+    enabled: isAdmin,
+  });
+
   const { data: domainsData } = useAllApplicationDomains();
   
-  // Combine fetched students with currently selected students to ensure they're always shown
+  // Combine fetched students with currently selected students
   const allStudents = (studentsPage?.content ?? []).map(s => ({ 
     publicId: s.publicId, 
     name: s.name, 
     lastname: s.lastname,
     display: `${s.lastname}, ${s.name}`
+  }));
+
+  // Combine fetched professors with currently selected directors/co-directors
+  const allProfessors = (professorsPage?.content ?? []).map(p => ({ 
+    publicId: p.publicId, 
+    name: p.name, 
+    lastname: p.lastname,
+    display: `${p.lastname}, ${p.name}`
+  }));
+
+  // Combine fetched people with currently selected collaborators
+  const allPeople = (peoplePage?.content ?? []).map(p => ({ 
+    publicId: p.publicId, 
+    name: p.name, 
+    lastname: p.lastname,
+    display: `${p.lastname}, ${p.name}`
   }));
   
   const selectedStudentsWithDisplay = selectedStudents.map(s => ({
@@ -80,9 +121,9 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
     );
   };
 
-  const directorResults = createPersonResults(selectedDirectors, allStudents);
-  const coDirectorResults = createPersonResults(selectedCoDirectors, allStudents);
-  const collaboratorResults = createPersonResults(selectedCollaborators, allStudents);
+  const directorResults = createPersonResults(selectedDirectors, allProfessors);
+  const coDirectorResults = createPersonResults(selectedCoDirectors, allProfessors);
+  const collaboratorResults = createPersonResults(selectedCollaborators, allPeople);
   
   const domains = (domainsData?.items ?? []).sort((a, b) => a.name.localeCompare(b.name));
 
@@ -211,7 +252,7 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
               </div>
               <div className="space-y-1">
                 <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Tipo</div>
-                <div>{project.type}</div>
+                <div>{getProjectTypeDisplayName(project.type)}</div>
               </div>
               <div className="space-y-1">
                 <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Carrera</div>
@@ -234,6 +275,7 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
               </div>
             </section>
 
+            {isAdmin && (
             <section className="space-y-3 border-t pt-6">
               <h3 className="text-sm font-semibold tracking-tight">Gestionar Participantes</h3>
               
@@ -314,6 +356,20 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
                 {saving ? 'Guardando...' : 'Guardar Participantes'}
               </Button>
             </section>
+            )}
+
+            <section className="border-t pt-6 space-y-3">
+              <h3 className="text-sm font-semibold tracking-tight">Recursos</h3>
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={() => setResourcesOpen(true)}
+                disabled={!project}
+              >
+                <FileText className="h-4 w-4 mr-1" />
+                Gestionar Recursos
+              </Button>
+            </section>
 
             <section className="border-t pt-6 space-y-4">
               <h3 className="text-sm font-semibold tracking-tight text-destructive">Zona Peligrosa</h3>
@@ -325,15 +381,6 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
           </div>
         )}
         <SheetFooter className="gap-2 mt-8 flex flex-wrap">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setResourcesOpen(true)}
-            disabled={!project}
-          >
-            <FileText className="h-4 w-4 mr-1" />
-            Recursos
-          </Button>
           <Button variant="outline" size="sm" onClick={()=> onOpenChange(false)}>Cerrar</Button>
         </SheetFooter>
         {project && (
