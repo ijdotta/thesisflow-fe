@@ -7,6 +7,8 @@ import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { deleteProject, setProjectParticipants, setProjectApplicationDomain } from '@/api/projects';
 import { useOptionalToast } from '@/components/ui/toast';
 import { getStudents } from '@/api/students';
+import { getProfessors } from '@/api/professors';
+import { getPeople } from '@/api/people';
 import { useAllApplicationDomains } from '@/hooks/useAllApplicationDomains';
 import { ProjectResourcesSheet } from '@/components/ProjectResourcesSheet';
 import { SearchableMultiSelect } from '@/components/projectWizard/components/SearchableMultiSelect';
@@ -43,14 +45,44 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
     staleTime: 5 * 60 * 1000,
   });
 
+  // Fetch all professors for directors/co-directors
+  const { data: professorsPage } = useQuery({
+    queryKey: ['professors', 'all'],
+    queryFn: () => getProfessors({ page: 0, size: 1000, sort: { field: 'name', dir: 'asc' } }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch all people for collaborators
+  const { data: peoplePage } = useQuery({
+    queryKey: ['people', 'all'],
+    queryFn: () => getPeople({ page: 0, size: 1000, sort: { field: 'name', dir: 'asc' } }),
+    staleTime: 5 * 60 * 1000,
+  });
+
   const { data: domainsData } = useAllApplicationDomains();
   
-  // Combine fetched students with currently selected students to ensure they're always shown
+  // Combine fetched students with currently selected students
   const allStudents = (studentsPage?.content ?? []).map(s => ({ 
     publicId: s.publicId, 
     name: s.name, 
     lastname: s.lastname,
     display: `${s.lastname}, ${s.name}`
+  }));
+
+  // Combine fetched professors with currently selected directors/co-directors
+  const allProfessors = (professorsPage?.content ?? []).map(p => ({ 
+    publicId: p.publicId, 
+    name: p.name, 
+    lastname: p.lastname,
+    display: `${p.lastname}, ${p.name}`
+  }));
+
+  // Combine fetched people with currently selected collaborators
+  const allPeople = (peoplePage?.content ?? []).map(p => ({ 
+    publicId: p.publicId, 
+    name: p.name, 
+    lastname: p.lastname,
+    display: `${p.lastname}, ${p.name}`
   }));
   
   const selectedStudentsWithDisplay = selectedStudents.map(s => ({
@@ -84,9 +116,9 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
     );
   };
 
-  const directorResults = createPersonResults(selectedDirectors, allStudents);
-  const coDirectorResults = createPersonResults(selectedCoDirectors, allStudents);
-  const collaboratorResults = createPersonResults(selectedCollaborators, allStudents);
+  const directorResults = createPersonResults(selectedDirectors, allProfessors);
+  const coDirectorResults = createPersonResults(selectedCoDirectors, allProfessors);
+  const collaboratorResults = createPersonResults(selectedCollaborators, allPeople);
   
   const domains = (domainsData?.items ?? []).sort((a, b) => a.name.localeCompare(b.name));
 
