@@ -97,9 +97,11 @@ export default function ProfessorsTable() {
 			<ConfirmDeleteDialog
 				open={deleteOpen}
 				onOpenChange={setDeleteOpen}
-				title="Eliminar Profesor"
+				entityName={professorToDelete?.lastname || ''}
+				label="profesor"
 				description={`¿Está seguro de que desea eliminar a ${professorToDelete?.lastname}, ${professorToDelete?.name}?`}
 				onConfirm={handleDelete}
+				requireSlug={false}
 			/>
 		</div>
 	);
