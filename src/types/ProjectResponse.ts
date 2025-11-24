@@ -34,6 +34,7 @@ export interface ProjectResponse {
   career: { publicId: string; name: string; description?: string },
   tags: Tag[],
   participants: Participant[],
+  resources?: string, // JSON string of resources (stored as string in DB)
 }
 
 export interface GetProjectsResponse {
