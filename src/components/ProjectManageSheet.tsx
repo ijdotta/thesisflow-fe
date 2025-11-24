@@ -12,6 +12,10 @@ import { ProjectResourcesSheet } from '@/components/ProjectResourcesSheet';
 import { SearchableMultiSelect } from '@/components/projectWizard/components/SearchableMultiSelect';
 import { FileText } from 'lucide-react';
 
+const getProjectTypeDisplayName = (type: string): string => {
+  return type === 'THESIS' ? 'Tesis' : 'Trabajo Final'
+}
+
 interface Props {
   project: Project | null;
   open: boolean;
@@ -211,7 +215,7 @@ export function ProjectManageSheet({ project, open, onOpenChange, onDeleted }: P
               </div>
               <div className="space-y-1">
                 <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Tipo</div>
-                <div>{project.type}</div>
+                <div>{getProjectTypeDisplayName(project.type)}</div>
               </div>
               <div className="space-y-1">
                 <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Carrera</div>
