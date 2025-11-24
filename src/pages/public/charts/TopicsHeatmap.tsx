@@ -47,21 +47,13 @@ export function TopicsHeatmap() {
   const years = Array.from(new Set(data.data.map((d) => d.year))).sort((a, b) => a - b)
   const topics = Array.from(new Set(data.data.map((d) => d.topic))).sort()
 
-  // Calculate min/max for normalization
-  const allCounts = data.data.map((d) => d.count)
-  const maxCount = Math.max(...allCounts)
-
   const nivoData = topics.map((topic) => ({
     id: topic,
     data: years.map((year) => {
       const item = data.data.find((d) => d.topic === topic && d.year === year)
-      const count = item?.count ?? 0
-      // Normalize to 0-1 range for diverging color scale
-      const normalized = maxCount > 0 ? count / maxCount : 0
       return {
         x: String(year),
-        y: normalized,
-        count: count, // Keep original count for display
+        y: item?.count ?? 0,
       }
     }),
   }))
@@ -75,71 +67,59 @@ export function TopicsHeatmap() {
         <div style={{ width: '100%', height: '600px' }}>
           <ResponsiveHeatMap
             data={nivoData}
-            margin={{ top: 60, right: 100, bottom: 120, left: 220 }}
-            minValue={0}
-            maxValue={1}
+            margin={{ top: 40, right: 40, bottom: 100, left: 200 }}
+            colorBy="value"
+            colors={{ type: 'sequential', scheme: 'blues' }}
             forceSquare={false}
-            colors={{
-              type: 'diverging',
-              scheme: 'blue_red',
-              divergeAt: 0.5,
-              steps: 11,
-            }}
             axisTop={{
               tickSize: 5,
-              tickPadding: 8,
+              tickPadding: 5,
               tickRotation: -45,
-              legend: 'Años',
-              legendPosition: 'middle',
-              legendOffset: 50,
+              legend: '',
+              legendOffset: 36,
             }}
             axisLeft={{
               tickSize: 5,
-              tickPadding: 8,
+              tickPadding: 5,
               tickRotation: 0,
-              legend: 'Temas',
-              legendPosition: 'middle',
-              legendOffset: -60,
+              legend: '',
+              legendOffset: -72,
             }}
             cellOpacity={1}
-            cellBorderWidth={1}
-            cellBorderColor={{ from: 'color', modifiers: [['darker', 0.3]] }}
-            labelTextColor={{ from: 'color', modifiers: [['darker', 2.5]] }}
-            emptyColor="#f3f4f6"
+            cellBorderColor={{ from: 'color', modifiers: [['darker', 0.4]] }}
+            labelTextColor={{ from: 'color', modifiers: [['darker', 1.8]] }}
             tooltip={(props) => (
               <div
                 style={{
-                  padding: '10px 14px',
-                  background: '#1f2937',
+                  padding: '8px 12px',
+                  background: '#222',
                   color: '#fff',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
+                  borderRadius: '4px',
+                  fontSize: '12px',
                 }}
               >
-                <div style={{ marginBottom: '6px', fontWeight: 'bold' }}>
-                  {props.cell.serieId}
-                </div>
-                <div>Año: {props.cell.xKey}</div>
-                <div>Proyectos: {(props.cell.data as any).count}</div>
+                <strong>{props.cell.serieId}</strong>
+                <br />
+                Año: {props.cell.xKey}
+                <br />
+                Proyectos: {props.cell.value}
               </div>
             )}
             legends={[
               {
-                anchor: 'bottom',
+                anchor: 'bottom-right',
                 translateX: 0,
-                translateY: 100,
-                length: 500,
-                thickness: 10,
+                translateY: 120,
+                length: 400,
+                thickness: 8,
                 direction: 'row',
                 tickPosition: 'after',
-                tickSize: 4,
-                tickSpacing: 8,
+                tickSize: 3,
+                tickSpacing: 4,
                 tickOverlap: false,
-                title: 'Intensidad (Normalizada)',
+                title: 'Cantidad →',
                 titleAlign: 'start',
-                titleOffset: 8,
+                titleOffset: 4,
               },
             ]}
           />
