@@ -92,8 +92,13 @@ export function TopicsHeatmap() {
     }
 
     setOption(option)
-  }, [data?.data, setOption])
-
+    
+    // Force resize after setting option to ensure proper rendering on tab switch
+    const chart = getInstance()
+    if (chart) {
+      setTimeout(() => chart.resize(), 100)
+    }
+  }, [data?.data, setOption, getInstance])
   console.log("TopicsHeatmap render", { data, isLoading, isError })
 
   if (isLoading) {
