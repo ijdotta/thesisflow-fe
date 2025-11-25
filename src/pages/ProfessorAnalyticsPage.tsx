@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/useAuth'
 import { publicAPI } from '@/api/publicApi'
@@ -10,16 +9,12 @@ export function ProfessorAnalyticsPage() {
   const { user } = useAuth()
   const { data: currentUserData } = useCurrentUser()
 
-  const filters = useMemo(() => {
-    if (user?.role === 'PROFESSOR' && currentUserData?.id) {
-      return { professorIds: [currentUserData.id] }
-    }
-    return {}
-  }, [user?.role, currentUserData?.id])
-
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['professor-dashboard-stats', filters],
-    queryFn: () => publicAPI.getDashboardStats(filters),
+    queryKey: ['professor-dashboard-stats', currentUserData?.id],
+    queryFn: () => {
+      if (!currentUserData?.id) throw new Error('Professor ID not available')
+      return publicAPI.getProfessorStats([currentUserData.id])
+    },
     staleTime: 5 * 60 * 1000,
     enabled: user?.role === 'PROFESSOR' && !!currentUserData?.id,
   })

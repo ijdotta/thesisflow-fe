@@ -235,4 +235,14 @@ export const publicAPI = {
     })
     return data
   },
+
+  // Stats: Professor-specific dashboard (includes all projects they participate in)
+  getProfessorStats: async (professorIds: string[]): Promise<DashboardStatsResponse> => {
+    const { data } = await api.get<DashboardStatsResponse>('/analytics/professor/stats', {
+      params: {
+        professorIds: professorIds.join(','),
+      },
+    })
+    return data
+  },
 }
