@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AnalyticsFilters } from '@/pages/public/filters/AnalyticsFilters'
 import { TimelineChart } from '@/pages/public/charts/TimelineChart'
@@ -23,36 +22,36 @@ function AnalyticsDashboardContent() {
       {/* Main Content */}
       <div className="lg:col-span-3 space-y-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <Card>
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm mb-6">
             <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 px-6 py-4">
-            <TabsTrigger value="timeline" className="text-xs sm:text-sm">
-              Barras por Año
-            </TabsTrigger>
-            <TabsTrigger value="heatmap" className="text-xs sm:text-sm">
-              Mapa de Calor
-            </TabsTrigger>
-            <TabsTrigger value="network" className="text-xs sm:text-sm">
-              Red
-            </TabsTrigger>
-            <TabsTrigger value="stats" className="text-xs sm:text-sm">
-              Estadísticas
-            </TabsTrigger>
-          </TabsList>
-          </Card>
+              <TabsTrigger value="timeline" className="text-xs sm:text-sm">
+                Barras por Año
+              </TabsTrigger>
+              <TabsTrigger value="heatmap" className="text-xs sm:text-sm">
+                Mapa de Calor
+              </TabsTrigger>
+              <TabsTrigger value="network" className="text-xs sm:text-sm">
+                Red
+              </TabsTrigger>
+              <TabsTrigger value="stats" className="text-xs sm:text-sm">
+                Estadísticas
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="timeline" className="mt-8">
+          <TabsContent value="timeline" className="mt-0">
             <TimelineChart />
           </TabsContent>
 
-          <TabsContent value="heatmap" className="mt-8">
+          <TabsContent value="heatmap" className="mt-0">
             <TopicsHeatmap />
           </TabsContent>
 
-          <TabsContent value="network" className="mt-8">
+          <TabsContent value="network" className="mt-0">
             <ProfessorNetwork />
           </TabsContent>
 
-          <TabsContent value="stats" className="mt-8">
+          <TabsContent value="stats" className="mt-0">
             <div className="space-y-6">
               <DashboardStats />
               <ProjectTypeStats />
