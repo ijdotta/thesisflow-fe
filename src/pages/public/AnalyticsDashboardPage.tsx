@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AnalyticsFilters } from '@/pages/public/filters/AnalyticsFilters'
 import { TimelineChart } from '@/pages/public/charts/TimelineChart'
@@ -22,8 +22,8 @@ function AnalyticsDashboardContent() {
       {/* Main Content */}
       <div className="lg:col-span-3 space-y-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm">
-            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 px-6 py-4">
             <TabsTrigger value="timeline" className="text-xs sm:text-sm">
               Barras por Año
             </TabsTrigger>
@@ -37,21 +37,21 @@ function AnalyticsDashboardContent() {
               Estadísticas
             </TabsTrigger>
           </TabsList>
-          </div>
+          </Card>
 
-          <TabsContent value="timeline" className="mt-6">
+          <TabsContent value="timeline" className="mt-8">
             <TimelineChart />
           </TabsContent>
 
-          <TabsContent value="heatmap" className="mt-6">
+          <TabsContent value="heatmap" className="mt-8">
             <TopicsHeatmap />
           </TabsContent>
 
-          <TabsContent value="network" className="mt-6">
+          <TabsContent value="network" className="mt-8">
             <ProfessorNetwork />
           </TabsContent>
 
-          <TabsContent value="stats" className="mt-6">
+          <TabsContent value="stats" className="mt-8">
             <div className="space-y-6">
               <DashboardStats />
               <ProjectTypeStats />
