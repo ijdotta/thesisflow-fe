@@ -2,24 +2,26 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/useAuth'
 import { publicAPI } from '@/api/publicApi'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import AdminLayout from '@/layouts/AdminLayout'
 
 export function ProfessorAnalyticsPage() {
   const { user } = useAuth()
+  const { data: currentUserData } = useCurrentUser()
 
   const filters = useMemo(() => {
-    if (user?.role === 'PROFESSOR' && user.professorId) {
-      return { professorIds: [user.professorId] }
+    if (user?.role === 'PROFESSOR' && currentUserData?.id) {
+      return { professorIds: [currentUserData.id] }
     }
     return {}
-  }, [user?.role, user?.professorId])
+  }, [user?.role, currentUserData?.id])
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['professor-dashboard-stats', filters],
     queryFn: () => publicAPI.getDashboardStats(filters),
     staleTime: 5 * 60 * 1000,
-    enabled: user?.role === 'PROFESSOR',
+    enabled: user?.role === 'PROFESSOR' && !!currentUserData?.id,
   })
 
   if (!user || user.role !== 'PROFESSOR') {
