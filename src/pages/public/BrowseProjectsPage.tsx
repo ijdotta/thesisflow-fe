@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
 import { publicAPI } from '@/api/publicApi'
 import { useAnalyticsFilters } from '@/pages/public/AnalyticsContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,10 +14,20 @@ import type { ProjectResponse } from '@/types/ProjectResponse'
 
 export function BrowseProjectsPage() {
   const { filters } = useAnalyticsFilters()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [page, setPage] = useState(0)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(searchParams.get('search') || '')
   const [pageSize] = useState(12)
   const [selectedProject, setSelectedProject] = useState<ProjectResponse | null>(null)
+
+  // Sync search to URL
+  useEffect(() => {
+    if (search) {
+      setSearchParams({ search })
+    } else {
+      setSearchParams({})
+    }
+  }, [search, setSearchParams])
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['browse-projects', { ...filters, search, page, size: pageSize }],
