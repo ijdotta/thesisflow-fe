@@ -22,7 +22,8 @@ function AnalyticsDashboardContent() {
       {/* Main Content */}
       <div className="lg:col-span-3 space-y-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm">
+            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <TabsTrigger value="timeline" className="text-xs sm:text-sm">
               Barras por Año
             </TabsTrigger>
@@ -36,6 +37,7 @@ function AnalyticsDashboardContent() {
               Estadísticas
             </TabsTrigger>
           </TabsList>
+          </div>
 
           <TabsContent value="timeline" className="mt-6">
             <TimelineChart />
