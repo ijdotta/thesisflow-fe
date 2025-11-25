@@ -27,4 +27,5 @@ export const SIDEBAR_UTIL_ITEMS: SidebarItem[] = [
 export const PROFESSOR_SIDEBAR_ITEMS: SidebarItem[] = [
   { label: 'Mis Proyectos', href: ROUTES.projects, icon: Files },
   { label: 'Mis Estadísticas', href: ROUTES.professorAnalytics, icon: Landmark },
+  { label: 'Exportar Proyectos', href: ROUTES.export, icon: Download },
 ]

@@ -5,6 +5,8 @@ import AdminLayout from '@/layouts/AdminLayout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { exportProjects } from '@/api/export'
+import { useAuth } from '@/contexts/useAuth'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
@@ -18,12 +20,15 @@ function downloadBlob(blob: Blob, filename: string) {
 }
 
 export function ExportPage() {
+  const { user } = useAuth()
+  const { data: currentUserData } = useCurrentUser()
   const [isExporting, setIsExporting] = useState(false)
 
   const handleExport = async () => {
     setIsExporting(true)
     try {
-      const { blob, filename } = await exportProjects()
+      const filters = user?.role === 'PROFESSOR' && currentUserData?.id ? { professorIds: [currentUserData.id] } : undefined
+      const { blob, filename } = await exportProjects(filters)
       downloadBlob(blob, filename)
       toast.success(`Exportación creada: ${filename}`)
     } catch (error) {
@@ -34,13 +39,19 @@ export function ExportPage() {
     }
   }
 
+  const isProfessor = user?.role === 'PROFESSOR'
+  const title = isProfessor ? 'Exportar Mis Proyectos' : 'Exportar Proyectos'
+  const description = isProfessor 
+    ? 'Descarga tus proyectos en formato CSV para análisis y reportes.'
+    : 'Descarga todos los proyectos en formato CSV para análisis y reportes.'
+
   return (
     <AdminLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold">Exportar Proyectos</h1>
+          <h1 className="text-2xl font-semibold">{title}</h1>
           <p className="text-sm text-muted-foreground">
-            Descarga todos los proyectos en formato CSV para análisis y reportes.
+            {description}
           </p>
         </div>
 
@@ -51,7 +62,9 @@ export function ExportPage() {
               Exportar a CSV
             </CardTitle>
             <CardDescription>
-              Genera un archivo CSV con todos los proyectos. Incluye títulos, fechas, carreras, dominios, etiquetas, participantes (por rol) y recursos.
+              {isProfessor 
+                ? 'Genera un archivo CSV con todos tus proyectos. Incluye títulos, fechas, carreras, dominios, etiquetas, participantes (por rol) y recursos.'
+                : 'Genera un archivo CSV con todos los proyectos. Incluye títulos, fechas, carreras, dominios, etiquetas, participantes (por rol) y recursos.'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -74,7 +87,7 @@ export function ExportPage() {
                 <li><strong>resources:</strong> Recursos en formato JSON</li>
               </ul>
             </div>
-            <Button onClick={handleExport} disabled={isExporting} size="lg" className="w-full">
+            <Button onClick={handleExport} disabled={isExporting || (isProfessor && !currentUserData?.id)} size="lg" className="w-full">
               {isExporting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

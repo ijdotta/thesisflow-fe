@@ -83,7 +83,7 @@ const adminRoutes: RoleRoute[] = [
   {
     path: ROUTES.export,
     element: <ExportPage />,
-    allowedRoles: ['ADMIN'],
+    allowedRoles: ['ADMIN', 'PROFESSOR'],
     label: 'Export',
   },
   {
