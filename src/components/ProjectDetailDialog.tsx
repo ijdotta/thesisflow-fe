@@ -4,6 +4,7 @@ import { Separator } from '@/components/ui/separator'
 import type { ProjectResponse } from '@/types/ProjectResponse'
 import { getRoleDisplayName, sortParticipants } from '@/utils/roleMapper'
 import { ProjectResourcesPanel } from '@/components/ProjectResourcesPanel'
+import { formatToLocaleDateString, getYear } from '@/lib/dateUtils'
 
 interface ProjectDetailDialogProps {
   project: ProjectResponse | null
@@ -32,7 +33,7 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
                 <span className="text-sm text-muted-foreground">{project.career.name}</span>
                 {project.initialSubmission && (
                   <span className="text-sm text-muted-foreground">
-                    • {new Date(project.initialSubmission).getFullYear()}
+                    • {getYear(project.initialSubmission)}
                   </span>
                 )}
               </div>
@@ -84,11 +85,11 @@ export function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDeta
               <div className="space-y-1 text-sm">
                 <div>
                   <span className="font-medium">Consejo:</span>{' '}
-                  {new Date(project.initialSubmission).toLocaleDateString('es-ES')}
+                  {formatToLocaleDateString(project.initialSubmission)}
                 </div>
                 <div>
                   <span className="font-medium">Finalización:</span>{' '}
-                  {project.completion ? new Date(project.completion).toLocaleDateString('es-ES') : <span className="italic text-amber-600">pendiente</span>}
+                  {project.completion ? formatToLocaleDateString(project.completion) : <span className="italic text-amber-600">pendiente</span>}
                 </div>
               </div>
             </div>
