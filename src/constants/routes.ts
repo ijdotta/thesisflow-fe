@@ -13,4 +13,5 @@ export const ROUTES = {
   tags: '/admin/tags',
   backup: '/admin/backup',
   importData: '/admin/import-data',
+  export: '/admin/export',
 }

@@ -9,6 +9,7 @@ import { ApplicationDomainsPage } from '@/pages/ApplicationDomainsPage'
 import { TagsPage } from '@/pages/TagsPage'
 import { BackupPage } from '@/pages/BackupPage'
 import { ImportDataPage } from '@/pages/ImportDataPage'
+import { ExportPage } from '@/pages/ExportPage'
 import { ProfessorAnalyticsPage } from '@/pages/ProfessorAnalyticsPage'
 import { NotFoundPage, ForbiddenPage, ServerErrorPage } from '@/pages/ErrorPages'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -78,6 +79,12 @@ const adminRoutes: RoleRoute[] = [
     element: <BackupPage />,
     allowedRoles: ['ADMIN'],
     label: 'Backup',
+  },
+  {
+    path: ROUTES.export,
+    element: <ExportPage />,
+    allowedRoles: ['ADMIN'],
+    label: 'Export',
   },
   {
     path: ROUTES.importData,
