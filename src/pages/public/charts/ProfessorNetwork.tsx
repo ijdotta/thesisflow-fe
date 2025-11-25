@@ -211,8 +211,8 @@ export function ProfessorNetwork() {
           El tamaño de los nodos representa la cantidad de proyectos. El ancho de las líneas representa la cantidad de colaboraciones.
         </p>
       </CardHeader>
-      <CardContent>
-        <div ref={networkRef} style={{ width: '100%', height: '500px', border: '1px solid #e5e7eb' }} />
+      <CardContent className="overflow-x-auto">
+        <div ref={networkRef} style={{ width: '100%', minWidth: '600px', height: '500px', border: '1px solid #e5e7eb' }} />
       </CardContent>
     </Card>
   )

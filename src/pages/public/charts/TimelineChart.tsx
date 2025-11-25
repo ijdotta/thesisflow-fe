@@ -86,8 +86,9 @@ export function TimelineChart() {
         <CardHeader>
           <CardTitle>Tesis por Profesor (Barras por Año)</CardTitle>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={window.innerWidth < 768 ? 300 : 400}>
+      <CardContent className="overflow-x-auto">
+        <div style={{ width: '100%', minWidth: '600px' }}>
+          <ResponsiveContainer width="100%" height={window.innerWidth < 768 ? 300 : 400}>
           <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="year" />
@@ -116,6 +117,7 @@ export function TimelineChart() {
             ))}
           </BarChart>
         </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   )

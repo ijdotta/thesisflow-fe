@@ -63,8 +63,8 @@ export function TopicsHeatmap() {
       <CardHeader>
         <CardTitle>Popularidad de Temas (Mapa de Calor)</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div style={{ width: '100%', height: '600px' }}>
+      <CardContent className="overflow-x-auto">
+        <div style={{ width: '100%', minWidth: '700px', height: '600px' }}>
           <ResponsiveHeatMap
             data={nivoData}
             margin={{ top: 40, right: 40, bottom: 150, left: 200 }}
