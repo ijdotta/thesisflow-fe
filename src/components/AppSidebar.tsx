@@ -80,13 +80,15 @@ export function AppSidebar({ items = [], utilItems = [] }: AppSidebarProps) {
                   <div className="text-xs text-gray-500 truncate">{currentUserData?.email || currentUserData?.username}</div>
                 </div>
                 <div className="flex gap-1">
-                  <button
-                    onClick={() => setPasswordResetOpen(true)}
-                    title="Cambiar contraseña"
-                    className="p-1 hover:bg-gray-200 rounded"
-                  >
-                    <Key className="h-4 w-4" />
-                  </button>
+                  {user?.role === 'ADMIN' && (
+                    <button
+                      onClick={() => setPasswordResetOpen(true)}
+                      title="Cambiar contraseña"
+                      className="p-1 hover:bg-gray-200 rounded"
+                    >
+                      <Key className="h-4 w-4" />
+                    </button>
+                  )}
                   <button
                     onClick={handleLogout}
                     title="Logout"
