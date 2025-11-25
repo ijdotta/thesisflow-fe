@@ -19,9 +19,9 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
 ];
 
 export const SIDEBAR_UTIL_ITEMS: SidebarItem[] = [
+  { label: 'Import Data', href: ROUTES.importData, icon: UploadCloud },
   { label: 'Export Data', href: ROUTES.export, icon: Download },
   { label: 'Backup', href: ROUTES.backup, icon: Database },
-  { label: 'Import Data', href: ROUTES.importData, icon: UploadCloud },
 ];
 
 export const PROFESSOR_SIDEBAR_ITEMS: SidebarItem[] = [
