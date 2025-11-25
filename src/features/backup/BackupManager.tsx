@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Download, UploadCloud, ShieldAlert, Loader2, CheckCircle2, AlertTriangle, FileWarning, Lock, RefreshCw } from 'lucide-react'
+import { Download, UploadCloud, ShieldAlert, Loader2, CheckCircle2, AlertTriangle, FileWarning, Lock, RefreshCw, FileText } from 'lucide-react'
 import type { AxiosError } from 'axios'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { createBackup, restoreBackup, formatTimestamp } from '@/api/backup'
+import { exportProjects } from '@/api/export'
 
 type RestoreStep =
   | 'idle'
@@ -126,6 +127,7 @@ function formatBytes(bytes: number): string {
 
 export function BackupManager() {
   const [isCreatingBackup, setIsCreatingBackup] = useState(false)
+  const [isExportingProjects, setIsExportingProjects] = useState(false)
   const [restoreStep, setRestoreStep] = useState<RestoreStep>('idle')
   const [restoreError, setRestoreError] = useState<string | null>(null)
 
@@ -169,6 +171,20 @@ export function BackupManager() {
       toast.error(message)
     } finally {
       setIsCreatingBackup(false)
+    }
+  }, [])
+
+  const handleExportProjects = useCallback(async () => {
+    setIsExportingProjects(true)
+    try {
+      const { blob, filename } = await exportProjects()
+      downloadBlob(blob, filename)
+      toast.success(`Exportación creada: ${filename}`)
+    } catch (error) {
+      const message = extractErrorMessage(error, 'No se pudo exportar los proyectos.')
+      toast.error(message)
+    } finally {
+      setIsExportingProjects(false)
     }
   }, [])
 
@@ -598,6 +614,36 @@ export function BackupManager() {
               <>
                 <Download className="mr-2 h-4 w-4" />
                 Crear backup
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-green-600" />
+            Exportar proyectos
+          </CardTitle>
+          <CardDescription>
+            Genera un archivo CSV con todos los proyectos. Ideal para análisis y reportes en Excel u otras herramientas.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm text-muted-foreground max-w-xl">
+            El archivo incluye: títulos, fechas, carreras, dominios, etiquetas, participantes (por rol) y recursos.
+          </div>
+          <Button onClick={handleExportProjects} disabled={isExportingProjects} className="bg-green-600 hover:bg-green-700">
+            {isExportingProjects ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Exportando…
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Exportar CSV
               </>
             )}
           </Button>
