@@ -12,7 +12,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <SidebarProvider>
       <AppSidebar items={navItems} utilItems={utilItems} />
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 sm:p-6 md:p-8">
         <SidebarTrigger />
         {children}
       </main>

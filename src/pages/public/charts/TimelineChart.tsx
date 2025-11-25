@@ -86,9 +86,9 @@ export function TimelineChart() {
         <CardHeader>
           <CardTitle>Tesis por Profesor (Barras por Año)</CardTitle>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={window.innerWidth < 768 ? 300 : 400}>
-          <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+      <CardContent className="overflow-x-auto">
+        <ResponsiveContainer width={Math.max(2000, window.innerWidth - 100)} height={2000}>
+          <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 80 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="year" />
             <YAxis allowDecimals={false} />
@@ -100,7 +100,14 @@ export function TimelineChart() {
               contentStyle={{ position: 'relative', zIndex: 1000 }}
               wrapperStyle={{ outline: 'none', zIndex: 1000 }}
             />
-            <Legend wrapperStyle={{ paddingTop: '20px' }} />
+            <Legend 
+              wrapperStyle={{ 
+                paddingTop: '20px',
+                fontSize: window.innerWidth < 768 ? '11px' : '12px',
+                overflowWrap: 'break-word'
+              }} 
+              layout={window.innerWidth < 768 ? 'vertical' : 'horizontal'}
+            />
             {Array.from(professors.entries())
               .sort((a, b) => a[1].localeCompare(b[1]))
               .map(([profId, profName], index) => (

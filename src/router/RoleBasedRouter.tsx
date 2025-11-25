@@ -9,6 +9,8 @@ import { ApplicationDomainsPage } from '@/pages/ApplicationDomainsPage'
 import { TagsPage } from '@/pages/TagsPage'
 import { BackupPage } from '@/pages/BackupPage'
 import { ImportDataPage } from '@/pages/ImportDataPage'
+import { ExportPage } from '@/pages/ExportPage'
+import { ProfessorAnalyticsPage } from '@/pages/ProfessorAnalyticsPage'
 import { NotFoundPage, ForbiddenPage, ServerErrorPage } from '@/pages/ErrorPages'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import type { Role } from '@/types/Auth'
@@ -29,6 +31,12 @@ const adminRoutes: RoleRoute[] = [
     element: <ProjectsPage />,
     allowedRoles: ['ADMIN', 'PROFESSOR'],
     label: 'Projects',
+  },
+  {
+    path: ROUTES.professorAnalytics,
+    element: <ProfessorAnalyticsPage />,
+    allowedRoles: ['PROFESSOR'],
+    label: 'Analytics',
   },
   {
     path: ROUTES.people,
@@ -71,6 +79,12 @@ const adminRoutes: RoleRoute[] = [
     element: <BackupPage />,
     allowedRoles: ['ADMIN'],
     label: 'Backup',
+  },
+  {
+    path: ROUTES.export,
+    element: <ExportPage />,
+    allowedRoles: ['ADMIN', 'PROFESSOR'],
+    label: 'Export',
   },
   {
     path: ROUTES.importData,

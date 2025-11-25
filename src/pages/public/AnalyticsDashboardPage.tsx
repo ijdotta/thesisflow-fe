@@ -22,17 +22,17 @@ function AnalyticsDashboardContent() {
       {/* Main Content */}
       <div className="lg:col-span-3 space-y-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
-            <TabsTrigger value="timeline" className="text-xs lg:text-sm">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 bg-white rounded-lg border border-slate-200 shadow-sm p-4">
+            <TabsTrigger value="timeline" className="text-xs sm:text-sm">
               Barras por Año
             </TabsTrigger>
-            <TabsTrigger value="heatmap" className="text-xs lg:text-sm">
+            <TabsTrigger value="heatmap" className="text-xs sm:text-sm">
               Mapa de Calor
             </TabsTrigger>
-            <TabsTrigger value="network" className="text-xs lg:text-sm">
+            <TabsTrigger value="network" className="text-xs sm:text-sm">
               Red
             </TabsTrigger>
-            <TabsTrigger value="stats" className="text-xs lg:text-sm">
+            <TabsTrigger value="stats" className="text-xs sm:text-sm">
               Estadísticas
             </TabsTrigger>
           </TabsList>

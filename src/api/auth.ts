@@ -6,6 +6,9 @@ import type {
   RequestMagicLinkResponse,
   VerifyMagicLinkRequest,
   ProfessorMagicLinkVerifyResponse,
+  PasswordResetRequest,
+  PasswordResetResponse,
+  CurrentUserResponse,
 } from '@/types/Auth'
 
 export const authApi = {
@@ -29,6 +32,14 @@ export const authApi = {
       '/auth/professor/verify-login-link',
       payload
     )
+    return response.data
+  },
+  resetPassword: async (payload: PasswordResetRequest): Promise<PasswordResetResponse> => {
+    const response = await api.post<PasswordResetResponse>('/auth/reset-password', payload)
+    return response.data
+  },
+  getCurrentUser: async (): Promise<CurrentUserResponse> => {
+    const response = await api.get<CurrentUserResponse>('/auth/me')
     return response.data
   },
 }

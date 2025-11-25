@@ -4,6 +4,7 @@ export const ROUTES = {
   professorVerify: '/professor-login/verify',
   projects: '/admin/projects',
   professorProjects: '/admin/projects',
+  professorAnalytics: '/admin/analytics',
   people: '/admin/people',
   professors: '/admin/professors',
   students: '/admin/students',
@@ -12,4 +13,5 @@ export const ROUTES = {
   tags: '/admin/tags',
   backup: '/admin/backup',
   importData: '/admin/import-data',
+  export: '/admin/export',
 }

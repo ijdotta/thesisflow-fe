@@ -31,6 +31,24 @@ export interface ProfessorMagicLinkVerifyResponse {
   redirectUrl?: string
 }
 
+export interface PasswordResetRequest {
+  currentPassword: string
+  newPassword: string
+}
+
+export interface PasswordResetResponse {
+  success: boolean
+  message: string
+}
+
+export interface CurrentUserResponse {
+  id: string
+  username: string
+  role: string
+  name: string
+  email?: string
+}
+
 export interface AuthUser {
   userId: string
   role: UserRole
