@@ -11,6 +11,7 @@ import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { ProjectDetailDialog } from '@/components/ProjectDetailDialog'
 import { getRoleDisplayName, sortParticipants } from '@/utils/roleMapper'
 import type { ProjectResponse } from '@/types/ProjectResponse'
+import { formatToLocaleDateString, getYear } from '@/lib/dateUtils'
 
 export function BrowseProjectsPage() {
   const { filters } = useAnalyticsFilters()
@@ -88,7 +89,7 @@ export function BrowseProjectsPage() {
                       {project.initialSubmission && (
                         <>
                           <span>•</span>
-                          <span>{new Date(project.initialSubmission).getFullYear()}</span>
+                          <span>{getYear(project.initialSubmission)}</span>
                         </>
                       )}
                     </div>
@@ -147,10 +148,10 @@ export function BrowseProjectsPage() {
                   {/* Dates */}
                   <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
                     <div>
-                      <span className="font-medium">Consejo:</span> {new Date(project.initialSubmission).toLocaleDateString('es-ES')}
+                      <span className="font-medium">Consejo:</span> {formatToLocaleDateString(project.initialSubmission)}
                     </div>
                     <div>
-                      <span className="font-medium">Finalización:</span> {project.completion ? new Date(project.completion).toLocaleDateString('es-ES') : <span className="italic text-amber-600">pendiente</span>}
+                      <span className="font-medium">Finalización:</span> {project.completion ? formatToLocaleDateString(project.completion) : <span className="italic text-amber-600">pendiente</span>}
                     </div>
                   </div>
                 </CardContent>
