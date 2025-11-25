@@ -160,9 +160,9 @@ export function BrowseProjectsPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                Página {page + 1} de {totalPages} • Total: {data.totalElements} proyectos
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Página {page + 1} de {totalPages} • Total: {data.totalElements}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -170,17 +170,19 @@ export function BrowseProjectsPage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.max(0, p - 1))}
                   disabled={page === 0}
+                  className="text-xs sm:text-sm"
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Anterior
+                  <span className="hidden sm:inline">Anterior</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                   disabled={page === totalPages - 1}
+                  className="text-xs sm:text-sm"
                 >
-                  Siguiente
+                  <span className="hidden sm:inline">Siguiente</span>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>

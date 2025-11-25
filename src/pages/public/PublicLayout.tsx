@@ -1,13 +1,15 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { BarChart3, Folder, LogIn, LogOut, UserCircle2 } from 'lucide-react'
+import { BarChart3, Folder, LogIn, LogOut, UserCircle2, Menu, X } from 'lucide-react'
 import { useAuth } from '@/contexts/useAuth'
 import { ROUTES } from '@/constants/routes'
+import { useState } from 'react'
 
 export function PublicLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
   const navigate = useNavigate()
   const { logout, user } = useAuth()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const isOnProjects = location.pathname === '/projects'
   const isOnAnalytics = location.pathname === '/analytics'
@@ -15,9 +17,15 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
   const handleLogout = () => {
     logout()
     navigate('/')
+    setMenuOpen(false)
   }
 
   const dashboardPath = user?.role === 'PROFESSOR' ? ROUTES.professorProjects : ROUTES.projects
+
+  const handleNavClick = (path: string) => {
+    navigate(path)
+    setMenuOpen(false)
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -25,21 +33,20 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link to="/" className="text-xl font-bold text-blue-600">
+            <Link to="/" className="text-lg sm:text-xl font-bold text-blue-600 truncate">
               ThesisFlow
             </Link>
 
-            {/* Navigation */}
-            <nav className="flex items-center gap-1 sm:gap-2">
+            {/* Desktop Navigation */}
+            <nav className="hidden sm:flex items-center gap-2">
               <Button
                 variant={isOnProjects ? 'default' : 'ghost'}
                 size="sm"
                 asChild
-                className="flex items-center gap-2"
               >
-                <Link to="/projects" title="Proyectos">
-                  <Folder className="h-4 w-4" />
-                  <span className="hidden sm:inline">Proyectos</span>
+                <Link to="/projects">
+                  <Folder className="h-4 w-4 mr-2" />
+                  Proyectos
                 </Link>
               </Button>
 
@@ -47,64 +54,129 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                 variant={isOnAnalytics ? 'default' : 'ghost'}
                 size="sm"
                 asChild
-                className="flex items-center gap-2"
               >
-                <Link to="/analytics" title="Análisis">
-                  <BarChart3 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Análisis</span>
+                <Link to="/analytics">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Análisis
                 </Link>
               </Button>
 
-              <div className="ml-2 sm:ml-4 border-l border-slate-200 pl-2 sm:pl-4">
+              <div className="ml-4 border-l border-slate-200 pl-4">
                 {!user ? (
                   <Button
                     onClick={() => navigate('/login')}
                     size="sm"
-                    className="flex items-center gap-2"
-                    title="Iniciar Sesión"
                   >
-                    <LogIn className="h-4 w-4" />
-                    <span className="hidden sm:inline">Iniciar Sesión</span>
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Iniciar Sesión
                   </Button>
                 ) : (
-                  <div className="flex items-center gap-1 sm:gap-2">
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex items-center gap-2"
                       onClick={() => navigate(dashboardPath)}
-                      title={user.role === 'PROFESSOR' ? 'Ver mis proyectos' : 'Panel administrador'}
                     >
-                      <UserCircle2 className="h-4 w-4" />
-                      <span className="hidden sm:inline">
-                        {user.role === 'PROFESSOR' ? 'Ver mis proyectos' : 'Panel'}
-                      </span>
+                      <UserCircle2 className="h-4 w-4 mr-2" />
+                      {user.role === 'PROFESSOR' ? 'Ver mis proyectos' : 'Panel'}
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="flex items-center gap-2"
                       onClick={handleLogout}
-                      title="Cerrar sesión"
                     >
-                      <LogOut className="h-4 w-4" />
-                      <span className="hidden sm:inline">Cerrar sesión</span>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Cerrar sesión
                     </Button>
                   </div>
                 )}
               </div>
             </nav>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="sm:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              aria-label="Menú"
+            >
+              {menuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
           </div>
+
+          {/* Mobile Menu */}
+          {menuOpen && (
+            <div className="sm:hidden pb-4 space-y-2 border-t border-slate-200">
+              <Button
+                variant={isOnProjects ? 'default' : 'ghost'}
+                size="sm"
+                className="w-full justify-start"
+                onClick={() => handleNavClick('/projects')}
+              >
+                <Folder className="h-4 w-4 mr-2" />
+                Proyectos
+              </Button>
+
+              <Button
+                variant={isOnAnalytics ? 'default' : 'ghost'}
+                size="sm"
+                className="w-full justify-start"
+                onClick={() => handleNavClick('/analytics')}
+              >
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Análisis
+              </Button>
+
+              <div className="border-t border-slate-200 pt-2">
+                {!user ? (
+                  <Button
+                    onClick={() => handleNavClick('/login')}
+                    size="sm"
+                    className="w-full justify-start"
+                  >
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Iniciar Sesión
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={() => handleNavClick(dashboardPath)}
+                    >
+                      <UserCircle2 className="h-4 w-4 mr-2" />
+                      {user.role === 'PROFESSOR' ? 'Ver mis proyectos' : 'Panel'}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-red-600 hover:text-red-700"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Cerrar sesión
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 overflow-x-hidden">
+        {children}
+      </main>
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid md:grid-cols-3 gap-8 mb-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-6">
             {/* Logo */}
             <div className="flex flex-col items-center justify-center md:items-start">
               <a href="https://cs.uns.edu.ar" target="_blank" rel="noopener noreferrer">
