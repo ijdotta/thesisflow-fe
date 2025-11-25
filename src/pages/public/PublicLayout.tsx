@@ -30,16 +30,16 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             </Link>
 
             {/* Navigation */}
-            <nav className="flex items-center gap-2">
+            <nav className="flex items-center gap-1 sm:gap-2">
               <Button
                 variant={isOnProjects ? 'default' : 'ghost'}
                 size="sm"
                 asChild
                 className="flex items-center gap-2"
               >
-                <Link to="/projects">
+                <Link to="/projects" title="Proyectos">
                   <Folder className="h-4 w-4" />
-                  Proyectos
+                  <span className="hidden sm:inline">Proyectos</span>
                 </Link>
               </Button>
 
@@ -49,41 +49,46 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                 asChild
                 className="flex items-center gap-2"
               >
-                <Link to="/analytics">
+                <Link to="/analytics" title="Análisis">
                   <BarChart3 className="h-4 w-4" />
-                  Análisis
+                  <span className="hidden sm:inline">Análisis</span>
                 </Link>
               </Button>
 
-              <div className="ml-4 border-l border-slate-200 pl-4">
+              <div className="ml-2 sm:ml-4 border-l border-slate-200 pl-2 sm:pl-4">
                 {!user ? (
                   <Button
                     onClick={() => navigate('/login')}
                     size="sm"
                     className="flex items-center gap-2"
+                    title="Iniciar Sesión"
                   >
                     <LogIn className="h-4 w-4" />
-                    Iniciar Sesión
+                    <span className="hidden sm:inline">Iniciar Sesión</span>
                   </Button>
                 ) : (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       className="flex items-center gap-2"
                       onClick={() => navigate(dashboardPath)}
+                      title={user.role === 'PROFESSOR' ? 'Ver mis proyectos' : 'Panel administrador'}
                     >
                       <UserCircle2 className="h-4 w-4" />
-                      {user.role === 'PROFESSOR' ? 'Ver mis proyectos' : 'Panel administrador'}
+                      <span className="hidden sm:inline">
+                        {user.role === 'PROFESSOR' ? 'Ver mis proyectos' : 'Panel'}
+                      </span>
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       className="flex items-center gap-2"
                       onClick={handleLogout}
+                      title="Cerrar sesión"
                     >
                       <LogOut className="h-4 w-4" />
-                      Cerrar sesión
+                      <span className="hidden sm:inline">Cerrar sesión</span>
                     </Button>
                   </div>
                 )}
