@@ -10,6 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ProjectViewSheet } from '@/components/ProjectViewSheet';
 import { ProjectTagsSheet } from '@/components/ProjectTagsSheet';
 import { ProjectCompletionSheet } from '@/components/ProjectCompletionSheet';
+import { formatToLocaleDateString } from '@/lib/dateUtils';
 
 const TYPE_LABELS: Record<string,string> = { THESIS: 'Tesis', FINAL_PROJECT: 'Proyecto Final' };
 const SUBTYPE_LABELS: Record<string,string> = { 
@@ -186,7 +187,7 @@ export default function ProjectsTable() {
 		{
 			id: "submissionDate",
 			header: "Fecha de Presentación",
-			accessor: (row) => row.completion ? new Date(row.completion).toLocaleDateString('es-ES') : '—',
+			accessor: (row) => row.completion ? formatToLocaleDateString(row.completion) : '—',
 			sortField: "completion",
 			className: "whitespace-nowrap text-sm",
 		},
