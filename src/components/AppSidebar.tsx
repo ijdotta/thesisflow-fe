@@ -16,12 +16,14 @@ import { LogOut, Key } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useState } from "react"
 import { PasswordResetDialog } from "@/components/PasswordResetDialog"
+import { useCurrentUser } from "@/hooks/useCurrentUser"
 
 interface AppSidebarProps { items: SidebarItem[]; utilItems?: SidebarItem[] }
 export function AppSidebar({ items = [], utilItems = [] }: AppSidebarProps) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [passwordResetOpen, setPasswordResetOpen] = useState(false)
+  const { data: currentUserData } = useCurrentUser()
 
   const handleLogout = () => {
     logout()
@@ -73,9 +75,9 @@ export function AppSidebar({ items = [], utilItems = [] }: AppSidebarProps) {
           <SidebarMenu>
             <SidebarMenuItem>
               <div className="flex items-center justify-between px-2 py-2 text-sm text-gray-700">
-                <div>
-                  <div className="font-medium">{user?.role || 'User'}</div>
-                  <div className="text-xs text-gray-500">{user?.userId.substring(0, 8)}...</div>
+                <div className="flex-1">
+                  <div className="font-medium truncate">{currentUserData?.name || user?.role || 'User'}</div>
+                  <div className="text-xs text-gray-500 truncate">{currentUserData?.email || currentUserData?.username}</div>
                 </div>
                 <div className="flex gap-1">
                   <button

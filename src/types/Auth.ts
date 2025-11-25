@@ -41,6 +41,14 @@ export interface PasswordResetResponse {
   message: string
 }
 
+export interface CurrentUserResponse {
+  id: string
+  username: string
+  role: string
+  name: string
+  email?: string
+}
+
 export interface AuthUser {
   userId: string
   role: UserRole
