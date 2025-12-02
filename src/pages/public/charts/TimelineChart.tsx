@@ -1,12 +1,42 @@
 import { useQuery } from '@tanstack/react-query'
 import { publicAPI } from '@/api/publicApi'
 import { useAnalyticsFilters } from '@/pages/public/AnalyticsContext'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface ChartData {
   year: number
   [professorId: string]: number | string
+}
+
+interface CustomTooltipProps {
+  active?: boolean
+  payload?: Array<{
+    name: string
+    value: number
+    dataKey: string
+  }>
+  professors: Map<string, string>
+}
+
+function CustomTooltip({ active, payload, professors }: CustomTooltipProps) {
+  if (!active || !payload) return null
+  
+  const sorted = [...payload].sort((a, b) => (b.value as number) - (a.value as number))
+  
+  return (
+    <div className="bg-background border border-border rounded-md shadow-md p-2">
+      {sorted.map((entry) => (
+        <div key={entry.dataKey} className="text-xs">
+          <span style={{ color: entry.color || '#000' }}>●</span>
+          {' '}
+          <span className="font-medium">{professors.get(entry.dataKey) ?? entry.dataKey}:</span>
+          {' '}
+          <span>{entry.value}</span>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 export function TimelineChart() {
@@ -81,47 +111,52 @@ export function TimelineChart() {
     '#6366f1',
   ]
 
+  const isMobile = window.innerWidth < 768
+  const professorCount = professors.size
+  const shouldShowLegend = professorCount <= 5
+
   return (
     <Card>
         <CardHeader>
           <CardTitle>Tesis por Profesor (Barras por Año)</CardTitle>
       </CardHeader>
-      <CardContent className="overflow-x-auto">
-        <ResponsiveContainer width={Math.max(600, window.innerWidth - 100)} height={600}>
-          <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 80 }}>
+      <CardContent className={isMobile ? "overflow-x-auto" : "overflow-hidden"}>
+        <ResponsiveContainer width="100%" height={600}>
+          <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 80 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="year" />
             <YAxis allowDecimals={false} />
             <Tooltip
-              formatter={(value, name) => [
-                value as number,
-                professors.get(name as string) ?? (name as string),
-              ]}
+              content={<CustomTooltip professors={professors} />}
               contentStyle={{ position: 'relative', zIndex: 1000 }}
               wrapperStyle={{ outline: 'none', zIndex: 1000 }}
             />
-            <Legend 
-              wrapperStyle={{ 
-                paddingTop: '20px',
-                fontSize: window.innerWidth < 768 ? '11px' : '12px',
-                overflowWrap: 'break-word'
-              }} 
-              layout={window.innerWidth < 768 ? 'vertical' : 'horizontal'}
-            />
+            {shouldShowLegend && (
+              <Legend 
+                wrapperStyle={{ 
+                  paddingTop: '20px',
+                  fontSize: window.innerWidth < 768 ? '11px' : '12px',
+                  overflowWrap: 'break-word'
+                }} 
+                layout={window.innerWidth < 768 ? 'vertical' : 'horizontal'}
+              />
+            )}
             {Array.from(professors.entries())
               .sort((a, b) => a[1].localeCompare(b[1]))
               .map(([profId, profName], index) => (
-              <Bar
+              <Line
                 key={profId}
+                type="monotone"
                 dataKey={profId}
                 name={profName}
-                fill={colors[index % colors.length]}
-                barSize={24}
-                radius={[4, 4, 0, 0]}
+                stroke={colors[index % colors.length]}
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
                 isAnimationActive={false}
               />
             ))}
-          </BarChart>
+          </LineChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { AnalyticsFilters } from '@/pages/public/filters/AnalyticsFilters'
 import { TimelineChart } from '@/pages/public/charts/TimelineChart'
 import { TopicsHeatmap } from '@/pages/public/charts/TopicsHeatmap'
@@ -12,6 +13,13 @@ import { AnalyticsProvider } from '@/pages/public/AnalyticsContext'
 function AnalyticsDashboardContent() {
   const [activeTab, setActiveTab] = useState('timeline')
 
+  const tabOptions = [
+    { value: 'timeline', label: 'Barras por Año' },
+    { value: 'heatmap', label: 'Mapa de Calor' },
+    { value: 'network', label: 'Red' },
+    { value: 'stats', label: 'Estadísticas' },
+  ]
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Sidebar Filters */}
@@ -21,8 +29,25 @@ function AnalyticsDashboardContent() {
 
       {/* Main Content */}
       <div className="lg:col-span-3 space-y-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 bg-white rounded-lg border border-slate-200 shadow-sm p-4">
+        {/* Mobile Dropdown */}
+        <div className="lg:hidden">
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {tabOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Desktop Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="hidden lg:block w-full">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="timeline" className="text-xs sm:text-sm">
               Barras por Año
             </TabsTrigger>
@@ -36,27 +61,21 @@ function AnalyticsDashboardContent() {
               Estadísticas
             </TabsTrigger>
           </TabsList>
+        </Tabs>
 
-          <TabsContent value="timeline" className="mt-6">
-            <TimelineChart />
-          </TabsContent>
-
-          <TabsContent value="heatmap" className="mt-6">
-            <TopicsHeatmap />
-          </TabsContent>
-
-          <TabsContent value="network" className="mt-6">
-            <ProfessorNetwork />
-          </TabsContent>
-
-          <TabsContent value="stats" className="mt-6">
+        {/* Content */}
+        <div>
+          {activeTab === 'timeline' && <TimelineChart />}
+          {activeTab === 'heatmap' && <TopicsHeatmap />}
+          {activeTab === 'network' && <ProfessorNetwork />}
+          {activeTab === 'stats' && (
             <div className="space-y-6">
               <DashboardStats />
               <ProjectTypeStats />
               <StatsTable />
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
     </div>
   )
